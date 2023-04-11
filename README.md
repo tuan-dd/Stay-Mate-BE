@@ -1,5 +1,3 @@
-echo "# Stay-Mate" >> README.md
-
 # Stay Mate
 
 <h1 align="center">Hi 👋, I'm Huynh Van Anh Tuan</h1>
@@ -34,29 +32,29 @@ Overall, Web book hotel represents a significant leap forward in travel booking 
 
 ### Authentication
 
--  [ ] as a user, I can register for a new account with name, email, and password, gmail ,faceBook
--  [ ] As a user, I can sign in with my email and password.
--  [ ] As a user, I can get new password when forget by link send user mail
+- [ ] as a user, I can register for a new account with name, email, and password, gmail ,faceBook
+- [ ] As a user, I can sign in with my email and password.
+- [ ] As a user, I can get new password when forget by link send user mail
 
 ### Users
 
--  [ ] as user two type : tenant/hotelier
+- [ ] as user two type : tenant/hotelier
 
 `tenant`
 
--  [ ] As a user, I can see profile of a specific given a user ID.
--  [ ] As a user, can update profile password, name ,faceBook,avatar,charge money,history,...
--  [ ] As a user, can have see history books status : decline,success,stayed,pending(`limit time`)
--  [ ] As a user, can recall book,
--  [ ] As a user, book hotel , see all hotel ,payment
--  [ ] As a user, accumulate points to decrease fee (example : 1 point to 1k , 10k to 1 point)
--  [ ] As a user, can review(1 2 3 4 5 star) ,upload image(max 2 img, 1 video (10mb)) video , comment when user stayed hotel (status : success)
+- [ ] As a user, I can see profile of a specific given a user ID.
+- [ ] As a user, can update profile password, name ,faceBook,avatar,charge money,history,...
+- [ ] As a user, can have see history books status : decline,success,stayed,pending(`limit time`)
+- [ ] As a user, can recall book,
+- [ ] As a user, book hotel , see all hotel ,payment
+- [ ] As a user, accumulate points to decrease fee (example : 1 point to 1k , 10k to 1 point)
+- [ ] As a user, can review(1 2 3 4 5 star) ,upload image(max 2 img, 1 video (10mb)) video , comment when user stayed hotel (status : success)
 
 `hotelier`
 
--  [ ] create post one post hotel , must provide info hotel max 2 image,address,,video(fee) number of rooms, price of each room type, Utilities of each room type
--  [ ] option : fee post (year,month) , type 'basic' ,'premium' , payment
--  [ ] all features in tenant
+- [ ] create post one post hotel , must provide info hotel max 2 image,address,,video(fee) number of rooms, price of each room type, Utilities of each room type
+- [ ] option : fee post (year,month) , type 'basic' ,'premium' , payment
+- [ ] all features in tenant
 
 ### Posts
 
@@ -64,16 +62,16 @@ Overall, Web book hotel represents a significant leap forward in travel booking 
 
 `tenant`
 
--  CRUD
--  [ ] As a user, I can see a list of hotel
--  [ ] As a user, I can see a post hotel
--  [ ] As a user, I can see comment
--  [ ] As a user, I filter to see (have any room, price(gte,gle), star,location,)
--  [ ] before to see post , user must input time , location
+- CRUD
+- [ ] As a user, I can see a list of hotel
+- [ ] As a user, I can see a post hotel
+- [ ] As a user, I can see comment
+- [ ] As a user, I filter to see (have any room, price(gte,gle), star,location,)
+- [ ] before to see post , user must input time , location
 
 `hotelier`
 
--  [ ] As a user, update edit, delete , (advance: create sale off limited expiration time, limited number of times)
+- [ ] As a user, update edit, delete , (advance: create sale off limited expiration time, limited number of times)
 
 ### Comment
 
@@ -81,37 +79,37 @@ Overall, Web book hotel represents a significant leap forward in travel booking 
 
 `tenant`
 
--  [ ] As a user, I can see list of comments on post.
--  [ ] As a user, I can write comments on a post when user stayed hotel (status : stayed)
--  [ ] As a user, a comment have text image ,video start
--  [ ] As a user, I can update tenant comments.
--  [ ] As a user, I can delete tenant comments.
--  [ ] As a user, I can reply tenant comments.
+- [ ] As a user, I can see list of comments on post.
+- [ ] As a user, I can write comments on a post when user stayed hotel (status : stayed)
+- [ ] As a user, a comment have text image ,video start
+- [ ] As a user, I can update tenant comments.
+- [ ] As a user, I can delete tenant comments.
+- [ ] As a user, I can reply tenant comments.
 
 `hotelier`
 
--  [ ] All tenant
--  [ ] All reply comment in hotelier post
+- [ ] All tenant
+- [ ] All reply comment in hotelier post
 
 ### book and payment
 
--  [ ] As a user, I book hotel select type room ,time , add point
--  [ ] 4 type pending , success, stayed, decline,Cancel
--  [ ] can recall half money (advance : before 1 week refund 100%, after refund half )
--  [ ] book have status success when hotelier receiver money and tenant nhân money (when click input pass)
--  [ ] deposit withdrawal (advance)
+- [ ] As a user, I book hotel select type room ,time , add point
+- [ ] 4 type pending , success, stayed, decline,Cancel
+- [ ] can recall half money (advance : before 1 week refund 100%, after refund half )
+- [ ] book have status success when hotelier receiver money and tenant nhân money (when click input pass)
+- [ ] deposit withdrawal (advance)
 
 ### admin
 
--  [ ] block acc , delete comment ,(advance : alert )
--  [ ] see all chat
+- [ ] block acc , delete comment ,(advance : alert )
+- [ ] see all chat
 
 ### message
 
--  [ ] tenant can chat with support ,hotelier ,
--  [ ] hotelier support ,hotelier
--  [ ] cant select who want chat
--  [ ] advance send img
+- [ ] tenant can chat with support ,hotelier ,
+- [ ] hotelier support ,hotelier
+- [ ] cant select who want chat
+- [ ] advance send img
 
 ## Endpont APIs
 

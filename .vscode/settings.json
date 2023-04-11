@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["appenders"]
+   "cSpell.words": ["appenders"],
+   "git.ignoreLimitWarning": true,
+   "files.participants.timeout": 0,
+   "diffEditor.maxComputationTime": 0
 }
