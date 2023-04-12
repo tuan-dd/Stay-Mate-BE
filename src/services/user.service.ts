@@ -63,7 +63,7 @@ class UserService {
       { $match: { _id: new Types.ObjectId(userId) } },
       {
         $lookup: {
-          from: 'Hotels',
+          from: 'hotels',
           localField: '_id',
           foreignField: 'userId',
           as: 'hotels',
@@ -72,7 +72,7 @@ class UserService {
       { $unwind: '$hotels' },
       {
         $lookup: {
-          from: 'RoomTypes',
+          from: 'roomTypes',
           localField: 'hotels.roomTypeIds',
           foreignField: '_id',
           as: 'roomTypes',

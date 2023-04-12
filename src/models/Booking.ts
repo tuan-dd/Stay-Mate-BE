@@ -51,16 +51,16 @@ const bookingSchema = new Schema<TypeBooking>(
     userId: {
       type: SchemaTypes.ObjectId,
       required: true,
-      ref: 'Users',
+      ref: 'users',
     },
     hotelId: {
       type: SchemaTypes.ObjectId,
       required: true,
-      ref: 'Hotels',
+      ref: 'hotels',
     },
   },
   { timestamps: true },
 );
 
-const Booking = model<TypeBooking>('Books', bookingSchema);
+const Booking = model<TypeBooking>('books', bookingSchema);
 export default Booking;

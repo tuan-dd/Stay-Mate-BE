@@ -34,7 +34,7 @@ const reviewSchema = new Schema<TypeReview>({
   hotelId: {
     type: SchemaTypes.ObjectId,
     required: true,
-    ref: 'Hotels',
+    ref: 'hotels',
   },
   // TODO: naming convention (roomId)
   roomTypeIDs: [
@@ -42,7 +42,7 @@ const reviewSchema = new Schema<TypeReview>({
       type: SchemaTypes.ObjectId,
       required: true,
       min: 1,
-      ref: 'RoomTypes',
+      ref: 'roomTypes',
     },
   ],
 });

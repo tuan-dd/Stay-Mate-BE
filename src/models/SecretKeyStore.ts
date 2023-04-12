@@ -12,7 +12,7 @@ const secretKeyStoreSchema = new Schema<TypeSecretKeyStore>(
     userId: {
       type: SchemaTypes.ObjectId,
       required: true,
-      ref: 'Users',
+      ref: 'users',
     },
     secretKey: {
       type: String,
@@ -31,7 +31,7 @@ const secretKeyStoreSchema = new Schema<TypeSecretKeyStore>(
 );
 
 const SecretKeyStore = model<TypeSecretKeyStore>(
-  'KeyStores',
+  'keyStores',
   secretKeyStoreSchema,
 );
 export default SecretKeyStore;

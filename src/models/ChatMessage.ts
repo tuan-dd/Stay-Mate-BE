@@ -30,6 +30,6 @@ const chatMessageSchema = new Schema<TypeChatMessage>(
 );
 
 //Export the model
-const ChatMessage = model<TypeChatMessage>('ChatMessages', chatMessageSchema);
+const ChatMessage = model<TypeChatMessage>('chatMessages', chatMessageSchema);
 
 export default ChatMessage;

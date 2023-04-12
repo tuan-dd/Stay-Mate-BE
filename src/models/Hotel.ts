@@ -6,14 +6,11 @@ export enum PropertyType {
   HOLIDAY_PARKS = 'holiday_parks',
 }
 
-export enum TypeAccount {
+export enum Package {
+  FREE = 'FREE',
   WEEK = 'WEEK',
   MONTH = 'MONTH',
   YEAR = 'YEAR',
-}
-interface Account {
-  expires: Date;
-  TypeAccount: TypeAccount;
 }
 
 interface TypeHotel {
@@ -29,7 +26,7 @@ interface TypeHotel {
   latitude: number;
   longitude: number;
   currency: CurrencyCode;
-  account: Account;
+  package: Package;
   userId: Types.ObjectId;
   roomTypeIds: Types.ObjectId[];
 }
@@ -72,6 +69,7 @@ const hotelSchema = new Schema<TypeHotel>(
       type: Number,
       min: 1,
       max: 5,
+      required: true,
     },
     starRating: {
       type: Number,
@@ -86,7 +84,6 @@ const hotelSchema = new Schema<TypeHotel>(
     },
     longitude: {
       type: Number,
-
       min: -180,
       max: +180,
     },
@@ -94,25 +91,23 @@ const hotelSchema = new Schema<TypeHotel>(
       type: String,
       enum: Object.values(CurrencyCode),
     },
-    account: {
-      TypeAccount: {
-        type: String,
-        required: true,
-        enum: Object.values(TypeAccount),
-      },
-      expires: { type: Date, required: true },
+    package: {
+      type: String,
+      default: Package.FREE,
+      require: true,
+      enum: Object.values(Package),
     },
     roomTypeIds: [
       {
         type: SchemaTypes.ObjectId,
-        ref: 'RoomTypes',
+        ref: 'roomTypes',
         min: 1,
         required: true,
       },
     ],
     userId: {
       type: SchemaTypes.ObjectId,
-      ref: 'Users',
+      ref: 'users',
       required: true,
     },
   },
@@ -121,5 +116,5 @@ const hotelSchema = new Schema<TypeHotel>(
   },
 );
 
-const Hotel = model<TypeHotel>('Hotels', hotelSchema);
+const Hotel = model<TypeHotel>('hotels', hotelSchema);
 export default Hotel;

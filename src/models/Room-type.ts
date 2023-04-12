@@ -85,5 +85,5 @@ const roomTypeSchema = new Schema<TypeRoom>(
   { timestamps: true },
 );
 
-const RoomType = model<TypeRoom>('RoomTypes', roomTypeSchema);
+const RoomType = model<TypeRoom>('roomTypes', roomTypeSchema);
 export default RoomType;
