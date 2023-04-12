@@ -1,5 +1,5 @@
 import SecretKeyStore, { TypeSecretKeyStore } from '@/models/SecretKeyStore';
-import { AnyKeys, FilterQuery, ObjectId, QueryOptions, Types } from 'mongoose';
+import { AnyKeys, FilterQuery, AnyObject, QueryOptions, Types } from 'mongoose';
 
 class SecretKeyStoreService {
   static createStore = async (KeyStore: AnyKeys<TypeSecretKeyStore>) => {

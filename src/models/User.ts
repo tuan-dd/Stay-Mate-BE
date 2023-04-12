@@ -8,7 +8,7 @@ export enum Role {
 }
 export interface UserType {
   name: string;
-  email: string;
+  email?: string;
   password: string;
   balance?: number;
   verify?: boolean;

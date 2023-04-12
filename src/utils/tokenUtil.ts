@@ -1,12 +1,7 @@
-import { CustomRequest } from '@/middleware/validate';
 import { Role } from '@/models/User';
-import { ifError } from 'assert';
-import { error } from 'console';
 import JWT from 'jsonwebtoken';
-import { boolean } from 'yup';
 
 export interface PayLoad {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   email: string;
   role: Role;
 }

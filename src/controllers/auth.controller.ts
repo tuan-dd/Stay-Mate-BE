@@ -47,7 +47,7 @@ class AuthController {
 
     const comparePwd = await pwdUtil.getCompare(password, userDb.password);
 
-    if (!comparePwd) new NotAuthorizedError('Wrong password');
+    if (!comparePwd) new ForBidden('Wrong password');
 
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
@@ -69,8 +69,8 @@ class AuthController {
       from: '<huynh.atuan.97@gmail.com>',
       to: `${email}`,
       subject: 'Hello ✔',
-      text: `${sixCode}`,
-      html: '<b>tuan đẹp trai</b>',
+      text: ` Hello ${email} `,
+      html: `<b>${sixCode}</b>`,
     })
       .then(() =>
         new SuccessResponse({
@@ -112,7 +112,7 @@ class AuthController {
 
     if (!userDb || !userDb.isActive) throw new NotFound('User not exist');
 
-    if (email !== userDb.email) throw new NotAuthorizedError('Wrong users');
+    if (email !== userDb.email) throw new ForBidden('Wrong users');
 
     const userRedis = await client.hGetAll(userDb._id.toHexString());
 
@@ -139,7 +139,7 @@ class AuthController {
 
     if (!isValid) {
       await client.hIncrBy(userDb._id.toHexString(), 'number', -1);
-      throw new BadRequest(
+      throw new ForBidden(
         `wrong Code, you have ${parseInt(userRedis.number) - 1}`,
       );
     }
@@ -243,12 +243,12 @@ class AuthController {
     }
 
     if (refreshToken !== tokenStore.refreshToken) {
-      throw new BadRequest('Wrong refresh Token');
+      throw new ForBidden('Wrong refresh Token');
     }
     const payLoad = tokenUtil.verifyToken(refreshToken, tokenStore.secretKey);
 
     if (typeof payLoad === 'boolean')
-      throw new BadRequest('Wrong refresh Token');
+      throw new ForBidden('Wrong refresh Token');
 
     const newAccessToken = tokenUtil.createToken(
       {
