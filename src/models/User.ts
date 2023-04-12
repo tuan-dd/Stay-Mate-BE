@@ -73,5 +73,5 @@ userSchema.pre('save', async function (this, next) {
   this.password = hash;
 });
 
-const User = model<UserType>('Users', userSchema);
+const User = model<UserType>('users', userSchema);
 export default User;

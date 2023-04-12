@@ -11,24 +11,24 @@ const chatBoxSchema = new Schema<TypeBoxChat>(
     userCreateId: {
       type: SchemaTypes.ObjectId,
       required: true,
-      ref: 'Users',
+      ref: 'users',
     },
     userTwoId: {
       type: SchemaTypes.ObjectId,
       required: true,
-      ref: 'Users',
+      ref: 'users',
     },
     messageIds: [
       {
         type: SchemaTypes.ObjectId,
         required: true,
-        ref: 'ChatMessages',
+        ref: 'chatMessages',
       },
     ],
   },
   { timestamps: true },
 );
 
-const BoxChat = model<TypeBoxChat>('BoxChats', chatBoxSchema);
+const BoxChat = model<TypeBoxChat>('boxChats', chatBoxSchema);
 
 export default BoxChat;
