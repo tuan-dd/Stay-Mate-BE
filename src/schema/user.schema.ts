@@ -11,7 +11,7 @@ export const createUserSchema = Yup.object().shape({
     password: Yup.string()
       .matches(
         passwordRegExp,
-        'Password contain at least one numeric digit, one uppercase and one lowercase letter',
+        'Password contain at least one numeric digit, one uppercase and one lowercase letter,min 6 max 20',
       )
       .required(),
     avatar: Yup.string().matches(URL_REGEX, 'Must be url').notRequired(),
@@ -26,12 +26,13 @@ export const updateUserSchema = Yup.object().shape({
     newPassword: Yup.string().when('password', (password, field) =>
       password[0]
         ? field
-            .notOneOf([Yup.ref('password'), null])
-            .min(6)
-            .max(20)
             .matches(
               passwordRegExp,
-              'Password contain at least one numeric digit, one uppercase and one lowercase letter',
+              'New Password contain at least one numeric digit, one uppercase and one lowercase letter, min 6 max 20',
+            )
+            .notOneOf(
+              [Yup.ref('password'), null],
+              'New password must same password',
             )
             .required()
         : field.max(
@@ -57,13 +58,7 @@ export const updateUserSchemaByAdmin = Yup.object().shape({
 
 export const chargeSchema = Yup.object().shape({
   body: Yup.object().shape({
-    balance: Yup.number().required(),
-  }),
-});
-
-export const verifyUserSchema = Yup.object().shape({
-  body: Yup.object().shape({
-    sixCode: Yup.boolean().required(),
+    balance: Yup.number().min(1).required(),
   }),
 });
 
@@ -74,17 +69,17 @@ export const queryUserSchema = Yup.object().shape({
     role: Yup.string().oneOf(Object.values(Role)).notRequired(),
     createdAt_gte: Yup.date().max(new Date()).notRequired(),
     createdAt_lte: Yup.date().min('2023-04-06').notRequired(),
-    createdAt: Yup.date()
-      .when(['createdAt_gte', 'createdAt_lte'], {
-        is: (createdAt_gte, createdAt_lte) => createdAt_gte || createdAt_lte,
-        then: (field) =>
-          field.max(
-            0,
-            'Cant input the value because you had value createdAt_gte or createdAt_lte ',
-          ),
-      })
-      .notRequired(),
-    page: Yup.number().integer().negative().min(1).notRequired(),
+    createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {
+      is: (createdAt_gte, createdAt_lte) => createdAt_gte || createdAt_lte,
+      then: (field) =>
+        field.max(
+          0,
+          'Cant input the value because you had value createdAt_gte or createdAt_lte ',
+        ),
+      otherwise: (field) => field.notRequired(),
+    }),
+    page: Yup.number().integer().negative().min(10).notRequired(),
+    limit: Yup.number().integer().negative().min(0).notRequired(),
   }),
 });
 
@@ -94,5 +89,4 @@ export type UpdateUserSchemaByAdmin = Yup.InferType<
   typeof updateUserSchemaByAdmin
 >['body'];
 export type ChargeSchema = Yup.InferType<typeof chargeSchema>['body'];
-export type VerifyUserSchema = Yup.InferType<typeof verifyUserSchema>['body'];
 export type QueryUserSchema = Yup.InferType<typeof queryUserSchema>['body'];

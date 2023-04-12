@@ -2,7 +2,7 @@ import { Response, NextFunction, Request } from 'express';
 import { AnyObject, AnyObjectSchema } from 'yup';
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
-import { TypeKeyBaseType, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import {
   BadRequest,
   ForBidden,
@@ -11,12 +11,13 @@ import {
 } from '@/helpers/utils';
 import SecretKeyStoreService from '@/services/keyStore.service';
 import UserService from '@/services/user.service';
-import { TypeSecretKeyStore } from '@/models/SecretKeyStore';
 import tokenUtil, { PayLoad } from '@/utils/tokenUtil';
 import { Role } from '@/models/User';
 
-export interface CustomRequest extends Request {
-  user: PayLoad;
+declare module 'express-serve-static-core' {
+  interface Request {
+    user: PayLoad;
+  }
 }
 
 export enum KeyHeader {
@@ -31,14 +32,17 @@ export const catchError = (fun: any) => {
 };
 
 export const getIpMiddleware =
-  (schema: AnyObject) =>
+  (schema: AnyObjectSchema) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate({
-        body: req.body,
-        params: req.params,
-        query: req.query,
-      });
+      await schema.validate(
+        {
+          body: req.body,
+          params: req.params,
+          query: req.query,
+        },
+        { stripUnknown: true },
+      );
       next();
     } catch (error: any) {
       error.statusCode = HttpCode.BAD_REQUEST;
@@ -65,7 +69,7 @@ export const validateRequest =
   };
 
 export const checkUser = async (
-  req: CustomRequest,
+  req: Request,
   _res: Response,
   next: NextFunction,
 ) => {
@@ -78,7 +82,7 @@ export const checkUser = async (
     if (!accessToken) throw new BadRequest('Header must have access token');
 
     if (!Types.ObjectId.isValid(userId as string))
-      throw new NotFound('UserId wrong');
+      throw new BadRequest('UserId wrong');
 
     const userDb = await UserService.findById(userId);
 
@@ -88,15 +92,6 @@ export const checkUser = async (
       userId,
       deviceId: ip,
     });
-
-    // if (!tokenStores.length) throw new NotFound(' Logged out user ');
-
-    // let tokenStore: TypeSecretKeyStore;
-
-    // const checkId = tokenStores.some((e, i) => {
-    //   if (e.deviceId === ip) tokenStore = tokenStores[i];
-    //   return e.deviceId === ip;
-    // });
     if (!tokenStore) {
       // userDb.isActive = false;
       // await userDb.save();
@@ -108,10 +103,10 @@ export const checkUser = async (
     const data = tokenUtil.verifyToken(accessToken, tokenStore.secretKey);
 
     if (!data) {
-      throw new NotAuthorizedError('Wrong access token');
+      throw new ForBidden('Wrong access token');
     }
 
-    req.user = data as CustomRequest['user'];
+    req.user = data as PayLoad;
 
     next();
   } catch (error) {
@@ -124,9 +119,28 @@ export const checkParamsId = (
   _res: Response,
   next: NextFunction,
 ) => {
-  const keys = Object.values(req.params);
-  if (keys.includes('id') && !req.params?.id)
+  const userId = req.params.id;
+
+  // console.log(userId); // bị undefine
+
+  if (!req.params?.id || !Types.ObjectId.isValid(req.params?.id))
     throw new NotFound('Params must have id');
+
+  next();
+  try {
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkAdmin = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
+  // if (req.user.role !== Role.ADMIN)
+  //   throw new NotAuthorizedError('you are not authorized');
+  next();
   try {
   } catch (error) {
     next(error);
