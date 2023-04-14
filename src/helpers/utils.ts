@@ -44,8 +44,26 @@ export class NotAuthorizedError extends AppError {
     super(message, httpCode, errorType);
   }
 }
+export class Duplicate extends AppError {
+  constructor(
+    message: string,
+    httpCode = HttpCode.CONFLICT,
+    errorType = ReasonPhrases.CONFLICT,
+  ) {
+    super(message, httpCode, errorType);
+  }
+}
 
 export class NotFound extends AppError {
+  constructor(
+    message: string,
+    httpCode = HttpCode.NOT_FOUND,
+    errorType = ReasonPhrases.NOT_FOUND,
+  ) {
+    super(message, httpCode, errorType);
+  }
+}
+export class ServiceUnavailable extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.NOT_FOUND,
@@ -96,6 +114,16 @@ export class Created extends SuccessResponse {
     message = 'oke',
     data = {},
     statusCode = HttpCode.CREATED,
+    success = true,
+  }) {
+    super({ message, data, statusCode, success });
+  }
+}
+export class NoData extends SuccessResponse {
+  constructor({
+    message = 'oke',
+    data = {},
+    statusCode = HttpCode.NO_CONTENT,
     success = true,
   }) {
     super({ message, data, statusCode, success });

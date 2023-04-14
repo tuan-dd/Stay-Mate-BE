@@ -1,4 +1,5 @@
 import SecretKeyStore, { TypeSecretKeyStore } from '@/models/SecretKeyStore';
+import { query } from 'express';
 import { AnyKeys, FilterQuery, AnyObject, QueryOptions, Types } from 'mongoose';
 
 class SecretKeyStoreService {
@@ -21,16 +22,13 @@ class SecretKeyStoreService {
     return await SecretKeyStore.deleteMany(query, option);
   };
   static findOneUpdateTokenStore = async (
-    userId: Types.ObjectId | string,
-    keyStore: AnyKeys<TypeSecretKeyStore>,
+    query: FilterQuery<TypeSecretKeyStore>,
+    update: AnyKeys<TypeSecretKeyStore>,
   ) => {
     return await SecretKeyStore.findOneAndUpdate(
-      { userId: userId, deviceId: keyStore.deviceId },
+      query,
       {
-        $set: {
-          secretKey: keyStore.secretKey,
-          refreshToken: keyStore.refreshToken,
-        },
+        $set: update,
       },
       { upsert: true, new: true },
     ).exec();

@@ -9,6 +9,7 @@ export const signinSchema = Yup.object().shape({
 
 export const forgetPwdSchema = Yup.object().shape({
   body: Yup.object().shape({
+    _id: Yup.string().max(0, 'no update _id'),
     email: Yup.string().email().required(),
     password: Yup.string().required(),
     newPwd: Yup.string()

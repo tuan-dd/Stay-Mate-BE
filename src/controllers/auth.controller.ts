@@ -2,7 +2,6 @@ import {
   AppError,
   BadRequest,
   ForBidden,
-  NotAuthorizedError,
   NotFound,
   SuccessResponse,
 } from '@/helpers/utils';
@@ -14,21 +13,12 @@ import UserService from '@/services/user.service';
 import pwdUtil from '@/utils/pwdUtil';
 import { OtpSchema } from '@/schema/otp.schema';
 import KeyStoresService from '@/services/keyStore.service';
-import client from '@/database/init.redisDb';
-import tokenUtil, { DataAfterEncode } from '@/utils/tokenUtil';
-import { Role } from '@/models/User';
+import tokenUtil from '@/utils/tokenUtil';
 import { KeyHeader } from '@/middleware/validate';
 import SecretKeyStoreService from '@/services/keyStore.service';
 import { Types } from 'mongoose';
-import { HttpCode } from '@/utils/httpCode';
-import { ReasonPhrases } from '@/utils/reasonPhrases';
 import { getLogger } from 'log4js';
-export interface CustomRequest extends Request {
-  user: {
-    email: string;
-    role: Role;
-  };
-}
+import redisUtil from '@/utils/redisUtil';
 class AuthController {
   signIn = async (req: Request<any, any, SigninSchema>, res: Response) => {
     /**
@@ -53,7 +43,7 @@ class AuthController {
     // const a = userDb._id.toHexString();
     const hashSixCode = await pwdUtil.getHash(sixCode.toString(), 10);
 
-    await client.HSET(userDb._id.toHexString(), [
+    await redisUtil.hSet(userDb._id.toHexString(), [
       'sixCode',
       hashSixCode,
       'number',
@@ -61,9 +51,7 @@ class AuthController {
       'ip',
       ip,
     ]);
-    await client.expire(userDb._id.toString(), 60);
-
-    // const createOtp = await OtpService.createOtp({ email, sixCode });
+    await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
     sendMail({
       from: '<huynh.atuan.97@gmail.com>',
@@ -80,25 +68,16 @@ class AuthController {
       .catch((error) => {
         getLogger('Send Email Error').error(error);
 
-        throw new AppError(
-          'can`t not send email',
-          HttpCode.BAD_REQUEST,
-          ReasonPhrases.BAD_REQUEST,
-        );
+        throw new BadRequest('Can`t not send email');
       });
-
-    // console.log(sixCode);
-
-    // new SuccessResponse({
-    //   message: 'Send code to email successfully',
-    // }).send(res);
   };
+
   authCode = async (req: Request<any, any, OtpSchema>, res: Response) => {
     /**
      * @check check six code
      * @create accessToken,refreshToken,secretKey
      * @save save db
-     * @send client
+     * @send redisUtil
      */
     const { sixCode, email } = req.body;
 
@@ -114,17 +93,17 @@ class AuthController {
 
     if (email !== userDb.email) throw new ForBidden('Wrong users');
 
-    const userRedis = await client.hGetAll(userDb._id.toHexString());
+    const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
 
     if (!userRedis) throw new BadRequest('Otp expires');
 
     if (userRedis.ip !== ip) {
-      await client.del(userDb._id.toHexString());
+      await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForBidden('You are not in current device');
     }
 
     if (parseInt(userRedis.sixCode) === 0) {
-      await client.del(userDb._id.toHexString());
+      await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForBidden('no guess, try sign in again');
     }
     const isValid = await pwdUtil.getCompare(
@@ -133,18 +112,18 @@ class AuthController {
     );
 
     if (parseInt(userRedis.sixCode) === 1) {
-      await client.del(userDb._id.toHexString());
+      await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForBidden('wrong otp and no guess, try sign in again');
     }
 
     if (!isValid) {
-      await client.hIncrBy(userDb._id.toHexString(), 'number', -1);
+      await redisUtil.hIncrBy(userDb._id.toHexString(), 'number', -1);
       throw new ForBidden(
         `wrong Code, you have ${parseInt(userRedis.number) - 1}`,
       );
     }
 
-    await client.del(userDb._id.toHexString());
+    await redisUtil.deleteKey(userDb._id.toHexString());
 
     const secretKey = crypto.randomBytes(32).toString('hex');
 
@@ -154,20 +133,21 @@ class AuthController {
     );
 
     // prevent duplicate same deviceId
-    const update = await KeyStoresService.findOneUpdateTokenStore(userDb._id, {
-      refreshToken,
-      secretKey,
-      userId: userDb._id,
-      deviceId: ip,
-    });
-
-    if (!update)
-      await KeyStoresService.createStore({
+    await KeyStoresService.findOneUpdateTokenStore(
+      { userId: userDb._id, deviceId: ip },
+      {
         refreshToken,
         secretKey,
-        userId: userDb._id,
-        deviceId: ip,
-      });
+      },
+    );
+
+    // if (!update)
+    //   await KeyStoresService.createStore({
+    //     refreshToken,
+    //     secretKey,
+    //     userId: userDb._id,
+    //     deviceId: ip,
+    //   });
 
     res
       .cookie('refreshToken', refreshToken, {

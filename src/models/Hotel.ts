@@ -1,5 +1,4 @@
-import { CurrencyCode } from '@/utils/currencyCode';
-import { Types, Schema, model, SchemaTypes } from 'mongoose';
+import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
 
 export enum PropertyType {
   HOTEL = 'hotel',
@@ -13,22 +12,27 @@ export enum Package {
   YEAR = 'YEAR',
 }
 
-interface TypeHotel {
+export interface TypeHotel {
   hotelName: string;
-  images: string[];
+  image?: string;
   address: string;
   city: string;
   country: string;
   zipCode: number;
   propertyType: PropertyType;
   star: number;
-  starRating: number;
-  latitude: number;
-  longitude: number;
-  currency: CurrencyCode;
+  starRating?: number;
+  latitude?: number;
+  longitude?: number;
   package: Package;
   userId: Types.ObjectId;
-  roomTypeIds: Types.ObjectId[];
+  roomTypeIds?: Types.ObjectId[];
+  isdDelete?: boolean;
+}
+
+export interface HotelDocument extends TypeHotel, Document {
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const hotelSchema = new Schema<TypeHotel>(
@@ -37,13 +41,9 @@ const hotelSchema = new Schema<TypeHotel>(
       type: String,
       required: true,
     },
-    images: [
-      {
-        type: String,
-        required: true,
-        max: 3,
-      },
-    ],
+    image: {
+      type: String,
+    },
     address: {
       type: String,
       required: true,
@@ -87,10 +87,6 @@ const hotelSchema = new Schema<TypeHotel>(
       min: -180,
       max: +180,
     },
-    currency: {
-      type: String,
-      enum: Object.values(CurrencyCode),
-    },
     package: {
       type: String,
       default: Package.FREE,
@@ -99,7 +95,7 @@ const hotelSchema = new Schema<TypeHotel>(
     },
     roomTypeIds: [
       {
-        type: SchemaTypes.ObjectId,
+        type: Types.ObjectId,
         ref: 'roomTypes',
         min: 1,
         required: true,
@@ -110,9 +106,11 @@ const hotelSchema = new Schema<TypeHotel>(
       ref: 'users',
       required: true,
     },
+    isdDelete: { type: Boolean, default: false, required: true },
   },
   {
     timestamps: true,
+    collection: 'hotels',
   },
 );
 

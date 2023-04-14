@@ -6,7 +6,7 @@ export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
-export interface UserType {
+export interface TypeUser {
   name: string;
   email?: string;
   password: string;
@@ -17,12 +17,12 @@ export interface UserType {
   isActive?: boolean;
 }
 
-export interface UserDocument extends UserType, Document {
+export interface UserDocument extends TypeUser, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<UserType>(
+const userSchema = new Schema<TypeUser>(
   {
     name: {
       type: String,
@@ -61,7 +61,7 @@ const userSchema = new Schema<UserType>(
     },
     isActive: { type: Boolean, default: true, required: true },
   },
-  { timestamps: true },
+  { timestamps: true, collection: 'users' },
 );
 import pwt from '@/utils/pwdUtil';
 
@@ -73,5 +73,5 @@ userSchema.pre('save', async function (this, next) {
   this.password = hash;
 });
 
-const User = model<UserType>('users', userSchema);
+const User = model<TypeUser>('users', userSchema);
 export default User;

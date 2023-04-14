@@ -1,33 +1,37 @@
 import { Role } from '@/models/User';
-import { URL_REGEX } from '@/utils/regexUrl';
+import regexUtil from '@/utils/regexUtil';
 import * as Yup from 'yup';
-
-const passwordRegExp = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
 
 export const createUserSchema = Yup.object().shape({
   body: Yup.object().shape({
+    _id: Yup.string().max(0, 'No update _id'),
     name: Yup.string().required(),
     email: Yup.string().email().required(),
     password: Yup.string()
       .matches(
-        passwordRegExp,
+        regexUtil.PASSWORD_REGEX,
         'Password contain at least one numeric digit, one uppercase and one lowercase letter,min 6 max 20',
       )
       .required(),
-    avatar: Yup.string().matches(URL_REGEX, 'Must be url').notRequired(),
+    avatar: Yup.string()
+      .matches(regexUtil.URL_REGEX, 'Must be url')
+      .notRequired(),
   }),
 });
 
 export const updateUserSchema = Yup.object().shape({
   body: Yup.object().shape({
+    _id: Yup.string().max(0, 'No update _id'),
     name: Yup.string().notRequired(),
-    avatar: Yup.string().matches(URL_REGEX, 'Must be url').notRequired(),
+    avatar: Yup.string()
+      .matches(regexUtil.URL_REGEX, 'Must be url')
+      .notRequired(),
     password: Yup.string().notRequired(),
     newPassword: Yup.string().when('password', (password, field) =>
       password[0]
         ? field
             .matches(
-              passwordRegExp,
+              regexUtil.URL_REGEX,
               'New Password contain at least one numeric digit, one uppercase and one lowercase letter, min 6 max 20',
             )
             .notOneOf(
@@ -52,6 +56,7 @@ export const updateUserSchema = Yup.object().shape({
 
 export const updateUserSchemaByAdmin = Yup.object().shape({
   body: Yup.object().shape({
+    _id: Yup.string().max(0, 'No update _id'),
     isActive: Yup.boolean().required(),
   }),
 });
@@ -78,8 +83,8 @@ export const queryUserSchema = Yup.object().shape({
         ),
       otherwise: (field) => field.notRequired(),
     }),
-    page: Yup.number().integer().negative().min(10).notRequired(),
-    limit: Yup.number().integer().negative().min(0).notRequired(),
+    page: Yup.number().integer().negative().min(1).notRequired(),
+    limit: Yup.number().integer().negative().min(10).max(30).notRequired(),
   }),
 });
 
