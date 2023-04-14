@@ -26,7 +26,7 @@ const chatBoxSchema = new Schema<TypeBoxChat>(
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true, collection: 'boxChats' },
 );
 
 const BoxChat = model<TypeBoxChat>('boxChats', chatBoxSchema);

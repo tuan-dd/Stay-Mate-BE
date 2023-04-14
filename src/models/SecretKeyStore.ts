@@ -27,7 +27,7 @@ const secretKeyStoreSchema = new Schema<TypeSecretKeyStore>(
       required: true,
     },
   },
-  { timestamps: true, expires: '7day' },
+  { timestamps: true, expires: '7day', collection: 'keyStores' },
 );
 
 const SecretKeyStore = model<TypeSecretKeyStore>(

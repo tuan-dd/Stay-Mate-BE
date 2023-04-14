@@ -59,8 +59,8 @@ const bookingSchema = new Schema<TypeBooking>(
       ref: 'hotels',
     },
   },
-  { timestamps: true },
+  { timestamps: true, collection: 'booking' },
 );
 
-const Booking = model<TypeBooking>('books', bookingSchema);
+const Booking = model<TypeBooking>('booking', bookingSchema);
 export default Booking;

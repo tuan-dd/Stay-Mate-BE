@@ -26,7 +26,7 @@ const chatMessageSchema = new Schema<TypeChatMessage>(
       ref: 'Users',
     },
   },
-  { timestamps: true },
+  { timestamps: true, collection: 'chatMessages' },
 );
 
 //Export the model

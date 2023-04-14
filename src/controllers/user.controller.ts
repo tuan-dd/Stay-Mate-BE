@@ -14,10 +14,14 @@ import {
   UpdateUserSchemaByAdmin,
 } from '@/schema/user.schema';
 import UserService from '@/services/user.service';
-import { getFilterData } from '@/utils/lodashUtil';
+import {
+  getConvertCreatedAt,
+  getDeleteFilter,
+  getFilterData,
+} from '@/utils/lodashUtil';
 import pwdUtil from '@/utils/pwdUtil';
 import { Response, Request } from 'express';
-import { FilterQuery, QueryOptions } from 'mongoose';
+import { FilterQuery } from 'mongoose';
 
 class UserController {
   createUser = async (
@@ -55,7 +59,6 @@ class UserController {
     Object.keys(body).forEach((key) => {
       userDb[key] = body[key];
     });
-    // console.log(userDb);
 
     await userDb.save();
 
@@ -106,54 +109,20 @@ class UserController {
     req: Request<any, any, QueryUserSchema>,
     res: Response,
   ) => {
-    const body = req.body;
-    const query: FilterQuery<UserDocument> = {
-      email: body.email,
-      name: body.name,
-      role: body.role,
-      createdAt: { $gte: body.createdAt },
-      createdAt_gte: body.createdAt_gte,
-      createdAt_lte: body.createdAt_lte,
-    };
-
+    let query: FilterQuery<UserDocument> = getDeleteFilter(
+      ['page,limit'],
+      req.body,
+    );
     const page = req.body.page || 1;
-    const limit = req.body.limit || 20;
+    const limit = req.body.limit || 10;
 
-    const isCreatedAt = ['createdAt_gte', 'createdAt_lte'];
+    query = getConvertCreatedAt(query, ['name']);
 
-    const convertDate = (key: '$gte' | '$lte') => {
-      if (key === '$gte') {
-        query.createdAt = {
-          ...query.createdAt,
-          [key]: query.createdAt_gte,
-        };
-
-        delete query.createdAt_gte;
-      } else {
-        query.createdAt = {
-          ...query.createdAt,
-          [key]: query.createdAt_lte,
-        };
-
-        delete query.createdAt_lte;
-      }
-    };
-
-    Object.keys(query).forEach((key) => {
-      if (!query[key]) delete query[key];
-
-      // RegExp like string.includes('abc')
-      if (key === 'name' && query[key]) {
-        const regExp = new RegExp(query.name, 'i');
-        query.name = regExp;
-      }
-
-      if (isCreatedAt.includes(key) && query[key]) {
-        key === 'createdAt_gte' ? convertDate('$gte') : convertDate('$lte');
-      }
+    const users = await UserService.findUsers({
+      query,
+      page,
+      limit,
     });
-
-    const users = await UserService.findUsers({ query, page, limit });
 
     if (!users) throw new NotFound('Not found user');
 
@@ -165,23 +134,25 @@ class UserController {
 
   detailUser = async (req: Request, res: Response) => {
     const id = req.params.id;
-    const role = req.user.role;
 
-    if (role === Role.HOTELIER) {
+    const userDb = await UserService.findById(id);
+
+    if (userDb.role === Role.HOTELIER) {
       const userDbByAggregate = await UserService.findUserByAggregate(id, {
         password: 0,
       });
-      return new SuccessResponse({
-        message: 'Get user data successfully',
-        data: userDbByAggregate,
-      }).send(res);
+      oke(userDbByAggregate);
     }
 
-    if (role === Role.USER) {
+    if (userDb.role === Role.USER) {
       const userDbByFindOne = await UserService.findById(id);
-      return new SuccessResponse({
+      oke(userDbByFindOne);
+    }
+
+    function oke(value: any) {
+      new SuccessResponse({
         message: 'Get user data successfully',
-        data: userDbByFindOne,
+        data: value,
       }).send(res);
     }
   };

@@ -1,5 +1,5 @@
 import { Response, NextFunction, Request } from 'express';
-import { AnyObject, AnyObjectSchema } from 'yup';
+import { AnyObject, AnyObjectSchema, ObjectSchema } from 'yup';
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
 import { Types } from 'mongoose';
@@ -22,8 +22,8 @@ declare module 'express-serve-static-core' {
 
 export enum KeyHeader {
   USER_ID = 'x-client-id',
-  'REFRESH_TOKEN' = 'x-rtoken-id',
-  'ACCESS_TOKEN' = 'x-atoken-id',
+  REFRESH_TOKEN = 'x-rtoken-id',
+  ACCESS_TOKEN = 'x-atoken-id',
 }
 export const catchError = (fun: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -31,8 +31,9 @@ export const catchError = (fun: any) => {
   };
 };
 
-export const getIpMiddleware =
-  (schema: AnyObjectSchema) =>
+// check data in request
+export const validateRequest =
+  (schema: AnyObject) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       await schema.validate(
@@ -45,29 +46,13 @@ export const getIpMiddleware =
       );
       next();
     } catch (error: any) {
-      error.statusCode = HttpCode.BAD_REQUEST;
-      error.errorType = ReasonPhrases.BAD_REQUEST;
-      next(error);
-    }
-  };
-
-export const validateRequest =
-  (schema: AnyObject) =>
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await schema.validate({
-        body: req.body,
-        params: req.params,
-        query: req.query,
-      });
-      next();
-    } catch (error: any) {
       error.httpCode = HttpCode.BAD_REQUEST;
       error.errorType = ReasonPhrases.BAD_REQUEST;
       next(error);
     }
   };
 
+// check header have info need to use some router
 export const checkUser = async (
   req: Request,
   _res: Response,
@@ -92,6 +77,7 @@ export const checkUser = async (
       userId,
       deviceId: ip,
     });
+
     if (!tokenStore) {
       // userDb.isActive = false;
       // await userDb.save();
@@ -108,7 +94,7 @@ export const checkUser = async (
 
     req.user = data as PayLoad;
 
-    next();
+    req.next();
   } catch (error) {
     next(error);
   }
@@ -119,7 +105,7 @@ export const checkParamsId = (
   _res: Response,
   next: NextFunction,
 ) => {
-  const userId = req.params.id;
+  // const userId = req.params.id;
 
   // console.log(userId); // bị undefine
 
@@ -133,16 +119,13 @@ export const checkParamsId = (
   }
 };
 
-export const checkAdmin = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-) => {
-  // if (req.user.role !== Role.ADMIN)
-  //   throw new NotAuthorizedError('you are not authorized');
-  next();
-  try {
-  } catch (error) {
-    next(error);
-  }
-};
+export const checkRole =
+  (role: Role) => (req: Request, _res: Response, next: NextFunction) => {
+    if (req.user.role !== role)
+      throw new NotAuthorizedError('you are not authorized');
+    next();
+    try {
+    } catch (error) {
+      next(error);
+    }
+  };

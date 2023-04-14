@@ -1,4 +1,4 @@
-import User, { UserType, UserDocument } from '@/models/User';
+import User, { TypeUser, UserDocument } from '@/models/User';
 import {
   QueryOptions,
   FilterQuery,
@@ -6,9 +6,8 @@ import {
   UpdateQuery,
   Types,
 } from 'mongoose';
-import { types } from 'util';
 
-interface QueryUsers<t> {
+export interface QueryCusTom<t> {
   query: FilterQuery<t>;
   page: number;
   limit: number;
@@ -21,13 +20,16 @@ class UserService {
     return await User.findOne(query, null, { lean: true, ...option }).exec();
   };
 
-  static findById = async (id: string, option?: QueryOptions) => {
+  static findById = async (
+    id: string | Types.ObjectId,
+    option?: QueryOptions,
+  ) => {
     return await User.findById(id, null, { lean: true, ...option })
       .select('-password')
       .exec();
   };
 
-  static createUser = async (newUser: AnyKeys<UserType>) => {
+  static createUser = async (newUser: AnyKeys<TypeUser>) => {
     return await User.create(newUser);
   };
   static findOneUserUpdate = async (
@@ -42,7 +44,7 @@ class UserService {
   };
 
   static findUsers = async (
-    queryUsers: QueryUsers<UserDocument>,
+    queryUsers: QueryCusTom<UserDocument>,
     option?: QueryOptions,
   ) => {
     return await User.find(queryUsers.query, null, {

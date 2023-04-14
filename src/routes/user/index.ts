@@ -1,11 +1,12 @@
 import userController from '@/controllers/user.controller';
 import {
   catchError,
-  checkAdmin,
   checkParamsId,
+  checkRole,
   checkUser,
   validateRequest,
 } from '@/middleware/validate';
+import { Role } from '@/models/User';
 import {
   chargeSchema,
   createUserSchema,
@@ -47,7 +48,7 @@ router.put(
 );
 
 // check role is admin
-router.use(checkAdmin);
+router.use(checkRole(Role.ADMIN));
 
 router.get(
   '/',
