@@ -1,4 +1,4 @@
-import Hotel, { HotelDocument, TypeHotel } from '@/models/Hotel';
+import Hotel, { HotelDocument, IHotel } from '@/models/Hotel';
 import {
   QueryOptions,
   FilterQuery,
@@ -6,10 +6,18 @@ import {
   UpdateQuery,
   PopulateOptions,
 } from 'mongoose';
-import { QueryCusTom } from './user.service';
+import { QueryWithPagination } from './user.service';
+import BaseService from './base.service';
+
+class HotelService2 extends BaseService<IHotel> {
+  constructor() {
+    super(Hotel);
+  }
+}
 
 class HotelService {
-  static createHotels = async (newUser: TypeHotel) => {
+  // typo
+  static createHotels = async (newUser: IHotel) => {
     return await Hotel.create(newUser);
   };
 
@@ -36,7 +44,7 @@ class HotelService {
   };
 
   static findHotels = async (
-    queryHotel: QueryCusTom<HotelDocument>,
+    queryHotel: QueryWithPagination<HotelDocument>,
     option?: QueryOptions,
   ) => {
     return await Hotel.find(queryHotel.query, null, {

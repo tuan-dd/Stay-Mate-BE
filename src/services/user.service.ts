@@ -7,8 +7,8 @@ import {
   Types,
 } from 'mongoose';
 
-export interface QueryCusTom<t> {
-  query: FilterQuery<t>;
+export interface QueryWithPagination<T> {
+  query: FilterQuery<T>;
   page: number;
   limit: number;
 }
@@ -44,7 +44,7 @@ class UserService {
   };
 
   static findUsers = async (
-    queryUsers: QueryCusTom<UserDocument>,
+    queryUsers: QueryWithPagination<UserDocument>,
     option?: QueryOptions,
   ) => {
     return await User.find(queryUsers.query, null, {

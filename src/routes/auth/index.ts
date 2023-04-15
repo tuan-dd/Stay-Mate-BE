@@ -14,7 +14,7 @@ const router = express.Router();
 router.post(
   '/sign-in',
   validateRequest(signinSchema),
-  catchError(authController.signIn),
+  catchError(authController.signIn), // chưa hiểu catchError là làm gì? check thử nếu bỏ thì có vô hàm handleError hay không
 );
 
 router.post(

@@ -17,6 +17,7 @@ export enum StatusMemberShip {
   CANCEL = 'CANCEL',
 }
 
+// typo
 export interface membershipDocument extends TypeMembership, Document {
   createdAt: Date;
   updatedAt: Date;

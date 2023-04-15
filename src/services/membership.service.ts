@@ -1,5 +1,5 @@
 import { QueryOptions, FilterQuery, UpdateQuery } from 'mongoose';
-import { QueryCusTom } from './user.service';
+import { QueryWithPagination } from './user.service';
 import Membership, {
   TypeMembership,
   membershipDocument,
@@ -22,7 +22,7 @@ class MembershipService {
   };
 
   static findMemberships = async (
-    queryHotel: QueryCusTom<membershipDocument>,
+    queryHotel: QueryWithPagination<membershipDocument>,
     option?: QueryOptions,
   ) => {
     return await Membership.find(queryHotel.query, null, {

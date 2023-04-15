@@ -26,6 +26,7 @@ const router = express.Router();
  */
 
 // create Account
+// sign-up phải nằm bên auth /api/user/sign-up /api/auth/sign-in
 router.post(
   '/sign-up',
   validateRequest(createUserSchema),
@@ -41,6 +42,7 @@ router.put(
   catchError(userController.updateUser),
 );
 
+// payment
 router.put(
   '/charge',
   validateRequest(chargeSchema),

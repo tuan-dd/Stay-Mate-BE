@@ -65,6 +65,7 @@ router.put(
   catchError(hotelController.updateRoomType),
 );
 
+// nghiên cứu tìm cách nào tối ưu hơn để đặt các validation trong router
 router.use(checkRole(Role.ADMIN));
 
 router.put(

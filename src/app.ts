@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import indexRouter from './routes/index';
-import { AppError, NotFound, SuccessResponse } from './helpers/utils';
+import { AppError, NotFoundError, SuccessResponse } from './helpers/utils';
 import { HttpCode } from './utils/httpCode';
 
 class App {
@@ -37,7 +37,7 @@ class App {
     this.app.use('/', indexRouter);
 
     this.app.use((_res, _req, next) => {
-      const err = new NotFound('Not Found Url');
+      const err = new NotFoundError('Not Found Url');
       next(err);
     });
     this.app.use(
