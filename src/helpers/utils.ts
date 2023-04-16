@@ -15,7 +15,7 @@ export class AppError extends Error {
   }
 }
 
-export class ForBidden extends AppError {
+export class ForbiddenError extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.FORBIDDEN,
@@ -25,7 +25,7 @@ export class ForBidden extends AppError {
   }
 }
 
-export class BadRequest extends AppError {
+export class BadRequestError extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.BAD_REQUEST,
@@ -44,7 +44,7 @@ export class NotAuthorizedError extends AppError {
     super(message, httpCode, errorType);
   }
 }
-export class Duplicate extends AppError {
+export class DuplicateError extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.CONFLICT,
@@ -54,7 +54,7 @@ export class Duplicate extends AppError {
   }
 }
 
-export class NotFound extends AppError {
+export class NotFoundError extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.NOT_FOUND,
@@ -63,7 +63,7 @@ export class NotFound extends AppError {
     super(message, httpCode, errorType);
   }
 }
-export class ServiceUnavailable extends AppError {
+export class ServiceUnavailableError extends AppError {
   constructor(
     message: string,
     httpCode = HttpCode.NOT_FOUND,
@@ -82,11 +82,11 @@ interface SendResponse {
 }
 
 export class SuccessResponse implements SendResponse {
-  statusCode;
-  success;
-  data;
-  errors;
-  message;
+  statusCode: HttpCode;
+  success: boolean;
+  data: object | string | number;
+  errors: string | object;
+  message: string;
 
   constructor(
     props: SendResponse = {
@@ -109,7 +109,7 @@ export class SuccessResponse implements SendResponse {
   }
 }
 
-export class Created extends SuccessResponse {
+export class CreatedResponse extends SuccessResponse {
   constructor({
     message = 'oke',
     data = {},
@@ -119,7 +119,7 @@ export class Created extends SuccessResponse {
     super({ message, data, statusCode, success });
   }
 }
-export class NoData extends SuccessResponse {
+export class NoDataResponse extends SuccessResponse {
   constructor({
     message = 'oke',
     data = {},
