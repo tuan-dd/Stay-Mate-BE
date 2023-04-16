@@ -223,13 +223,11 @@ class HotelController {
     });
 
     if (!updateHotel) {
-      Promise.all(
-        newRooms.map(
-          async (e) => await RoomTypeService.deleteRoomType({ _id: e._id }),
-        ),
-      ).then(() => {
-        throw new NotFound('Not found hotel');
+      await RoomTypeService.deleteRoomType({
+        _id: { $in: newRooms.map((room) => room._id) },
       });
+
+      throw new NotFound('Not found hotel');
     } else {
       return oke();
     }

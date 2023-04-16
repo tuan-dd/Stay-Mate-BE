@@ -1,12 +1,5 @@
 import RoomType, { RoomDocument, TypeRoom } from '@/models/Room-type';
-
-import {
-  QueryOptions,
-  FilterQuery,
-  AnyKeys,
-  UpdateQuery,
-  Types,
-} from 'mongoose';
+import { QueryOptions, FilterQuery, AnyKeys, UpdateQuery } from 'mongoose';
 
 class RoomTypeService {
   static createRoomTypes = async (newRooms: AnyKeys<TypeRoom>[]) => {
@@ -17,7 +10,7 @@ class RoomTypeService {
     query: FilterQuery<RoomDocument>,
     option?: QueryOptions,
   ) => {
-    return await RoomType.deleteOne(query, option);
+    return await RoomType.deleteMany(query, option);
   };
 
   static findOneRoomIdUpdate = async (
