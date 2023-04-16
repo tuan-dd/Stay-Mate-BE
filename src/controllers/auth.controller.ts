@@ -1,8 +1,7 @@
 import {
-  AppError,
-  BadRequest,
-  ForBidden,
-  NotFound,
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
 import { sendMail } from '@/utils/sendEmail';
@@ -33,11 +32,11 @@ class AuthController {
 
     const userDb = await UserService.findOneUser({ email });
 
-    if (!userDb || !userDb.isActive) throw new NotFound('User not exist');
+    if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
 
     const comparePwd = await pwdUtil.getCompare(password, userDb.password);
 
-    if (!comparePwd) new ForBidden('Wrong password');
+    if (!comparePwd) new ForbiddenError('Wrong password');
 
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
@@ -68,7 +67,7 @@ class AuthController {
       .catch((error) => {
         getLogger('Send Email Error').error(error);
 
-        throw new BadRequest('Can`t not send email');
+        throw new BadRequestError('Can`t not send email');
       });
   };
 
@@ -89,22 +88,22 @@ class AuthController {
       { email: 1, role: 1 },
     );
 
-    if (!userDb || !userDb.isActive) throw new NotFound('User not exist');
+    if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
 
-    if (email !== userDb.email) throw new ForBidden('Wrong users');
+    if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
 
-    if (!userRedis) throw new BadRequest('Otp expires');
+    if (!userRedis) throw new BadRequestError('Otp expires');
 
     if (userRedis.ip !== ip) {
       await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForBidden('You are not in current device');
+      throw new ForbiddenError('You are not in current device');
     }
 
     if (parseInt(userRedis.sixCode) === 0) {
       await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForBidden('no guess, try sign in again');
+      throw new ForbiddenError('no guess, try sign in again');
     }
     const isValid = await pwdUtil.getCompare(
       sixCode.toString(),
@@ -113,12 +112,12 @@ class AuthController {
 
     if (parseInt(userRedis.sixCode) === 1) {
       await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForBidden('wrong otp and no guess, try sign in again');
+      throw new ForbiddenError('wrong otp and no guess, try sign in again');
     }
 
     if (!isValid) {
       await redisUtil.hIncrBy(userDb._id.toHexString(), 'number', -1);
-      throw new ForBidden(
+      throw new ForbiddenError(
         `wrong Code, you have ${parseInt(userRedis.number) - 1}`,
       );
     }
@@ -199,12 +198,13 @@ class AuthController {
     const refreshToken = req.headers[KeyHeader.REFRESH_TOKEN] as string;
     const ip = req.ip;
 
-    if (!userId) throw new BadRequest('Header must have userId');
+    if (!userId) throw new BadRequestError('Header must have userId');
 
-    if (!refreshToken) throw new BadRequest('Header must have access token');
+    if (!refreshToken)
+      throw new BadRequestError('Header must have access token');
 
     if (!Types.ObjectId.isValid(userId as string))
-      throw new NotFound('UserId wrong');
+      throw new NotFoundError('UserId wrong');
 
     const tokenStore = await SecretKeyStoreService.findTokenStore(
       {
@@ -219,16 +219,16 @@ class AuthController {
       // await userDb.save();
       // await KeyStoresService.deleteALlTokenStores({ userId });
 
-      throw new ForBidden('Your account is blocked, contact supporter');
+      throw new ForbiddenError('Your account is blocked, contact supporter');
     }
 
     if (refreshToken !== tokenStore.refreshToken) {
-      throw new ForBidden('Wrong refresh Token');
+      throw new ForbiddenError('Wrong refresh Token');
     }
     const payLoad = tokenUtil.verifyToken(refreshToken, tokenStore.secretKey);
 
     if (typeof payLoad === 'boolean')
-      throw new ForBidden('Wrong refresh Token');
+      throw new ForbiddenError('Wrong refresh Token');
 
     const newAccessToken = tokenUtil.createToken(
       {

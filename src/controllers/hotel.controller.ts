@@ -1,19 +1,19 @@
 import client from '@/database/init.redisDb';
 import {
-  Created,
-  NoData,
-  NotFound,
-  ServiceUnavailable,
+  CreatedResponse,
+  DuplicateError,
+  NoDataResponse,
+  NotFoundError,
+  ServiceUnavailableError,
   SuccessResponse,
-  Duplicate,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { HotelDocument, Package, TypeHotel } from '@/models/Hotel';
 import { StatusMemberShip } from '@/models/Membership';
 import { Role, UserDocument } from '@/models/User';
 import {
-  CreateRoomSchema,
   CreateHotelSchema,
+  CreateRoomSchema,
   GetHotelSchema,
   UpdateByAdminSchema,
   UpdateHotelSchema,
@@ -32,9 +32,9 @@ import {
 } from '@/utils/lodashUtil';
 import redisUtil from '@/utils/redisUtil';
 import tokenUtil from '@/utils/tokenUtil';
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { FilterQuery, Types } from 'mongoose';
-import crypto from 'crypto';
 
 // client.pSubscribe(
 //   '__keyevent@0__:expired',
@@ -50,7 +50,7 @@ class HotelController {
     res: Response,
   ) => {
     /**
-     * @check duplicate Hotel
+     * @check duplicateRDuplicateError Hotel
      * @create Hotel , room types db
      * @package membership week
      * @create  create membership DB
@@ -75,20 +75,20 @@ class HotelController {
 
     hotelsDb.forEach((hotelDb) => {
       if (hotelDb.hotelName === newHotel.hotelName)
-        throw new Duplicate('Duplicate newHotel name');
+        throw new DuplicateError('DuplicateError newHotel name');
     });
 
     const createRoomsSuccess = await RoomTypeService.createRoomTypes(roomTypes);
 
     if (!createRoomsSuccess)
-      throw new ServiceUnavailable('Cant not create Hotel, try again ');
+      throw new ServiceUnavailableError('Cant not create Hotel, try again ');
 
     newHotel.roomTypeIds = createRoomsSuccess.map((room) => room._id);
 
     const createHotelSuccess = await HotelService.createHotels(newHotel);
 
     if (!createHotelSuccess)
-      throw new ServiceUnavailable('Cant not create Hotel, try again ');
+      throw new ServiceUnavailableError('Cant not create Hotel, try again ');
 
     const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
 
@@ -149,7 +149,7 @@ class HotelController {
 
     oke();
     function oke() {
-      new Created({
+      new CreatedResponse({
         message: 'Create hotel successfully',
         data: getFilterData(
           ['hotelName', 'image', 'address', 'package', 'city', 'country'],
@@ -174,7 +174,7 @@ class HotelController {
         { $set: { isdDelete: true } },
         { new: true },
       );
-      return new NoData({
+      return new NoDataResponse({
         message: 'delete hotel successfully',
         data: result,
       }).send(res);
@@ -189,7 +189,7 @@ class HotelController {
       { new: true },
     );
 
-    if (!result) throw new NotFound('Not found hotel');
+    if (!result) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'Update hotel successfully',
@@ -227,13 +227,13 @@ class HotelController {
         _id: { $in: newRooms.map((room) => room._id) },
       });
 
-      throw new NotFound('Not found hotel');
+      throw new NotFoundError('Not found hotel');
     } else {
       return oke();
     }
 
     function oke() {
-      return new Created({
+      return new CreatedResponse({
         message: 'Add room type successfully',
         data: newRooms,
       }).send(res);
@@ -268,7 +268,7 @@ class HotelController {
       { new: true },
     );
 
-    if (!newUpdate) throw new NotFound('Not found room');
+    if (!newUpdate) throw new NotFoundError('Not found room');
 
     new SuccessResponse({
       message: 'Update room type successfully',
@@ -290,7 +290,7 @@ class HotelController {
       { new: true },
     );
 
-    if (!newUpdate) throw new NotFound('Not found hotel');
+    if (!newUpdate) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'update by admin successfully',
@@ -313,7 +313,7 @@ class HotelController {
 
     const hotels = await HotelService.findHotels({ query, page, limit });
 
-    if (!hotels.length) throw new NotFound('Not found hotel');
+    if (!hotels.length) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'get hotel`s data successfully',
@@ -326,7 +326,7 @@ class HotelController {
 
     const hotel = await HotelService.findOneHotelByPopulate(hotelId);
 
-    if (!hotel) throw new NotFound('Not found hotel');
+    if (!hotel) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'Get detail hotel successfully',

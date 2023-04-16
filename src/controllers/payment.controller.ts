@@ -1,4 +1,8 @@
-import { BadRequest, Created, SuccessResponse } from '@/helpers/utils';
+import {
+  BadRequestError,
+  CreatedResponse,
+  SuccessResponse,
+} from '@/helpers/utils';
 import { ChargeSchema } from '@/schema/user.schema';
 import UserService from '@/services/user.service';
 
@@ -6,7 +10,7 @@ import { Response, Request } from 'express';
 import { test } from 'node:test';
 class PaymentController {
   createBooking = async (req: Request<any, any, any>, res: Response) => {
-    new Created({
+    new CreatedResponse({
       message: 'create Booking successfully',
     }).send(res);
   };
@@ -24,7 +28,7 @@ class PaymentController {
   };
 
   paymentMembership = async (req: Request<any, any, any>, res: Response) => {
-    new Created({
+    new CreatedResponse({
       message: 'payment Membership successfully',
     }).send(res);
   };

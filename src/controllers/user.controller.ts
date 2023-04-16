@@ -1,8 +1,8 @@
 import {
-  BadRequest,
-  Created,
-  ForBidden,
-  NotFound,
+  BadRequestError,
+  CreatedResponse,
+  ForbiddenError,
+  NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
 import { Role, UserDocument } from '@/models/User';
@@ -31,11 +31,11 @@ class UserController {
     const { email } = req.body;
     const userDb = await UserService.findOneUser({ email });
 
-    if (userDb) throw new BadRequest('User exit');
+    if (userDb) throw new BadRequestError('User exit');
 
     const newUser = await UserService.createUser(req.body);
 
-    new Created({
+    new CreatedResponse({
       message: 'Create user successfully',
       data: getFilterData(['_id', 'name', 'email', 'role', 'avatar'], newUser),
     }).send(res);
@@ -53,7 +53,7 @@ class UserController {
     if (body.password) {
       const isPwd = await pwdUtil.getCompare(body.password, userDb.password);
 
-      if (!isPwd) throw new ForBidden('Wrong Password');
+      if (!isPwd) throw new ForbiddenError('Wrong Password');
     }
 
     Object.keys(body).forEach((key) => {
@@ -77,7 +77,7 @@ class UserController {
 
     const userDb = await UserService.findById(userId, { lean: false });
 
-    if (!userDb) throw new NotFound('Not found user');
+    if (!userDb) throw new NotFoundError('Not found user');
 
     userDb.isActive = isActive;
 
@@ -98,7 +98,7 @@ class UserController {
     );
 
     if (!updateBalance)
-      throw new BadRequest('cant not charge Money, contact support');
+      throw new BadRequestError('cant not charge Money, contact support');
 
     new SuccessResponse({
       message: 'charge successfully',
@@ -124,7 +124,7 @@ class UserController {
       limit,
     });
 
-    if (!users) throw new NotFound('Not found user');
+    if (!users) throw new NotFoundError('Not found user');
 
     new SuccessResponse({
       message: 'Get user`s data successfully',
