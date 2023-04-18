@@ -12,7 +12,14 @@ export enum Package {
   YEAR = 'YEAR',
 }
 
-export interface TypeHotel {
+export enum PricePackage {
+  FREE = 0,
+  WEEK = 7,
+  MONTH = 30,
+  YEAR = 365,
+}
+
+export interface IHotel {
   hotelName: string;
   image?: string;
   address: string;
@@ -30,12 +37,12 @@ export interface TypeHotel {
   isdDelete?: boolean;
 }
 
-export interface HotelDocument extends TypeHotel, Document {
+export interface HotelDocument extends IHotel, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const hotelSchema = new Schema<TypeHotel>(
+const hotelSchema = new Schema<IHotel>(
   {
     hotelName: {
       type: String,
@@ -114,5 +121,5 @@ const hotelSchema = new Schema<TypeHotel>(
   },
 );
 
-const Hotel = model<TypeHotel>('hotels', hotelSchema);
+const Hotel = model<IHotel>('hotels', hotelSchema);
 export default Hotel;

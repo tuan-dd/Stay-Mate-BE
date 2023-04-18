@@ -6,7 +6,7 @@ export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
-export interface TypeUser {
+export interface IUser {
   name: string;
   email?: string;
   password: string;
@@ -17,12 +17,12 @@ export interface TypeUser {
   isActive?: boolean;
 }
 
-export interface UserDocument extends TypeUser, Document {
+export interface UserDocument extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<TypeUser>(
+const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -52,7 +52,6 @@ const userSchema = new Schema<TypeUser>(
     avatar: {
       type: String,
     },
-    // prefer "role" than Role
     role: {
       type: String,
       default: Role.USER,
@@ -73,5 +72,5 @@ userSchema.pre('save', async function (this, next) {
   this.password = hash;
 });
 
-const User = model<TypeUser>('users', userSchema);
+const User = model<IUser>('users', userSchema);
 export default User;

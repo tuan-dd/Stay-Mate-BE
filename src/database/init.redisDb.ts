@@ -3,7 +3,7 @@ import { createClient } from 'redis';
 import { getLogger } from '@/utils/loggers';
 import appConfig from '@/config/config';
 
-const url = `${appConfig.redis.host}${appConfig.redis.port}`;
+const url = `redis://${appConfig.redis.host}${appConfig.redis.port}`;
 const client = createClient({
   url,
   password: appConfig.redis.pass,

@@ -52,7 +52,7 @@ class AuthController {
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
-    sendMail({
+    await sendMail({
       from: '<huynh.atuan.97@gmail.com>',
       to: `${email}`,
       subject: 'Hello ✔',
@@ -132,11 +132,17 @@ class AuthController {
     );
 
     // prevent duplicate same deviceId
-    await KeyStoresService.findOneUpdateTokenStore(
+    await KeyStoresService.findOneUpdate(
       { userId: userDb._id, deviceId: ip },
       {
-        refreshToken,
-        secretKey,
+        $set: {
+          refreshToken,
+          secretKey,
+        },
+      },
+      {
+        new: true,
+        upsert: true,
       },
     );
 
@@ -206,7 +212,7 @@ class AuthController {
     if (!Types.ObjectId.isValid(userId as string))
       throw new NotFoundError('UserId wrong');
 
-    const tokenStore = await SecretKeyStoreService.findTokenStore(
+    const tokenStore = await SecretKeyStoreService.findOne(
       {
         userId,
         deviceId: ip,

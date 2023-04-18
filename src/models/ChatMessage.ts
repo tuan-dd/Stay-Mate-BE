@@ -1,6 +1,6 @@
 import { Types, Schema, model, SchemaTypes } from 'mongoose';
 
-interface TypeChatMessage {
+interface IChatMessage {
   content?: string;
   chatBoxId?: Types.ObjectId;
   senderId?: Types.ObjectId;
@@ -8,7 +8,7 @@ interface TypeChatMessage {
 
 /// advance update img
 
-const chatMessageSchema = new Schema<TypeChatMessage>(
+const chatMessageSchema = new Schema<IChatMessage>(
   {
     content: {
       type: String,
@@ -30,6 +30,6 @@ const chatMessageSchema = new Schema<TypeChatMessage>(
 );
 
 //Export the model
-const ChatMessage = model<TypeChatMessage>('chatMessages', chatMessageSchema);
+const ChatMessage = model<IChatMessage>('chatMessages', chatMessageSchema);
 
 export default ChatMessage;

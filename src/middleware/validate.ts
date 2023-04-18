@@ -1,5 +1,5 @@
 import { Response, NextFunction, Request } from 'express';
-import { AnyObject, AnyObjectSchema, ObjectSchema } from 'yup';
+import { AnyObject } from 'yup';
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
 import { Types } from 'mongoose';
@@ -36,14 +36,11 @@ export const validateRequest =
   (schema: AnyObject) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate(
-        {
-          body: req.body,
-          params: req.params,
-          query: req.query,
-        },
-        { stripUnknown: true },
-      );
+      await schema.validate({
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      });
       next();
     } catch (error: any) {
       error.httpCode = HttpCode.BAD_REQUEST;
@@ -74,7 +71,7 @@ export const checkUser = async (
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exit');
 
-    const tokenStore = await SecretKeyStoreService.findTokenStore({
+    const tokenStore = await SecretKeyStoreService.findOne({
       userId,
       deviceId: ip,
     });
@@ -106,10 +103,6 @@ export const checkParamsId = (
   _res: Response,
   next: NextFunction,
 ) => {
-  // const userId = req.params.id;
-
-  // console.log(userId); // bị undefine
-
   if (!req.params?.id || !Types.ObjectId.isValid(req.params?.id))
     throw new NotFoundError('Params must have id');
 

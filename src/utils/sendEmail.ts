@@ -36,7 +36,13 @@ export const sendMail = async (email: Email): Promise<any> => {
       accessToken: accessToken,
     },
   });
-  return transporter.sendMail({
-    ...email,
-  });
+  return transporter.sendMail(
+    {
+      ...email,
+    },
+    (err, info) => {
+      if (err) return err;
+      return info;
+    },
+  );
 };

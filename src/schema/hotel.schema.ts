@@ -1,5 +1,5 @@
-import { Package, PropertyType } from '@/models/Hotel';
-import { RoomAmenities, TypeRoom } from '@/models/Room-type';
+import { PropertyType } from '@/models/Hotel';
+import { RoomAmenities } from '@/models/Room-type';
 import regexUtil from '@/utils/regexUtil';
 import * as Yup from 'yup';
 
@@ -149,24 +149,8 @@ export const getHotelSchema = Yup.object()
   })
   .noUnknown('Not input other value');
 
-export const updateByAdminSchema = Yup.object()
-  .shape({
-    body: Yup.object()
-      .shape({
-        isDelete: Yup.boolean().required(),
-        _id: Yup.string().max(0, 'No update _id'),
-      })
-      .noUnknown('Not input other value'),
-  })
-  .noUnknown('Not input other value');
-
 export type CreateHotelSchema = Yup.InferType<typeof createHotelSchema>['body'];
 export type UpdateHotelSchema = Yup.InferType<typeof updateHotelSchema>['body'];
-export type UpdateByAdminSchema = Yup.InferType<
-  typeof updateByAdminSchema
->['body'];
-
 export type CreateRoomSchema = Yup.InferType<typeof createRoomSchema>['body'];
 export type UpdateRoomSchema = Yup.InferType<typeof updateRoomSchema>['body'];
-
 export type GetHotelSchema = Yup.InferType<typeof getHotelSchema>['query'];

@@ -11,7 +11,6 @@ import {
   createRoomSchema,
   createHotelSchema,
   getHotelSchema,
-  updateByAdminSchema,
   updateHotelSchema,
   updateRoomSchema,
 } from '@/schema/hotel.schema';
@@ -64,14 +63,4 @@ router.put(
   validateRequest(updateRoomSchema),
   catchError(hotelController.updateRoomType),
 );
-
-router.use(checkRole(Role.ADMIN));
-
-router.put(
-  '/admin/:id',
-  checkParamsId,
-  validateRequest(updateByAdminSchema),
-  catchError(hotelController.updateHotelByAdmin),
-);
-
 export default router;

@@ -1,6 +1,4 @@
-import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
-import { number } from 'yup';
-
+import { Schema, model, Document } from 'mongoose';
 // RoomType
 export enum RoomAmenities {
   ADDITIONAL_BATHROOM = 'Additional bathroom',
@@ -93,7 +91,7 @@ export enum RoomAmenities {
   WOODEN_PARQUETED_FLOORING = 'Wooden/parqueted flooring',
   IPOD_DOCKING_STATION = 'iPod docking station',
 }
-export interface TypeRoom {
+export interface IRoom {
   roomAmenities: RoomAmenities[];
   nameOfRoom: string;
   rateDescription: string;
@@ -106,11 +104,11 @@ export interface TypeRoom {
   numberOfRoom: number;
 }
 
-export interface RoomDocument extends TypeRoom, Document {
+export interface RoomDocument extends IRoom, Document {
   createdAt: Date;
   updatedAt: Date;
 }
-const roomTypeSchema = new Schema<TypeRoom>(
+const roomTypeSchema = new Schema<IRoom>(
   {
     roomAmenities: [
       {
@@ -160,5 +158,5 @@ const roomTypeSchema = new Schema<TypeRoom>(
   { timestamps: true, collection: 'roomTypes' },
 );
 
-const RoomType = model<TypeRoom>('roomTypes', roomTypeSchema);
+const RoomType = model<IRoom>('roomTypes', roomTypeSchema);
 export default RoomType;

@@ -1,6 +1,6 @@
 import { Types, Schema, model, SchemaTypes } from 'mongoose';
 
-interface TypeReview {
+interface IReview {
   context: string;
   image: string[];
   star: number;
@@ -9,7 +9,7 @@ interface TypeReview {
   roomTypeIds: Types.ObjectId[];
 }
 
-const reviewSchema = new Schema<TypeReview>(
+const reviewSchema = new Schema<IReview>(
   {
     context: {
       type: String,
@@ -48,5 +48,5 @@ const reviewSchema = new Schema<TypeReview>(
   { timestamps: true, collection: 'reviews' },
 );
 
-const Review = model<TypeReview>('reviews', reviewSchema);
+const Review = model<IReview>('reviews', reviewSchema);
 export default Review;

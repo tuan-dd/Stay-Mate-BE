@@ -1,28 +1,33 @@
-import RoomType, { RoomDocument, TypeRoom } from '@/models/Room-type';
-import { QueryOptions, FilterQuery, AnyKeys, UpdateQuery } from 'mongoose';
+import RoomType, { RoomDocument, IRoom } from '@/models/Room-type';
+import BaseService from './base.service';
+import { AnyKeys, FilterQuery, QueryOptions } from 'mongoose';
 
-class RoomTypeService {
-  static createRoomTypes = async (newRooms: AnyKeys<TypeRoom>[]) => {
-    return await RoomType.create(newRooms);
+class RoomTypeService extends BaseService<IRoom, RoomDocument> {
+  constructor() {
+    super(RoomType);
+  }
+
+  createMany = async (doc: AnyKeys<IRoom>[]) => {
+    return await RoomType.create(doc);
   };
 
-  static deleteRoomType = async (
+  deleteRoomType = async (
     query: FilterQuery<RoomDocument>,
     option?: QueryOptions,
   ) => {
     return await RoomType.deleteMany(query, option);
   };
 
-  static findOneRoomIdUpdate = async (
-    roomId: string,
-    update?: UpdateQuery<RoomDocument>,
-    option?: QueryOptions,
-  ) => {
-    return await RoomType.findByIdAndUpdate(roomId, update, {
-      lean: true,
-      ...option,
-    }).exec();
-  };
+  // static findOneRoomIdUpdate = async (
+  //   roomId: string,
+  //   update?: UpdateQuery<RoomDocument>,
+  //   option?: QueryOptions,
+  // ) => {
+  //   return await RoomType.findByIdAndUpdate(roomId, update, {
+  //     lean: true,
+  //     ...option,
+  //   }).exec();
+  // };
 }
 
-export default RoomTypeService;
+export default new RoomTypeService();

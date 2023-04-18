@@ -1,26 +1,32 @@
-import User, { TypeUser, UserDocument } from '@/models/User';
-import {
-  QueryOptions,
-  FilterQuery,
-  AnyKeys,
-  UpdateQuery,
-  Types,
-} from 'mongoose';
+import User, { IUser, UserDocument } from '@/models/User';
+import { QueryOptions, FilterQuery, Types, Document } from 'mongoose';
+import BaseService, { QueryWithPagination } from './base.service';
+import pwdUtil from '@/utils/pwdUtil';
+import { boolean } from 'yup';
 
-export interface QueryCusTom<t> {
-  query: FilterQuery<t>;
-  page: number;
-  limit: number;
-}
-class UserService {
-  static findOneUser = async (
+class UserService extends BaseService<IUser, UserDocument> {
+  constructor() {
+    super(User);
+  }
+
+  findByIdAndCheckPass = async (
+    id: string | Types.ObjectId,
+    password: string,
+  ): Promise<boolean | UserDocument> => {
+    const userDb = await User.findById<UserDocument>(id, null, { lean: false });
+    const isValid = await pwdUtil.getCompare(password, userDb.password);
+    if (!isValid) return false;
+    return userDb;
+  };
+
+  findOneUser = async (
     query: FilterQuery<UserDocument>,
     option?: QueryOptions,
   ) => {
     return await User.findOne(query, null, { lean: true, ...option }).exec();
   };
 
-  static findById = async (
+  override findById = async (
     id: string | Types.ObjectId,
     option?: QueryOptions,
   ) => {
@@ -29,22 +35,8 @@ class UserService {
       .exec();
   };
 
-  static createUser = async (newUser: AnyKeys<TypeUser>) => {
-    return await User.create(newUser);
-  };
-  static findOneUserUpdate = async (
-    query: FilterQuery<UserDocument>,
-    update?: UpdateQuery<UserDocument>,
-    option?: QueryOptions,
-  ) => {
-    return await User.findOneAndUpdate(query, update, {
-      lean: true,
-      ...option,
-    }).exec();
-  };
-
-  static findUsers = async (
-    queryUsers: QueryCusTom<UserDocument>,
+  override findMany = async (
+    queryUsers: QueryWithPagination<UserDocument>,
     option?: QueryOptions,
   ) => {
     return await User.find(queryUsers.query, null, {
@@ -57,7 +49,7 @@ class UserService {
       .exec();
   };
 
-  static findUserByAggregate = async (
+  findUserByAggregate = async (
     userId: string,
     project: { [key: string]: 0 | 1 },
   ) => {
@@ -80,9 +72,9 @@ class UserService {
           as: 'roomTypes',
         },
       },
-      { $project: { 'hotels.roomTypeIds': 0, ...project } },
+      { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
     ]);
   };
 }
 
-export default UserService;
+export default new UserService();
