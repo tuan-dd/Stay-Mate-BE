@@ -1,4 +1,4 @@
-import { Types, Schema, model, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
 // const { Types, Schema } = mongoose;
 export enum Role {

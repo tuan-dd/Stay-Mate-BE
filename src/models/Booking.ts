@@ -1,4 +1,5 @@
-import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
+import { Types, Schema, model, SchemaTypes, Document, PopulatedDoc } from 'mongoose';
+import { RoomDocument } from './Room-type';
 
 export enum Status {
   PENDING = 'PENDING',
@@ -9,7 +10,7 @@ export enum Status {
 }
 
 interface Room {
-  roomTypeId: Types.ObjectId;
+  roomTypeId: PopulatedDoc<Document<Types.ObjectId> & RoomDocument>;
   quantity: number;
 }
 export interface IBooking {
@@ -45,6 +46,7 @@ const bookingSchema = new Schema<IBooking>(
         roomTypeId: {
           type: SchemaTypes.ObjectId,
           required: true,
+          ref: 'roomTypes',
         },
         quantity: {
           type: Number,

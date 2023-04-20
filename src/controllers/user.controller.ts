@@ -4,19 +4,16 @@ import {
   ForbiddenError,
   SuccessResponse,
 } from '@/helpers/utils';
+import { KeyHeader } from '@/middleware/validate';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import UserService from '@/services/user.service';
 import { getFilterData } from '@/utils/lodashUtil';
-import pwdUtil from '@/utils/pwdUtil';
 import { Response, Request } from 'express';
 
 class UserController {
-  createUser = async (
-    req: Request<any, any, CreateUserSchema>,
-    res: Response,
-  ) => {
+  createUser = async (req: Request<any, any, CreateUserSchema>, res: Response) => {
     const { email } = req.body;
-    const userDb = await UserService.findOneUser({ email });
+    const userDb = await UserService.findOne({ email });
 
     if (userDb) throw new BadRequestError('User exit');
 
@@ -28,20 +25,18 @@ class UserController {
     }).send(res);
   };
 
-  updateUser = async (
-    req: Request<any, any, UpdateUserSchema>,
-    res: Response,
-  ) => {
+  updateUser = async (req: Request<any, any, UpdateUserSchema>, res: Response) => {
     const body = req.body;
     const { email } = req.user;
+    const userId = req.headers[KeyHeader.USER_ID] as string;
 
-    const userDb = await UserService.findOneUser({ email }, { lean: false });
+    const userDb = await UserService.findByIdAndCheckPass(userId, body.password, {
+      lean: true,
+    });
 
-    if (body.password) {
-      const isPwd = await pwdUtil.getCompare(body.password, userDb.password);
+    if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
 
-      if (!isPwd) throw new ForbiddenError('Wrong Password');
-    }
+    if (email === userDb.email) throw new ForbiddenError('Wrong Email');
 
     Object.keys(body).forEach((key) => {
       userDb[key] = body[key];
@@ -51,11 +46,9 @@ class UserController {
 
     new SuccessResponse({
       message: 'update user successfully',
-      data: getFilterData(['email', 'avatar', 'name'], userDb),
     }).send(res);
   };
 }
 
 const userController = new UserController();
-
 export default userController;

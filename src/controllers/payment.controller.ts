@@ -28,10 +28,7 @@ import redisUtil from '@/utils/redisUtil';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
 class PaymentController {
-  createBooking = async (
-    req: Request<any, any, CreateBookingSchema>,
-    res: Response,
-  ) => {
+  createBooking = async (req: Request<any, any, CreateBookingSchema>, res: Response) => {
     /**
      * @check get numberOfRoom in redis nếu k có mean còn trống
      * @check tiếp khách sạn có phòng đó k
@@ -45,9 +42,7 @@ class PaymentController {
         quantity: room.quantity,
         roomTypeId: new mongoose.Types.ObjectId(room.roomTypeId),
       })),
-      userId: new mongoose.Types.ObjectId(
-        req.headers[KeyHeader.USER_ID] as string,
-      ),
+      userId: new mongoose.Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
       startDate: req.body.startDate,
       endDate: req.body.endDate,
@@ -56,9 +51,7 @@ class PaymentController {
     const rooms = newBooking.rooms;
 
     const numberOfRoomsRedis = await Promise.all(
-      rooms.map(
-        async (room) => await redisUtil.get(room.roomTypeId.toHexString()),
-      ),
+      rooms.map(async (room) => await redisUtil.get(room.roomTypeId.toHexString())),
     );
 
     numberOfRoomsRedis.forEach((number, i) => {
@@ -105,9 +98,7 @@ class PaymentController {
     });
     newBooking.total = total;
 
-    const createBooking = await paymentService.bookingService.createOne(
-      newBooking,
-    );
+    const createBooking = await paymentService.bookingService.createOne(newBooking);
 
     await addJobToQueue(
       {
@@ -141,10 +132,7 @@ class PaymentController {
     new CreatedResponse({
       message: 'Create Booking successfully',
       data: {
-        ...getFilterData(
-          ['total', 'startDate', 'endDate', '_id'],
-          createBooking,
-        ),
+        ...getFilterData(['total', 'startDate', 'endDate', '_id'], createBooking),
         rooms: roomsResult,
         hotel: hotelDb.hotelName,
       },
@@ -171,10 +159,7 @@ class PaymentController {
       if (bookingDb.status === Status.DECLINE)
         throw new BadRequestError('Payment expired');
 
-      const userDb = await userService.findByIdAndCheckPass(
-        userId,
-        newPayment.password,
-      );
+      const userDb = await userService.findByIdAndCheckPass(userId, newPayment.password);
 
       if (typeof userDb === 'boolean')
         throw new ForbiddenError('can`t payment, try again');
@@ -227,28 +212,22 @@ class PaymentController {
     }
   };
 
-  cancelBooking = async (
-    req: Request<any, any, CancelBookingSchema>,
-    res: Response,
-  ) => {
+  cancelBooking = async (req: Request<any, any, CancelBookingSchema>, res: Response) => {
     const payment = req.body;
     const userId = req.headers[KeyHeader.USER_ID] as string;
 
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
     try {
-      const bookingDb = await paymentService.bookingService.findById(
-        payment.bookingId,
-        { lean: false },
-      );
+      const bookingDb = await paymentService.bookingService.findById(payment.bookingId, {
+        lean: false,
+      });
       if (!bookingDb) throw new NotFoundError('Not found payment');
 
       const dataNow = new Date().getTime();
 
       if (bookingDb.startDate.getTime() - 1000 * 60 * 60 * 12 < dataNow)
-        throw new BadRequestError(
-          'Overdue to cancel, you only cant cancel before 12h',
-        );
+        throw new BadRequestError('Overdue to cancel, you only cant cancel before 12h');
 
       if (userId !== bookingDb._id.toHexString())
         throw new NotFoundError('not found Booking');
@@ -303,24 +282,18 @@ class PaymentController {
     session.startTransaction();
 
     try {
-      const userDb = await userService.findByIdAndCheckPass(
-        userId,
-        req.body.password,
-      );
+      const userDb = await userService.findByIdAndCheckPass(userId, req.body.password);
 
-      if (typeof userDb === 'boolean')
-        throw new BadRequestError('Wrong Password');
+      if (typeof userDb === 'boolean') throw new BadRequestError('Wrong Password');
 
       if (userDb.balance < PricePackage[newMemberShip.package])
         throw new ForbiddenError('Balance less than package');
 
-      const membershipsOfUser = await paymentService.memberShipService.findMany(
-        {
-          query: { userId: new Types.ObjectId(userId), isExpire: false },
-          page: null,
-          limit: null,
-        },
-      );
+      const membershipsOfUser = await paymentService.memberShipService.findMany({
+        query: { userId: new Types.ObjectId(userId), isExpire: false },
+        page: null,
+        limit: null,
+      });
 
       if (membershipsOfUser.length) {
         // lấy ngày kết thúc của các gói chưa hết hạn làm ngày bắt đầu của gói mới
@@ -337,13 +310,14 @@ class PaymentController {
 
       // cho giá tiền của gói bằng thời số ngày theo tuần tháng năm
       newMemberShip.timeEnd = new Date(
-        new Date().getTime() +
-          1000 * 60 * 60 * 24 * PricePackage[newMemberShip.package],
+        new Date().getTime() + 1000 * 60 * 60 * 24 * PricePackage[newMemberShip.package],
       );
-      const createMemberShip =
-        await paymentService.memberShipService.createOneAtomic(newMemberShip, {
+      const createMemberShip = await paymentService.memberShipService.createOneAtomic(
+        newMemberShip,
+        {
           session,
-        });
+        },
+      );
 
       await hotelsService.findOneUpdate(
         { userId: newMemberShip.userId },
@@ -366,7 +340,7 @@ class PaymentController {
 
       await session.commitTransaction();
       new CreatedResponse({
-        message: 'payment Membership successfully',
+        message: 'payment membership successfully',
       }).send(res);
     } catch (error) {
       await session.abortTransaction();
@@ -397,23 +371,16 @@ class PaymentController {
     }).send(res);
   };
 
-  withdrawMoney = async (
-    req: Request<any, any, WithdrawSchema>,
-    res: Response,
-  ) => {
+  withdrawMoney = async (req: Request<any, any, WithdrawSchema>, res: Response) => {
     const userId = req.headers[KeyHeader.USER_ID] as string;
     const newUpdate = req.body;
 
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
     try {
-      const userDb = await userService.findByIdAndCheckPass(
-        userId,
-        req.body.password,
-      );
+      const userDb = await userService.findByIdAndCheckPass(userId, req.body.password);
 
-      if (typeof userDb === 'boolean')
-        throw new BadRequestError('Wrong Password');
+      if (typeof userDb === 'boolean') throw new BadRequestError('Wrong Password');
 
       if (userDb.balance < newUpdate.withdraw)
         throw new ForbiddenError('Balance less than withdraw');
@@ -436,10 +403,7 @@ class PaymentController {
     }
   };
 
-  getMemberShips = async (
-    req: Request<any, any, GetPayments>,
-    res: Response,
-  ) => {
+  getMemberShips = async (req: Request<any, any, GetPayments>, res: Response) => {
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const page = req.body.page || 1;
 

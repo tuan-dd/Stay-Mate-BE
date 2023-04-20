@@ -3,8 +3,8 @@ import {
   Document,
   FilterQuery,
   Model,
+  ProjectionType,
   QueryOptions,
-  SaveOptions,
   Types,
   UpdateQuery,
 } from 'mongoose';
@@ -15,10 +15,7 @@ export interface QueryWithPagination<T> {
   limit: number;
 }
 
-export default class BaseService<
-  Props,
-  Doc extends Props & Document = Props & Document,
-> {
+export default class BaseService<Props, Doc extends Props & Document = Props & Document> {
   constructor(protected Model: Model<Props>) {
     this.Model = Model;
   }
@@ -35,7 +32,7 @@ export default class BaseService<
     return await this.Model.findByIdAndUpdate(id, update, {
       lean: true,
       ...option,
-    });
+    }).exec();
   };
 
   updateMany = async (
@@ -60,8 +57,12 @@ export default class BaseService<
     }).exec();
   };
 
-  findMany = async (query: QueryWithPagination<Doc>, option?: QueryOptions) => {
-    return await this.Model.find(query.query, null, {
+  findMany = async (
+    query: QueryWithPagination<Doc>,
+    select?: ProjectionType<Doc>,
+    option?: QueryOptions,
+  ) => {
+    return await this.Model.find(query.query, select, {
       lean: true,
       ...option,
     })
@@ -70,13 +71,22 @@ export default class BaseService<
       .exec();
   };
 
-  findOne = async (query: FilterQuery<Doc>, option?: QueryOptions) => {
-    return await this.Model.findOne(query, null, {
+  findOne = async (
+    query: FilterQuery<Doc>,
+    select?: ProjectionType<Doc>,
+    option?: QueryOptions,
+  ) => {
+    return await this.Model.findOne(query, select, {
       lean: true,
       ...option,
     }).exec();
   };
-  findById = async (id: string | Types.ObjectId, option?: QueryOptions) => {
-    return await this.Model.findById(id, null, { lean: true, ...option });
+
+  findById = async (
+    id: string | Types.ObjectId,
+    select?: ProjectionType<Doc>,
+    option?: QueryOptions,
+  ) => {
+    return await this.Model.findById(id, select, { lean: true, ...option }).exec();
   };
 }

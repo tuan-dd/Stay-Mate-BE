@@ -1,6 +1,6 @@
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
-import { Response, NextFunction, Request } from 'express';
+import { Response } from 'express';
 
 export class AppError extends Error {
   public readonly errorType: string;

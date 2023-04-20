@@ -1,8 +1,4 @@
-import {
-  NotAuthorizedError,
-  NotFoundError,
-  SuccessResponse,
-} from '@/helpers/utils';
+import { NotAuthorizedError, NotFoundError, SuccessResponse } from '@/helpers/utils';
 import { Role, UserDocument } from '@/models/User';
 import {
   QueryUserSchema,
@@ -16,24 +12,21 @@ import { Request, Response } from 'express';
 import { FilterQuery, Types } from 'mongoose';
 
 class AdminController {
-  queryUsers = async (
-    req: Request<any, any, any, QueryUserSchema>,
-    res: Response,
-  ) => {
-    let query: FilterQuery<UserDocument> = getDeleteFilter(
-      ['page,limit'],
-      req.query,
-    );
+  queryUsers = async (req: Request<any, any, any, QueryUserSchema>, res: Response) => {
+    let query: FilterQuery<UserDocument> = getDeleteFilter(['page,limit'], req.query);
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
 
     query = getConvertCreatedAt(query, ['name']);
 
-    const users = await userService.findMany({
-      query,
-      page,
-      limit,
-    });
+    const users = await userService.findMany(
+      {
+        query,
+        page,
+        limit,
+      },
+      { password: 0 },
+    );
 
     if (!users) throw new NotAuthorizedError('Not found user');
 
@@ -56,7 +49,7 @@ class AdminController {
     }
 
     if (userDb.role === Role.USER) {
-      const userDbByFindOne = await userService.findById(id);
+      const userDbByFindOne = await userService.findById(id, { password: 0 });
       oke(userDbByFindOne);
     }
 

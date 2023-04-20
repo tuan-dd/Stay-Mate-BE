@@ -8,7 +8,6 @@ import {
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { HotelDocument, Package, IHotel } from '@/models/Hotel';
-import { StatusMemberShip } from '@/models/Membership';
 import { Role } from '@/models/User';
 import {
   CreateHotelSchema,
@@ -35,10 +34,7 @@ import { Request, Response } from 'express';
 import { FilterQuery, Types } from 'mongoose';
 
 class HotelController {
-  createHotel = async (
-    req: Request<any, any, CreateHotelSchema>,
-    res: Response,
-  ) => {
+  createHotel = async (req: Request<any, any, CreateHotelSchema>, res: Response) => {
     /**
      * @check duplicateRDuplicateError Hotel
      * @create Hotel , room types db
@@ -52,9 +48,7 @@ class HotelController {
 
     const newHotel: Pros<IHotel> = getDeleteFilter(['roomTypes'], req.body);
 
-    newHotel.userId = new Types.ObjectId(
-      req.headers[KeyHeader.USER_ID] as string,
-    );
+    newHotel.userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const roomTypes = req.body.roomTypes;
 
     const hotelsDb = await HotelService.findMany({
@@ -84,11 +78,9 @@ class HotelController {
 
     const createMembership = await MembershipService.createOne({
       userId: newHotel.userId,
-      hotelId: createHotelSuccess._id,
-      status: StatusMemberShip.SUCCESS,
       timeEnd: week,
       package: Package.WEEK,
-      isExpires: false,
+      isExpire: false,
     });
 
     const valueRedis = { MembershipId: createMembership._id };
@@ -149,10 +141,7 @@ class HotelController {
     }
   };
 
-  updateHotel = async (
-    req: Request<any, any, UpdateHotelSchema>,
-    res: Response,
-  ) => {
+  updateHotel = async (req: Request<any, any, UpdateHotelSchema>, res: Response) => {
     const userId = req.headers[KeyHeader.USER_ID];
 
     if (req.body.isDelete) {
@@ -187,10 +176,7 @@ class HotelController {
     }).send(res);
   };
 
-  createRoom = async (
-    req: Request<any, any, CreateRoomSchema>,
-    res: Response,
-  ) => {
+  createRoom = async (req: Request<any, any, CreateRoomSchema>, res: Response) => {
     const newRooms = await RoomTypeService.createMany(req.body.roomTypes);
 
     const userId = req.headers[KeyHeader.USER_ID];
@@ -230,16 +216,10 @@ class HotelController {
     }
   };
 
-  updateRoomType = async (
-    req: Request<any, any, UpdateRoomSchema>,
-    res: Response,
-  ) => {
+  updateRoomType = async (req: Request<any, any, UpdateRoomSchema>, res: Response) => {
     const roomId = req.params.id;
 
-    const updatePrimitive = getDeleteFilter(
-      ['roomAmenities', 'images'],
-      req.body,
-    );
+    const updatePrimitive = getDeleteFilter(['roomAmenities', 'images'], req.body);
 
     const images = req.body.images;
     const roomAmenities = req.body.roomAmenities;
@@ -264,14 +244,8 @@ class HotelController {
     }).send(res);
   };
 
-  getHotels = async (
-    req: Request<any, any, any, GetHotelSchema>,
-    res: Response,
-  ) => {
-    let query: FilterQuery<HotelDocument> = getDeleteFilter(
-      ['page,limit'],
-      req.query,
-    );
+  getHotels = async (req: Request<any, any, any, GetHotelSchema>, res: Response) => {
+    let query: FilterQuery<HotelDocument> = getDeleteFilter(['page,limit'], req.query);
     const page = req.query.page | 1;
     const limit = req.query.limit | 15;
 

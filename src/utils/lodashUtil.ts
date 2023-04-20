@@ -10,10 +10,7 @@ export const getFilterData = (filter: string[], object: ObjectLodash) => {
   return _.pick(object, filter);
 };
 
-export const getDeleteFilter = (
-  filter: string[],
-  object: ObjectLodash,
-): Pros<any> => {
+export const getDeleteFilter = (filter: string[], object: ObjectLodash): Pros<any> => {
   return _.omit(object, filter);
 };
 

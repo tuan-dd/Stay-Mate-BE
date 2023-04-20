@@ -1,10 +1,7 @@
-import Membership, {
-  IMembership,
-  membershipDocument,
-} from '@/models/Membership';
+import Membership, { IMembership, MembershipDocument } from '@/models/Membership';
 import BaseService from './base.service';
 
-class MembershipService extends BaseService<IMembership, membershipDocument> {
+class MembershipService extends BaseService<IMembership, MembershipDocument> {
   constructor() {
     super(Membership);
   }

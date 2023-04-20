@@ -1,7 +1,7 @@
 import { Role } from '@/models/User';
 import JWT from 'jsonwebtoken';
 
-export interface PayLoad {
+export interface PayLoadInToken {
   email: string;
   role: Role;
 }
@@ -9,21 +9,26 @@ export interface PayLoad {
 export interface DataAfterEncode extends JWT.JwtPayload {
   email: string;
   role: Role;
+  name?: string;
 }
 
-const createTokenPair = (payload: PayLoad, secretKey: string) => {
-  const accessToken = JWT.sign(payload, secretKey, { expiresIn: '3 day' });
-  const refreshToken = JWT.sign(payload, secretKey, { expiresIn: '7 day' });
+const createTokenPair = (PayLoadInToken: PayLoadInToken, secretKey: string) => {
+  const accessToken = JWT.sign(PayLoadInToken, secretKey, {
+    expiresIn: '3 day',
+  });
+  const refreshToken = JWT.sign(PayLoadInToken, secretKey, {
+    expiresIn: '7 day',
+  });
 
   return { accessToken, refreshToken };
 };
 
 const createToken = (
-  payload: PayLoad,
+  PayLoadInToken: PayLoadInToken,
   secretKey: string,
   expires: string | number,
 ) => {
-  return JWT.sign(payload, secretKey, { expiresIn: expires });
+  return JWT.sign(PayLoadInToken, secretKey, { expiresIn: expires });
 };
 
 const verifyToken = (

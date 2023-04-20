@@ -19,6 +19,10 @@ export enum PricePackage {
   YEAR = 365,
 }
 
+interface starRating {
+  countReview: number;
+  starAverage: number;
+}
 export interface IHotel {
   hotelName: string;
   image?: string;
@@ -28,7 +32,7 @@ export interface IHotel {
   zipCode: number;
   propertyType: PropertyType;
   star: number;
-  starRating?: number;
+  starRating?: starRating;
   latitude?: number;
   longitude?: number;
   package: Package;
@@ -74,16 +78,16 @@ const hotelSchema = new Schema<IHotel>(
     },
     star: {
       type: Number,
-      min: 1,
-      max: 5,
-      required: true,
-    },
-    starRating: {
-      type: Number,
       default: 5,
       min: 1,
       max: 5,
     },
+    starRating: [
+      {
+        countReview: { type: Number, default: 0, required: true },
+        starAverage: { type: Number, default: 5, required: true },
+      },
+    ],
     latitude: {
       type: Number,
       min: -90,

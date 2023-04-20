@@ -11,12 +11,12 @@ import {
 } from '@/helpers/utils';
 import SecretKeyStoreService from '@/services/keyStore.service';
 import UserService from '@/services/user.service';
-import tokenUtil, { PayLoad } from '@/utils/tokenUtil';
+import tokenUtil, { DataAfterEncode } from '@/utils/tokenUtil';
 import { Role } from '@/models/User';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user: PayLoad;
+    user: DataAfterEncode;
   }
 }
 
@@ -90,7 +90,8 @@ export const checkUser = async (
       throw new ForbiddenError('Wrong access token');
     }
 
-    req.user = data as PayLoad;
+    req.user.name = userDb.name;
+    req.user = data;
 
     req.next();
   } catch (error) {

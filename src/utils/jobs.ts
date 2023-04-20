@@ -4,6 +4,7 @@ export enum EJob {
   BOOKING_DECLINE = 'bookingPayment',
   BOOKING_STAY = 'bookingStay',
   MEMBERSHIP = 'membership',
+  DELETE_REVIEW = 'delete_review',
 }
 
 export interface IBookingPaymentJob {
@@ -26,5 +27,14 @@ export interface IMembershipJob {
     id: string | Types.ObjectId;
   };
 }
-
-export type WorkerJob = IBookingPaymentJob | IBookingStayedJob | IMembershipJob;
+export interface IDelete_reviewJob {
+  type: EJob.DELETE_REVIEW;
+  data: {
+    id: string | Types.ObjectId;
+  };
+}
+export type WorkerJob =
+  | IBookingPaymentJob
+  | IBookingStayedJob
+  | IMembershipJob
+  | IDelete_reviewJob;

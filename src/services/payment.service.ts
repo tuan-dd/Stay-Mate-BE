@@ -1,12 +1,9 @@
 import Booking, { BookingDocument, IBooking } from '@/models/Booking';
 import BaseService, { QueryWithPagination } from './base.service';
-import Membership, {
-  IMembership,
-  MembershipDocument,
-} from '@/models/Membership';
-import { QueryOptions, SaveOptions } from 'mongoose';
+import Membership, { IMembership, MembershipDocument } from '@/models/Membership';
+import { FilterQuery, PopulateOptions, QueryOptions, SaveOptions } from 'mongoose';
 
-class BookingService extends BaseService<IBooking> {
+class BookingService extends BaseService<IBooking, BookingDocument> {
   constructor() {
     super(Booking);
   }
@@ -22,6 +19,19 @@ class BookingService extends BaseService<IBooking> {
       .skip(query.limit * (query.page - 1))
       .limit(query.limit)
       .sort('-createdAt')
+      .exec();
+  };
+
+  findByPopulate = async (
+    query: FilterQuery<BookingDocument>,
+    option?: QueryOptions,
+    optionPopulate?: PopulateOptions,
+  ) => {
+    return await Booking.findById(query, null, { lean: true, ...option })
+      .populate({
+        path: 'rooms.roomTypeId',
+        ...optionPopulate,
+      })
       .exec();
   };
 }

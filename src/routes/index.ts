@@ -5,6 +5,7 @@ import userRouter from './user';
 import hotelRouter from './hotel';
 import adminRouter from './admin';
 import paymentRouter from './payment';
+import reviewRouter from './review';
 
 const router = express.Router();
 const logger = getLogger('INDEX_ROUTE');
@@ -12,7 +13,7 @@ const logger = getLogger('INDEX_ROUTE');
 /* GET home page. */
 router.get('/', function (_req, res) {
   logger.info('hello Express');
-  res.send('Welcome Stay Mate booking ');
+  res.send('Welcome Backend Stay Mate Router by Tuan ');
 });
 
 router.use('/v1/api/auth', authRouter);
@@ -20,5 +21,6 @@ router.use('/v1/api/user', userRouter);
 router.use('/v1/api/hotel', hotelRouter);
 router.use('/v1/api/admin', adminRouter);
 router.use('/v1/api/payment', paymentRouter);
+router.use('/v1/api/review', reviewRouter);
 
 export default router;

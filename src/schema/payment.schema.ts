@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Status } from '@/models/Booking';
 import { Package } from '@/models/Hotel';
 import { Types } from 'mongoose';
@@ -25,6 +26,7 @@ declare module 'yup' {
     objectIdValid(message?: string): this;
   }
 }
+
 export const chargeSchema = Yup.object().shape({
   body: Yup.object().shape({
     balance: Yup.number().min(1).required(),
