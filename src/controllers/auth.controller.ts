@@ -28,7 +28,6 @@ class AuthController {
      * @send send code to email
      */
     const { password, email } = req.body;
-
     const ip = req.ip;
 
     const userDb = await userService.findOne({ email });
@@ -37,7 +36,7 @@ class AuthController {
 
     const comparePwd = await pwdUtil.getCompare(password, userDb.password);
 
-    if (!comparePwd) new ForbiddenError('Wrong password');
+    if (!comparePwd) throw new ForbiddenError('Wrong password');
 
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
@@ -53,13 +52,7 @@ class AuthController {
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
-    await sendMail({
-      from: '<huynh.atuan.97@gmail.com>',
-      to: `${email}`,
-      subject: 'Hello ✔',
-      text: ` Hello ${email} `,
-      html: `<b>${sixCode}</b>`,
-    })
+    await sendMail(sixCode, email)
       .then(() =>
         new SuccessResponse({
           message: 'Send code to email successfully',
@@ -138,15 +131,7 @@ class AuthController {
         upsert: true,
       },
     );
-
-    // if (!update)
-    //   await KeyStoresService.createStore({
-    //     refreshToken,
-    //     secretKey,
-    //     userId: userDb._id,
-    //     deviceId: ip,
-    //   });
-
+    // console.log(accessToken);
     res
       .cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -160,8 +145,6 @@ class AuthController {
         path: '/',
         sameSite: 'strict',
       });
-
-    // console.log(accessToken);
 
     new SuccessResponse({
       message: 'Login successfully',
@@ -243,7 +226,7 @@ class AuthController {
       sameSite: 'strict',
     });
     new SuccessResponse({
-      message: 'send new access token',
+      message: 'Send new access token',
       data: newAccessToken,
     }).send(res);
   };

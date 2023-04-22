@@ -38,7 +38,7 @@ export interface IHotel {
   package: Package;
   userId: Types.ObjectId;
   roomTypeIds?: Types.ObjectId[];
-  isdDelete?: boolean;
+  isDelete?: boolean;
 }
 
 export interface HotelDocument extends IHotel, Document {
@@ -82,12 +82,10 @@ const hotelSchema = new Schema<IHotel>(
       min: 1,
       max: 5,
     },
-    starRating: [
-      {
-        countReview: { type: Number, default: 0, required: true },
-        starAverage: { type: Number, default: 5, required: true },
-      },
-    ],
+    starRating: {
+      countReview: { type: Number, default: 0, required: true },
+      starAverage: { type: Number, default: 5, required: true },
+    },
     latitude: {
       type: Number,
       min: -90,
@@ -117,7 +115,7 @@ const hotelSchema = new Schema<IHotel>(
       ref: 'users',
       required: true,
     },
-    isdDelete: { type: Boolean, default: false, required: true },
+    isDelete: { type: Boolean, default: false, required: true },
   },
   {
     timestamps: true,

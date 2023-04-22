@@ -5,7 +5,7 @@ import * as Yup from 'yup';
 
 export const createHotelSchema = Yup.object().shape({
   body: Yup.object().shape({
-    _id: Yup.string().max(0, 'No update _id'),
+    _id: Yup.string().max(0, 'No have _id'),
     hotelName: Yup.string().required(),
     address: Yup.string().required(),
     city: Yup.string().required(),
@@ -13,9 +13,8 @@ export const createHotelSchema = Yup.object().shape({
     zipCode: Yup.number().integer().min(999).required(),
     propertyType: Yup.string().oneOf(Object.values(PropertyType)).required(),
     star: Yup.number().min(0.5).max(5).required(),
-    images: Yup.string()
-      .matches(regexUtil.URL_REGEX, 'Must be url')
-      .notRequired(),
+    package: Yup.string().max(0, 'No have package'),
+    images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     roomTypes: Yup.array(
       Yup.object().shape({
         _id: Yup.string().max(0, 'No update _id'),
@@ -32,13 +31,14 @@ export const createHotelSchema = Yup.object().shape({
         ).required(),
         numberOfRoom: Yup.number().min(1).integer().required(),
       }),
-    ),
+    ).required('RoomTypes have 1'),
   }),
 });
 
 export const updateHotelSchema = Yup.object().shape({
   body: Yup.object().shape({
     _id: Yup.string().max(0, 'No update _id'),
+    package: Yup.string().max(0, 'No have package'),
     hotelName: Yup.string().notRequired(),
     address: Yup.string().notRequired(),
     city: Yup.string().notRequired(),
@@ -46,16 +46,14 @@ export const updateHotelSchema = Yup.object().shape({
     zipCode: Yup.number().integer().min(999).notRequired(),
     propertyType: Yup.string().oneOf(Object.values(PropertyType)).notRequired(),
     star: Yup.number().min(0.5).max(5).notRequired(),
-    images: Yup.string()
-      .matches(regexUtil.URL_REGEX, 'Must be url')
-      .notRequired(),
+    images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     isDelete: Yup.boolean().notRequired(),
   }),
 });
 
 export const createRoomSchema = Yup.object().shape({
   body: Yup.object().shape({
-    isUpdateMulti: Yup.boolean().notRequired(),
+    isCreateMulti: Yup.boolean().notRequired(),
     roomTypes: Yup.array(
       Yup.object().shape({
         _id: Yup.string().max(0, 'No update _id'),
@@ -67,12 +65,14 @@ export const createRoomSchema = Yup.object().shape({
         price: Yup.number().min(1).required(),
         mealType: Yup.string().notRequired(),
         taxType: Yup.string().notRequired(),
-        images: Yup.array(Yup.string().matches(regexUtil.URL_REGEX)).required(
-          'Must be url',
-        ),
+        images: Yup.array(Yup.string().matches(regexUtil.URL_REGEX, 'Must be url'))
+          .min(1)
+          .required(),
         numberOfRoom: Yup.number().min(1).integer().required(),
       }),
-    ),
+    )
+      .min(1)
+      .required(),
   }),
 });
 

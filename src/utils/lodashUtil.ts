@@ -21,13 +21,10 @@ export const deleteKeyNull = (pros: Pros<any>) => {
   return pros;
 };
 
-export const getConvertCreatedAt = (
-  pros: Pros<any> = {},
-  includes: string[],
-): Pros<any> => {
+export const getConvertCreatedAt = (pros: Pros<any>, includes: string[]): Pros<any> => {
   const isCreatedAt = ['createdAt_gte', 'createdAt_lte'];
 
-  pros.createdAt = { $gte: pros.createdAt };
+  if (pros.createdAt) pros.createdAt = { $gte: pros.createdAt };
 
   const convertDate = (key: '$gte' | '$lte') => {
     if (key === '$gte') {
@@ -55,10 +52,10 @@ export const getConvertCreatedAt = (
       const regExp = new RegExp(pros[key], 'i');
       pros[key] = regExp;
     }
-
     if (isCreatedAt.includes(key) && pros[key]) {
       key === 'createdAt_gte' ? convertDate('$gte') : convertDate('$lte');
     }
   });
+
   return pros;
 };

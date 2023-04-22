@@ -45,6 +45,32 @@ class UserService extends BaseService<IUser, UserDocument> {
       { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
     ]);
   };
+
+  findUserAddInfo = async (userId: string, project: { [key: string]: 0 | 1 }) => {
+    return await User.aggregate([
+      { $match: { _id: new Types.ObjectId(userId) } },
+      {
+        $lookup: {
+          from: 'hotels',
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'hotels',
+        },
+      },
+      { $unwind: '$hotels' },
+      {
+        $lookup: {
+          from: 'reviews',
+          localField: 'hotels._id',
+          foreignField: 'hotel.hotelId',
+          as: 'reviews',
+        },
+      },
+      { $unwind: '$reviews' },
+      { $group: { _id: 'countReview' } },
+      { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
+    ]);
+  };
 }
 const userService = new UserService();
 

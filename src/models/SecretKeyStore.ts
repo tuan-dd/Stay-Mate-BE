@@ -30,8 +30,5 @@ const secretKeyStoreSchema = new Schema<ISecretKeyStore>(
   { timestamps: true, expires: '7day', collection: 'keyStores' },
 );
 
-const SecretKeyStore = model<ISecretKeyStore>(
-  'keyStores',
-  secretKeyStoreSchema,
-);
+const SecretKeyStore = model<ISecretKeyStore>('keyStores', secretKeyStoreSchema);
 export default SecretKeyStore;

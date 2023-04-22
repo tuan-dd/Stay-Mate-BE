@@ -6,15 +6,11 @@ import { Types } from 'mongoose';
 import * as Yup from 'yup';
 
 // add function check objectId
-Yup.addMethod<Yup.StringSchema>(
-  Yup.string,
-  'objectIdValid',
-  function (message?: string) {
-    return this.test('objectIdValid', message || 'Wrong Id', (value) =>
-      Types.ObjectId.isValid(value),
-    );
-  },
-);
+Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
+  return this.test('objectIdValid', message || 'Wrong Id', (value) =>
+    Types.ObjectId.isValid(value),
+  );
+});
 
 declare module 'yup' {
   interface Schema<
@@ -55,8 +51,7 @@ export const createBookingSchema = Yup.object().shape({
       .test(
         'compareStartDate',
         'Not less or equal than start date',
-        (endDate: Date, context) =>
-          endDate <= context.parent.startDate ? false : true,
+        (endDate: Date, context) => (endDate <= context.parent.startDate ? false : true),
       )
       .required(),
   }),
@@ -66,28 +61,40 @@ export const paymentBookingSchema = Yup.object().shape({
   body: Yup.object().shape({
     password: Yup.string().required(),
     bookingId: Yup.string().objectIdValid().required(),
-    hotelierId: Yup.string().objectIdValid('Wrong Id').required(),
+    hotelId: Yup.string().objectIdValid('Wrong Id').required(),
   }),
 });
 
 export const cancelBookingSchema = Yup.object().shape({
   body: Yup.object().shape({
     bookingId: Yup.string().objectIdValid('Wrong Id').required(),
-    hotelierId: Yup.string().objectIdValid('Wrong Id').required(),
+    hotelId: Yup.string().objectIdValid('Wrong Id').required(),
   }),
 });
 
 export const paymentMembershipSchema = Yup.object().shape({
   body: Yup.object().shape({
     password: Yup.string().required(),
-    package: Yup.string().oneOf(Object.values(Package)).required(),
+    package: Yup.string()
+      .oneOf(Object.values(Package).filter((e) => e !== Package.FREE))
+      .required(),
   }),
 });
 
-export const getPayments = Yup.object().shape({
-  body: Yup.object().shape({
+export const getBookingSchema = Yup.object().shape({
+  query: Yup.object().shape({
     page: Yup.number().integer().min(1).notRequired(),
     status: Yup.string().oneOf(Object.values(Status)).notRequired(),
+  }),
+});
+
+export const getMembershipSchema = Yup.object().shape({
+  query: Yup.object().shape({
+    page: Yup.number().integer().min(1).notRequired(),
+    package: Yup.string()
+      .oneOf(Object.values(Package).filter((e) => e !== Package.FREE))
+      .notRequired(),
+    isExpire: Yup.boolean().notRequired(),
   }),
 });
 
@@ -96,13 +103,8 @@ export type WithdrawSchema = Yup.InferType<typeof withdrawSchema>['body'];
 export type PaymentMembershipSchema = Yup.InferType<
   typeof paymentMembershipSchema
 >['body'];
-export type CreateBookingSchema = Yup.InferType<
-  typeof createBookingSchema
->['body'];
-export type PaymentBookingSchema = Yup.InferType<
-  typeof paymentBookingSchema
->['body'];
-export type CancelBookingSchema = Yup.InferType<
-  typeof cancelBookingSchema
->['body'];
-export type GetPayments = Yup.InferType<typeof getPayments>['body'];
+export type CreateBookingSchema = Yup.InferType<typeof createBookingSchema>['body'];
+export type PaymentBookingSchema = Yup.InferType<typeof paymentBookingSchema>['body'];
+export type CancelBookingSchema = Yup.InferType<typeof cancelBookingSchema>['body'];
+export type GetBookingSchema = Yup.InferType<typeof getBookingSchema>['query'];
+export type GetMembershipSchema = Yup.InferType<typeof getMembershipSchema>['query'];

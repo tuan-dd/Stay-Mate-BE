@@ -6,6 +6,7 @@ import {
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
+import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
 import { getFilterData } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
@@ -46,6 +47,16 @@ class UserController {
 
     new SuccessResponse({
       message: 'update user successfully',
+    }).send(res);
+  };
+  getMe = async (req: Request, res: Response) => {
+    const dataUser = await userService.findOne({});
+
+    //????
+
+    new SuccessResponse({
+      message: 'update user successfully',
+      data: dataUser,
     }).send(res);
   };
 }

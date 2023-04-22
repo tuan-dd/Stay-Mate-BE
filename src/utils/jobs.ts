@@ -9,27 +9,28 @@ export enum EJob {
 
 export interface IBookingPaymentJob {
   type: EJob.BOOKING_DECLINE;
-  data: {
+  job: {
     id: string | Types.ObjectId;
   };
 }
 
 export interface IBookingStayedJob {
   type: EJob.BOOKING_STAY;
-  data: {
+  job: {
     id: string | Types.ObjectId;
   };
 }
 
 export interface IMembershipJob {
   type: EJob.MEMBERSHIP;
-  data: {
+  job: {
     id: string | Types.ObjectId;
+    userID: string | Types.ObjectId;
   };
 }
 export interface IDelete_reviewJob {
   type: EJob.DELETE_REVIEW;
-  data: {
+  job: {
     id: string | Types.ObjectId;
   };
 }

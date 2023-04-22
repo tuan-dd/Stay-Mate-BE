@@ -19,7 +19,7 @@ class Database {
 
     mongoose
       // .connect(url)
-      .connect(url)
+      .connect(url, { maxPoolSize: 50 }) //  nầy sau xem với tài nguyên máy tính
       .then(() => console.log('Connected Mongodb Success'))
       .catch((err: mongoose.Error) => logger.error('MongoDB Error', err));
   }

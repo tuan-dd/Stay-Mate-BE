@@ -1,14 +1,14 @@
 import {
+  BadRequestError,
   CreatedResponse,
   DuplicateError,
-  NoDataResponse,
   NotFoundError,
-  ServiceUnavailableError,
   SuccessResponse,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { HotelDocument, Package, IHotel } from '@/models/Hotel';
 import { Role } from '@/models/User';
+import addJobToQueue from '@/queue/queue';
 import {
   CreateHotelSchema,
   CreateRoomSchema,
@@ -18,16 +18,17 @@ import {
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
-import MembershipService from '@/services/membership.service';
+import { getLogger } from '@/utils/loggers';
+import paymentService from '@/services/payment.service';
 import RoomTypeService from '@/services/roomType.service';
 import UserService from '@/services/user.service';
+import { EJob } from '@/utils/jobs';
 import {
   Pros,
   getConvertCreatedAt,
   getDeleteFilter,
   getFilterData,
 } from '@/utils/lodashUtil';
-import redisUtil from '@/utils/redisUtil';
 import tokenUtil from '@/utils/tokenUtil';
 import crypto from 'crypto';
 import { Request, Response } from 'express';
@@ -41,7 +42,7 @@ class HotelController {
      * @package membership week
      * @create  create membership DB
      * @redis {key:membershipId : value 'membership' } expires 1 week redis key memberShipId : 'memberShipId'
-     * @create if user create a first hotel accessToken, refreshToken  with role Hollers update secretKeyStore
+     * @create if user create a first hotel so update accessToken, refreshToken  role Hollers update secretKeyStore
      * @send data
      */
     const { role, email } = req.user;
@@ -53,45 +54,49 @@ class HotelController {
 
     const hotelsDb = await HotelService.findMany({
       query: { userId: newHotel.userId },
-      page: 1,
-      limit: 100,
+      page: null,
+      limit: null,
     });
 
     hotelsDb.forEach((hotelDb) => {
       if (hotelDb.hotelName === newHotel.hotelName)
-        throw new DuplicateError('DuplicateError newHotel name');
+        throw new DuplicateError('DuplicateError new hotel name');
     });
 
     const createRoomsSuccess = await RoomTypeService.createMany(roomTypes);
-
-    if (!createRoomsSuccess)
-      throw new ServiceUnavailableError('Cant not create Hotel, try again ');
 
     newHotel.roomTypeIds = createRoomsSuccess.map((room) => room._id);
 
     const createHotelSuccess = await HotelService.createOne(newHotel);
 
-    if (!createHotelSuccess)
-      throw new ServiceUnavailableError('Cant not create Hotel, try again ');
-
     const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
 
-    const createMembership = await MembershipService.createOne({
-      userId: newHotel.userId,
-      timeEnd: week,
-      package: Package.WEEK,
-      isExpire: false,
-    });
+    // gift tăng quà membership 1 tuần tăng tính trải nghiệm cho new Holier
+    if (!hotelsDb.length) {
+      const createMembership = await paymentService.memberShipService.createOne({
+        userId: newHotel.userId,
+        timeEnd: week,
+        package: Package.WEEK,
+        isExpire: false,
+      });
 
-    const valueRedis = { MembershipId: createMembership._id };
+      const createJob = await addJobToQueue(
+        {
+          type: EJob.MEMBERSHIP,
+          job: { id: createMembership._id, userID: newHotel.userId },
+        },
+        { delay: week.getTime() },
+      );
+      if (!createJob) {
+        const log = getLogger('error bullmq');
+        log.error('cant not create new membership');
+        throw new BadRequestError('can`t payment, try again ');
+      }
 
-    await redisUtil.set(
-      createHotelSuccess._id.toHexString(),
-      JSON.stringify(valueRedis),
-      {
-        EX: week.getTime(),
-      },
-    );
+      newHotel.package = Package.WEEK;
+    }
+
+    newHotel.package = hotelsDb[0].package;
 
     if (role === Role.USER) {
       const secretKey = crypto.randomBytes(32).toString('hex');
@@ -134,8 +139,8 @@ class HotelController {
       new CreatedResponse({
         message: 'Create hotel successfully',
         data: getFilterData(
-          ['hotelName', 'image', 'address', 'package', 'city', 'country'],
-          newHotel,
+          ['hotelName', 'image', 'address', 'package', 'city', 'country', '_id'],
+          createHotelSuccess,
         ),
       }).send(res);
     }
@@ -150,57 +155,59 @@ class HotelController {
           userId,
           _id: new Types.ObjectId(req.params.id),
         },
-        { $set: { isdDelete: true } },
+        { $set: { isDelete: true } },
         { new: true },
       );
-      return new NoDataResponse({
-        message: 'delete hotel successfully',
-        data: result,
-      }).send(res);
+      return oke(result);
     }
 
     const result = await HotelService.findOneUpdate(
       {
         userId,
         _id: new Types.ObjectId(req.params.id),
+        isDelete: false,
       },
       { $set: { ...req.body } },
       { new: true },
     );
 
-    if (!result) throw new NotFoundError('Not found hotel');
+    oke(result);
 
-    new SuccessResponse({
-      message: 'Update hotel successfully',
-      data: result,
-    }).send(res);
+    function oke(result) {
+      if (!result) throw new NotFoundError('Not found hotel');
+
+      new SuccessResponse({
+        message: 'Update hotel successfully',
+      }).send(res);
+    }
   };
 
   createRoom = async (req: Request<any, any, CreateRoomSchema>, res: Response) => {
     const newRooms = await RoomTypeService.createMany(req.body.roomTypes);
 
-    const userId = req.headers[KeyHeader.USER_ID];
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const roomIds = newRooms.map((pros) => pros._id);
-    const hotelId = req.params.id;
+    const hotelId = new Types.ObjectId(req.params.id);
 
-    if (req.body.isUpdateMulti) {
-      // create rồi nên lun oke ?? k cần kiểm tra
-      // kt validate userId roi nen k can kiem tra role hotels chac chan co hotels roi
-      await HotelService.findOneUpdate(
-        { userId },
+    if (req.body.isCreateMulti) {
+      await HotelService.updateMany(
+        { userId, isDelete: false },
         { $addToSet: { roomTypeIds: roomIds } },
       );
       return oke();
     }
 
     // id co the client sai
-    const updateHotel = await HotelService.findByIdUpdate(hotelId, {
-      $addToSet: { roomTypeIds: roomIds },
-    });
+    const updateHotel = await HotelService.findOneUpdate(
+      { _id: hotelId, userId, isDelete: false },
+      {
+        $addToSet: { roomTypeIds: roomIds },
+      },
+    );
 
     if (!updateHotel) {
       await RoomTypeService.deleteRoomType({
-        _id: { $in: newRooms.map((room) => room._id) },
+        _id: { $in: roomIds },
       });
 
       throw new NotFoundError('Not found hotel');
@@ -219,28 +226,20 @@ class HotelController {
   updateRoomType = async (req: Request<any, any, UpdateRoomSchema>, res: Response) => {
     const roomId = req.params.id;
 
-    const updatePrimitive = getDeleteFilter(['roomAmenities', 'images'], req.body);
+    const newUpdate = req.body;
 
-    const images = req.body.images;
-    const roomAmenities = req.body.roomAmenities;
-
-    const newUpdate = await RoomTypeService.findByIdUpdate(
+    const result = await RoomTypeService.findByIdUpdate(
       roomId,
       {
-        $set: updatePrimitive,
-        $addToSet: {
-          images,
-          roomAmenities,
-        },
+        $set: newUpdate,
       },
       { new: true },
     );
 
-    if (!newUpdate) throw new NotFoundError('Not found room');
+    if (!result) throw new NotFoundError('Not found room');
 
     new SuccessResponse({
       message: 'Update room type successfully',
-      data: newUpdate,
     }).send(res);
   };
 

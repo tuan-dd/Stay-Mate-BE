@@ -1,18 +1,20 @@
-# Stay Mate
+<h1 align="center" style="color:purple;">STAY MATE </h1>
 
-<h1 align="center">Hi 👋, I'm Huynh Van Anh Tuan</h1>
+<h2 align="center">Hi 👋, I'm Huynh Van Anh Tuan</h2>
 <h3 align="center">A passionate full Stack developer from VietNam</h3>
 
 - 📫 How to reach me **tuandd.310797@gmail.com**
+- 📫 Phone **0708357236**
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
-<a href="https://linkedin.com/in/anh-tuấn-huỳnh-văn-86a79821b/" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="anh-tuấn-huỳnh-văn-86a79821b/" height="30" width="40" /></a>
-<a href="https://discord.gg/cat_97#5084" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg" alt="cat_97#5084" height="30" width="40" /></a>
+<a href="https://linkedin.com/in/anh-tuấn-huỳnh-văn-86a79821b/" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="anh-tuấn-huỳnh-văn-86a79821b/" height="30" width="60" ></a>
+<a href="https://discord.gg/cat_97#5084" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/discord.svg" alt="cat_97#5084" height="30" width="60" ></a>
+<a href="https://github.com/tuan-dd" target="blank"><img align="center" src="https://allvectorlogo.com/img/2021/12/github-logo-vector.png" alt="tuan_dd" height="30" width="60" ></a>
 </p>
 
 <h3 align="left">Languages and Tools:</h3>
-<p align="left"> <a href="https://expressjs.com" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/express/express-original-wordmark.svg" alt="express" width="40" height="40"/> </a> <a href="https://git-scm.com/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg" alt="git" width="40" height="40"/> </a> <a href="https://www.w3.org/html/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/html5/html5-original-wordmark.svg" alt="html5" width="40" height="40"/> </a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="javascript" width="40" height="40"/> </a> <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mongodb/mongodb-original-wordmark.svg" alt="mongodb" width="40" height="40"/> </a> <a href="https://nextjs.org/" target="_blank" rel="noreferrer"> <img src="https://cdn.worldvectorlogo.com/logos/nextjs-2.svg" alt="nextjs" width="40" height="40"/> </a> <a href="https://nodejs.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original-wordmark.svg" alt="nodejs" width="40" height="40"/> </a> <a href="https://reactjs.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original-wordmark.svg" alt="react" width="40" height="40"/> </a> <a href="https://redis.io" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="redis" width="40" height="40"/> </a> <a href="https://redux.js.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redux/redux-original.svg" alt="redux" width="40" height="40"/> </a> <a href="https://www.typescriptlang.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-original.svg" alt="typescript" width="40" height="40"/> </a> </p>
+<p align="left"> <a href="https://expressjs.com" target="_blank" rel="noreferrer" > <img src="https://wiki.tino.org/wp-content/uploads/2021/07/word-image-1150-768x432.png" alt="express" width="60" height="60"/> </a> <a href="https://git-scm.com/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/git-scm/git-scm-icon.svg" alt="git" width="60" height="60"/> </a> <a href="https://www.w3.org/html/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/html5/html5-original-wordmark.svg" alt="html5" width="60" height="60"/> </a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="javascript" width="60" height="60"/> </a> <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mongodb/mongodb-original-wordmark.svg" alt="mongodb" width="60" height="60"/> </a> <a href="https://nextjs.org/" target="_blank" rel="noreferrer"> <img src="https://itsir.ir/wp-content/uploads/2022/11/what-is-nextjs.jpg" alt="nextjs" width="60" height="60"/> </a> <a href="https://nodejs.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original-wordmark.svg" alt="nodejs" width="60" height="60"/> </a> <a href="https://reactjs.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original-wordmark.svg" alt="react" width="60" height="60"/> </a> <a href="https://redis.io" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original-wordmark.svg" alt="redis" width="60" height="60"/> </a> <a href="https://redux.js.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redux/redux-original.svg" alt="redux" width="60" height="60"/> </a> <a href="https://www.typescriptlang.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-original.svg" alt="typescript" width="60" height="60"/> </a><a href="https://docs.bullmq.io/" target="_blank" rel="noreferrer"> <img src="https://user-images.githubusercontent.com/95200/143832033-32e868df-f3b0-4251-97fb-c64809a43d36.png" alt="bullmq" width="60" height="60"/> </a>  </p>
 
 ## Description
 
@@ -32,179 +34,193 @@ Overall, Web book hotel represents a significant leap forward in travel booking 
 
 ### Authentication
 
-- [ ] as a user, I can register for a new account with name, email, and password, gmail ,faceBook
-- [ ] As a user, I can sign in with my email and password.
-- [ ] As a user, I can get new password when forget by link send user mail
+- [x] Registering for a new account with name, email, and password, gmail
+- [x] Signing in with my email and password.
+- [ ] Getting new password when forget by link send user mail, (advance)
 
 ### Users
 
-- [ ] as user two type : tenant/hotelier
+- [x] User two type : tenant/hotelier
 
-`tenant`
+`Tenant`
 
-- [ ] As a user, I can see profile of a specific given a user ID.
-- [ ] As a user, can update profile password, name ,faceBook,avatar,charge money,history,...
-- [ ] As a user, can have see history books status : decline,success,stayed,pending(`limit time`)
-- [ ] As a user, can recall book,
-- [ ] As a user, book hotel , see all hotel ,payment
-- [ ] As a user, accumulate points to decrease fee (example : 1 point to 1k , 10k to 1 point)
-- [ ] As a user, can review(1 2 3 4 5 star) ,upload image(max 2 img, 1 video (10mb)) video , comment when user stayed hotel (status : success)
+- [x] Seeing profile of a specific given a user ID.
+- [x] Updating profile
+- [x] Having see history books status : decline, success,stayed,pending(`limit time`)
+- [x] cancel book,
+- [x] Every one can see list or detail hotel
+- [x] Creating and paying booking
+- [x] Reviewing star ,upload image, comment when user stayed hotel
+- [ ] Accumulating points to decrease fee (example : 1 point to 1k , 10k to 1 point)
 
-`hotelier`
+`Hotelier`
 
-- [ ] create post one post hotel , must provide info hotel max 2 image,address,,video(fee) number of rooms, price of each room type, Utilities of each room type
-- [ ] option : fee post (year,month) , type 'basic' ,'premium' , payment
-- [ ] all features in tenant
+- [x] All features in tenant
+- [x] Creating hotel, payment membership
+- [x] Paying membership
+- [x] Replying review
 
-### Posts
+### Hotel
 
-`features`
+`Tenant`
 
-`tenant`
+- [x] Seeing a list of hotel
+- [x] Seeing a hotel hotel
+- [x] Seeing review and reply
+- [x] Filtering
 
-- CRUD
-- [ ] As a user, I can see a list of hotel
-- [ ] As a user, I can see a post hotel
-- [ ] As a user, I can see comment
-- [ ] As a user, I filter to see (have any room, price(gte,gle), star,location,)
-- [ ] before to see post , user must input time , location
+`Hotelier`
 
-`hotelier`
+- [x] All features in tenant
+- [x] Only owner can Update, edit, delete, membership (- [ ] advance: create sale off limited expiration time, limited number of times)
 
-- [ ] As a user, update edit, delete , (advance: create sale off limited expiration time, limited number of times)
+### Review
 
-### Comment
+`Tenant`
 
-`features`: text
+- [x] Seeing list of comments, reply on hotel.
+- [x] Writing review on a post when user stayed hotel
+- [x] Updating their review.
 
-`tenant`
+`Hotelier`
 
-- [ ] As a user, I can see list of comments on post.
-- [ ] As a user, I can write comments on a post when user stayed hotel (status : stayed)
-- [ ] As a user, a comment have text image ,video start
-- [ ] As a user, I can update tenant comments.
-- [ ] As a user, I can delete tenant comments.
-- [ ] As a user, I can reply tenant comments.
+- [x] All features in tenant
+- [x] Only owner create reply review
 
-`hotelier`
+### Book and payment
 
-- [ ] All tenant
-- [ ] All reply comment in hotelier post
+- [x] Booking hotel select type room ,time
+- [x] Having status pending, success, staye, decline, cancel
+- [x] Canceling (advance : - [x] before 24h refund 100% after can not refund )
+- [x] `mongoose transaction`: payment atomic
+- [x] Charger withdrawal (advance)
 
-### book and payment
+### Admin
 
-- [ ] As a user, I book hotel select type room ,time , add point
-- [ ] 4 type pending , success, stayed, decline,Cancel
-- [ ] can recall half money (advance : before 1 week refund 100%, after refund half )
-- [ ] book have status success when hotelier receiver money and tenant nhân money (when click input pass)
-- [ ] deposit withdrawal (advance)
+- [x] block user, delete review, block hotel, (- [ ] advance : alert user )
+- [ ] See all boxChat
 
-### admin
+### Message (advance)
 
-- [ ] block acc , delete comment ,(advance : alert )
-- [ ] see all chat
+- [ ] Tenant can chat with support ,hotelier ,
+- [ ] Hotelier support ,hotelier
+- [ ] Cant select who want chat
+- [ ] Advance send img
 
-### message
-
-- [ ] tenant can chat with support ,hotelier ,
-- [ ] hotelier support ,hotelier
-- [ ] cant select who want chat
-- [ ] advance send img
-
-## Endpont APIs
+## Endpoint APIs
 
 ### Login
 
-Go to **validations/authValidation.js** to see schema
+`/v1/api/`
 
-`POST /auth/login` all can login
+Go to **schemas/auth.schema.ts** to see schema
 
-`PUT /auth/changePass` all can update
+- [x]
+
+`POST auth/login` all can login
+
+`PUT auth/changePass` **Login required** update profile
 
 ### User
 
-Go to **validations/userValidation.js** to see schema
+Go to **schemas/user.schema.ts** to see schema
 
-`POST /user` Register new user
+- [x]
 
-`get /user/me` **Login required** info user
+`POST sign-up` register new user
 
-`get /user/income/me` **Login required** income user
+`PUT user/user-update` **Login required** update me
 
-`PUT /user/me` **Login required** update me
+`GET user/me` **Login required** info user
 
-`POST /user/upgrade-hotelier` **Login required** upgrade to hotelier
+### Hotel
 
-`POST /user/deposit` **Login required** deposit money
+Go to **schemas/hotel.schema.ts** to see schema
 
-`POST /user/withdrawal` **Login required** withdrawal money
+- [x]
 
-### post
+`POST user/create-hotel` **Login required** create to hotelier
 
-Go to **validations/postValidation.js** to see schema
+`POST hotel/create-room/:id` \*\*\* **Login required** hotelier can room types
 
-`POST /post` \*\*\* **Login required** hotelier can create
+`PUT hotel/update-room/:id` \*\*\* **Login required** hotelier can update
 
-`GET /post/:postId` \*\*\* all can see
+`PUT hotel/update-hotel/:id` \*\*\* **Login required** hotelier can update
 
-`GET /post/` \*\*\* all can see
+`GET hotel/` \*\*\* get hotels
 
-`PUT /post/:postId` \*\*\* **Login required** hotelier can update
+`GET hotel/:Id` \*\*\* all detail hotel
 
-`DELETE /comment/:commentId` \*\*\* **Login required** author can post
+### Review
 
-### Comment
+Go to **schemas/review.schema.ts** to see schema
 
-Go to **validations/commentValidation.js** to see schema
+- [x]
 
-`POST/comment` \*\*\* **Login required** tenant stayed can comment or hotelier
+`GET review/:reviewId` \*\*\* get all review in post
 
-`GET /comment/:commentId` \*\*\* get all comment in post
+`POST/review/:id` \*\*\* **Login required** tenant stayed can review or hotelier reply
 
-`POST /comment/reply/commentId` \*\*\* all can see
+`PUT review/:id` \*\*\* **Login required** author can update
 
-`PUT /comment/:commentId` \*\*\* **Login required** author can update
+### Payment
 
-`DELETE /comment/:commentId` \*\*\* **Login required** author can delete
+Go to **schemas/booking.schema.ts** to see schema
 
-### book and payment
+- [x]
 
-Go to **validations/bookValidation.js** to see schema
+`POST payment/create-booking` \*\*\* **Login required** booking hotel
 
-`POST /book/:postId` \*\*\* **Login required** book hotel
+`PUT payment/charge` **Login required** charge money
 
-`GET /book/hotelier/:userId` \*\*\* **Login required** author can see
+`PUT payment/withdrawal` **Login required** withdrawal money
 
-`GET /book/tenant/:userId` \*\*\* **Login required** author can see
+`PUT payment/payment-booking` \*\*\* **Login required** payment booking
 
-`GET /book/detail/:bookId` \*\*\* **Login required** author can see
+`PUT payment/cannel-booking` \*\*\* **Login required** cannel booking
 
-`PUT /book/payment/:postId` \*\*\* **Login required** author can payment
+`PUT payment/payment-membership` \*\*\* **Login required** payment membership
 
-`PUT /book/recall/:postId` \*\*\* **Login required** author can recall
+`GET payment/booking` \*\*\* **Login required** get booking
 
-### message
+`GET payment/membership` \*\*\* **Login required** get membership
+
+### Message
 
 `advance`
 
-### admin
+### Admin
 
-Go to **validations/adminValidation.js** to see schema
+Go to **schemas/admin.schema.ts** to see schema
 
-`PUT /admin/all` \*\*\* **Login required** update everything
+- [ ]
 
-`DELETE /admin/:all` \*\*\* **Login required** delete everything
+`PUT admin/user/:id` \*\*\* **Login required** update user
 
-`ALERT /admin/alert/:userId` \*\*\* **Login required** alert
+`PUT admin/hotel/:id` \*\*\* **Login required** update holier
+
+`PUT admin/review/:id` \*\*\* **Login required** update review
+
+`ALERT admin/alert/:userId` \*\*\* **Login required** alert user
+
+`GET admin/` \*\*\* **Login required** get users
+
+`GET admin/id` \*\*\* **Login required** get detail user
 
 ### Frontend 1 week
 
-### use nextjs
+### Using next.js
 
-`Create a categorized product list and filter function for the Homepage.`
-`Create layouts, content, and components for the User Profile & Account Setting Page - UI without testing.`
-`Create layouts, content, and components for Upload Product Page - UI without testing.`
-`Create layouts, content, and components for Detail Product Page - UI without testing.`
-`Create layouts, content, and components for Cart Page - UI without testing.`
-`Create layouts, content, and components for Complete Buying Page - UI without testing.`
-`Implement users' interaction for each page with API service and Redux.`
+- [ ] `Create a categorized product list and filter function for the Homepage.`
+
+- [ ] `Create layouts, content, and components for the User Profile & Account Setting Page - UI without testing.`
+
+- [ ] `Create layouts, content, and components for Upload Product Page - UI without testing.`
+
+- [ ] `Create layouts, content, and components for Detail Product Page - UI without testing.`
+
+- [ ] `Create layouts, content, and components for Cart Page - UI without testing.`
+
+- [ ] `Create layouts, content, and components for Complete Buying Page - UI without testing.`
+
+- [ ] `Implement users' interaction for each page with API service and Redux.`

@@ -1,7 +1,13 @@
 import Booking, { BookingDocument, IBooking } from '@/models/Booking';
 import BaseService, { QueryWithPagination } from './base.service';
 import Membership, { IMembership, MembershipDocument } from '@/models/Membership';
-import { FilterQuery, PopulateOptions, QueryOptions, SaveOptions } from 'mongoose';
+import {
+  AnyKeys,
+  FilterQuery,
+  PopulateOptions,
+  QueryOptions,
+  SaveOptions,
+} from 'mongoose';
 
 class BookingService extends BaseService<IBooking, BookingDocument> {
   constructor() {
@@ -39,7 +45,7 @@ class MemberShipService extends BaseService<IMembership> {
   constructor() {
     super(Membership);
   }
-  createOneAtomic = async (doc: IMembership, option: SaveOptions) => {
+  createOneAtomic = async (doc: AnyKeys<IMembership>[], option: SaveOptions) => {
     return await Membership.create(doc, option);
   };
 

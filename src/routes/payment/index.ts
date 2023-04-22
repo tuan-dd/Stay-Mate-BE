@@ -1,7 +1,11 @@
 import paymentController from '@/controllers/payment.controller';
 import { catchError, checkUser, validateRequest } from '@/middleware/validate';
 import {
+  cancelBookingSchema,
+  chargeSchema,
   createBookingSchema,
+  getBookingSchema,
+  getMembershipSchema,
   paymentBookingSchema,
   paymentMembershipSchema,
   withdrawSchema,
@@ -29,15 +33,15 @@ router.put(
 );
 
 router.put(
-  '/cannel-booking',
-  validateRequest(paymentBookingSchema),
-  catchError(paymentController.paymentBooking),
+  '/cancel-booking',
+  validateRequest(cancelBookingSchema),
+  catchError(paymentController.cancelBooking),
 );
 
 router.put(
   '/charge',
-  validateRequest(paymentBookingSchema),
-  catchError(paymentController.paymentBooking),
+  validateRequest(chargeSchema),
+  catchError(paymentController.chargeMoney),
 );
 
 router.put(
@@ -49,10 +53,18 @@ router.put(
 router.put(
   '/payment-membership',
   validateRequest(paymentMembershipSchema),
-  catchError(paymentController.withdrawMoney),
+  catchError(paymentController.paymentMembership),
 );
 
-router.get('/booking', catchError(paymentController.getBookings));
-router.get('/membership', catchError(paymentController.getMemberShips));
+router.get(
+  '/booking',
+  validateRequest(getBookingSchema),
+  catchError(paymentController.getBookings),
+);
+router.get(
+  '/membership',
+  validateRequest(getMembershipSchema),
+  catchError(paymentController.getMemberShips),
+);
 
 export default router;
