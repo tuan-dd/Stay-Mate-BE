@@ -4,8 +4,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "node ./dist/bin/www.js",
-    "build": "tsc -p ./tsconfig.build.json --pretty",
+    "start": "node /dist/bin/www.js",
+    "build": "sh etc/build.sh",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
   },
@@ -30,7 +30,6 @@
     "nodemailer": "^6.9.1",
     "redis": "^4.6.5",
     "rimraf": "^5.0.0",
-    "tsc": "^2.0.4",
     "yup": "^1.0.2"
   },
   "devDependencies": {
