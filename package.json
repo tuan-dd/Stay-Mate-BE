@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./dist/bin/www.js",
-    "build": "NODE_ENV=production tsc",
+    "build": "sh etc/build.sh",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
   },
