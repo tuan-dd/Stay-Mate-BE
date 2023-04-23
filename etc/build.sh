@@ -1,4 +1,3 @@
-export NODE_ENV=production
 
 rimraf dist
 
