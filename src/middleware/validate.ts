@@ -1,5 +1,5 @@
 import { Response, NextFunction, Request } from 'express';
-import { AnyObject, AnyObjectSchema, ObjectSchema } from 'yup';
+import { AnyObject } from 'yup';
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
 import { Types } from 'mongoose';
@@ -11,12 +11,12 @@ import {
 } from '@/helpers/utils';
 import SecretKeyStoreService from '@/services/keyStore.service';
 import UserService from '@/services/user.service';
-import tokenUtil, { PayLoad } from '@/utils/tokenUtil';
+import tokenUtil, { DataAfterEncode } from '@/utils/tokenUtil';
 import { Role } from '@/models/User';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user: PayLoad;
+    user: DataAfterEncode;
   }
 }
 
@@ -33,17 +33,13 @@ export const catchError = (fun: any) => {
 
 // check data in request
 export const validateRequest =
-  (schema: AnyObject) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+  (schema: AnyObject) => async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate(
-        {
-          body: req.body,
-          params: req.params,
-          query: req.query,
-        },
-        { stripUnknown: true },
-      );
+      await schema.validate({
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      });
       next();
     } catch (error: any) {
       error.httpCode = HttpCode.BAD_REQUEST;
@@ -53,19 +49,14 @@ export const validateRequest =
   };
 
 // check header have info need to use some router
-export const checkUser = async (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-) => {
+export const checkUser = async (req: Request, _res: Response, next: NextFunction) => {
   const userId = req.headers[KeyHeader.USER_ID] as string;
   const accessToken = req.headers[KeyHeader.ACCESS_TOKEN] as string;
   const ip = req.ip;
   try {
     if (!userId) throw new BadRequestError('Header must have userId');
 
-    if (!accessToken)
-      throw new BadRequestError('Header must have access token');
+    if (!accessToken) throw new BadRequestError('Header must have access token');
 
     if (!Types.ObjectId.isValid(userId as string))
       throw new BadRequestError('UserId wrong');
@@ -74,7 +65,7 @@ export const checkUser = async (
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exit');
 
-    const tokenStore = await SecretKeyStoreService.findTokenStore({
+    const tokenStore = await SecretKeyStoreService.findOne({
       userId,
       deviceId: ip,
     });
@@ -93,7 +84,8 @@ export const checkUser = async (
       throw new ForbiddenError('Wrong access token');
     }
 
-    req.user = data as PayLoad;
+    req.user = data;
+    req.user.name = userDb.name;
 
     req.next();
   } catch (error) {
@@ -101,15 +93,7 @@ export const checkUser = async (
   }
 };
 
-export const checkParamsId = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-) => {
-  // const userId = req.params.id;
-
-  // console.log(userId); // bị undefine
-
+export const checkParamsId = (req: Request, _res: Response, next: NextFunction) => {
   if (!req.params?.id || !Types.ObjectId.isValid(req.params?.id))
     throw new NotFoundError('Params must have id');
 
@@ -122,8 +106,7 @@ export const checkParamsId = (
 
 export const checkRole =
   (role: Role) => (req: Request, _res: Response, next: NextFunction) => {
-    if (req.user.role !== role)
-      throw new NotAuthorizedError('you are not authorized');
+    if (req.user.role !== role) throw new NotAuthorizedError('you are not authorized');
     next();
     try {
     } catch (error) {

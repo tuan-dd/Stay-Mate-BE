@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import indexRouter from './routes/index';
-import { AppError, NotFound, SuccessResponse } from './helpers/utils';
+import { AppError, NotFoundError, SuccessResponse } from './helpers/utils';
 import { HttpCode } from './utils/httpCode';
 
 class App {
@@ -28,6 +28,7 @@ class App {
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
     this.app.use(express.static(path.join(__dirname, 'public/images')));
+    require('./services/worker.service');
     require('./database/init.mongoDb');
     require('./database/init.redisDb');
   }
@@ -37,7 +38,7 @@ class App {
     this.app.use('/', indexRouter);
 
     this.app.use((_res, _req, next) => {
-      const err = new NotFound('Not Found Url');
+      const err = new NotFoundError('Not Found Url');
       next(err);
     });
     this.app.use(
@@ -45,27 +46,11 @@ class App {
         err: AppError,
         _req: Request,
         res: Response,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _next: NextFunction,
       ): void => {
         // eslint-disable-next-line no-console
         console.log('ERROR', err);
-        // if (err instanceof Error)
-        //   new SuccessResponse({
-        //     success: false,
-        //     statusCode: err.httpCode
-        //       ? err.httpCode
-        //       : HttpCode.INTERNAL_SERVER_ERROR,
-        //     errors: { message: err.message },
-        //     message: err.errorType || 'Internal Server Error',
-        //   }).send(res);
-        // if (err instanceof AppError)
-        //   new SuccessResponse({
-        //     success: false,
-        //     statusCode: err.httpCode,
-        //     errors: { message: err.message },
-        //     message: err.errorType,
-        //   }).send(res);
-
         new SuccessResponse({
           success: false,
           statusCode: err.httpCode

@@ -1,12 +1,12 @@
 import { Types, Schema, model, SchemaTypes } from 'mongoose';
 
-interface TypeBoxChat {
+interface IBoxChat {
   userCreateId?: Types.ObjectId;
   userTwoId?: Types.ObjectId;
   messageIds?: Types.ObjectId[];
 }
 
-const chatBoxSchema = new Schema<TypeBoxChat>(
+const chatBoxSchema = new Schema<IBoxChat>(
   {
     userCreateId: {
       type: SchemaTypes.ObjectId,
@@ -29,6 +29,6 @@ const chatBoxSchema = new Schema<TypeBoxChat>(
   { timestamps: true, collection: 'boxChats' },
 );
 
-const BoxChat = model<TypeBoxChat>('boxChats', chatBoxSchema);
+const BoxChat = model<IBoxChat>('boxChats', chatBoxSchema);
 
 export default BoxChat;

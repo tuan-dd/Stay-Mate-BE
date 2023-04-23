@@ -1,52 +1,100 @@
-import { Types, Schema, model, SchemaTypes } from 'mongoose';
+import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
+import { Role } from './User';
 
-interface TypeReview {
-  context: string;
-  image: string[];
-  star: number;
-  userId: Types.ObjectId;
+interface Author {
+  name: string;
+  authorId: Types.ObjectId;
+  role: Role;
+}
+interface Hotel {
+  name: string;
   hotelId: Types.ObjectId;
-  roomTypeIds: Types.ObjectId[];
+}
+export interface IReview {
+  context?: string;
+  images: string[];
+  starRating: number;
+  slug?: string;
+  parent_slug?: string;
+  author: Author;
+  hotel: Hotel;
+  roomName?: string[];
+  bookingId: Types.ObjectId;
+  isReply?: boolean;
+  isDelete?: boolean;
 }
 
-const reviewSchema = new Schema<TypeReview>(
+export interface ReviewDocument extends IReview, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const reviewSchema = new Schema<IReview>(
   {
     context: {
       type: String,
+      default: 'no',
       required: true,
     },
-    image: [
+    images: [
       {
         type: String,
       },
     ],
-    star: {
+    starRating: {
       type: Number,
+      default: 0,
       max: 5,
-      min: 1,
+      min: 0,
       required: true,
     },
-    userId: {
-      type: SchemaTypes.ObjectId,
+    slug: {
+      type: String, // Date().getTime
       required: true,
-      ref: 'Users',
+      index: true,
+      unique: true,
     },
-    hotelId: {
+    parent_slug: {
+      type: String,
+      default: '',
+    },
+    author: {
+      name: { type: String, required: true },
+      authorId: { type: SchemaTypes.ObjectId, required: true, ref: 'Users' },
+      role: { type: String, required: true, enum: Object.values(Role) },
+    },
+    hotel: {
+      name: {
+        type: String,
+        required: true,
+      },
+      hotelId: { type: SchemaTypes.ObjectId, required: true, ref: 'hotels' },
+    },
+    bookingId: {
       type: SchemaTypes.ObjectId,
       required: true,
       ref: 'hotels',
     },
-    roomTypeIds: [
+    roomName: [
       {
-        type: SchemaTypes.ObjectId,
+        type: String,
         required: true,
         min: 1,
-        ref: 'roomTypes',
       },
     ],
+    isReply: {
+      type: Boolean, // Date().getTime
+      required: true,
+      default: false,
+    },
+    isDelete: {
+      type: Boolean, // Date().getTime
+      required: true,
+      default: false,
+    },
   },
   { timestamps: true, collection: 'reviews' },
 );
 
-const Review = model<TypeReview>('reviews', reviewSchema);
+const Review = model<IReview>('reviews', reviewSchema);
 export default Review;

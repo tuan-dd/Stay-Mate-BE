@@ -1,12 +1,12 @@
 import client from '@/database/init.redisDb';
 import { RedisCommandArgument } from '@redis/client/dist/lib/commands';
 import { SetOptions } from 'redis';
-
 // set key many time
+
 const set = async (
   key: RedisCommandArgument,
   value: RedisCommandArgument | number,
-  options: SetOptions,
+  options?: SetOptions,
 ): Promise<any> => {
   return client.set(key, value, options);
 };
@@ -43,12 +43,16 @@ const hIncrBy = async (
 ): Promise<any> => {
   return client.hIncrBy(key, field, number);
 };
+const incrBy = async (key: RedisCommandArgument, number: number): Promise<any> => {
+  return client.incrBy(key, number);
+};
+
+const decrBy = async (key: RedisCommandArgument, number: number): Promise<any> => {
+  return client.decrBy(key, number);
+};
 
 // limit time delete key value
-const expire = async (
-  key: RedisCommandArgument,
-  value: number,
-): Promise<any> => {
+const expire = async (key: RedisCommandArgument, value: number): Promise<any> => {
   return client.expire(key, value);
 };
 
@@ -64,8 +68,11 @@ export default {
   get,
   hGetAll,
   hIncrBy,
+  setOne,
   hSet,
   expire,
   deleteKey,
   getTimeExpires,
+  incrBy,
+  decrBy,
 } as const;

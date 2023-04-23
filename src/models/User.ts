@@ -1,4 +1,4 @@
-import { Types, Schema, model, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
 // const { Types, Schema } = mongoose;
 export enum Role {
@@ -6,23 +6,27 @@ export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
-export interface TypeUser {
+interface Account {
+  balance: number;
+  virtualBalance: number;
+}
+export interface IUser {
   name: string;
   email?: string;
   password: string;
-  balance?: number;
+  account?: Account;
   verify?: boolean;
   avatar?: string;
   role?: Role;
   isActive?: boolean;
 }
 
-export interface UserDocument extends TypeUser, Document {
+export interface UserDocument extends IUser, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<TypeUser>(
+const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -38,11 +42,9 @@ const userSchema = new Schema<TypeUser>(
       type: String,
       required: true,
     },
-    // TODO rename to balance
-    balance: {
-      type: Number,
-      default: 0,
-      required: true, // TODO: default to 0
+    account: {
+      balance: { type: Number, default: 0, required: true },
+      virtualBalance: { type: Number, default: 0, required: true },
     },
     verify: {
       type: Boolean,
@@ -52,7 +54,6 @@ const userSchema = new Schema<TypeUser>(
     avatar: {
       type: String,
     },
-    // prefer "role" than Role
     role: {
       type: String,
       default: Role.USER,
@@ -73,5 +74,5 @@ userSchema.pre('save', async function (this, next) {
   this.password = hash;
 });
 
-const User = model<TypeUser>('users', userSchema);
+const User = model<IUser>('users', userSchema);
 export default User;

@@ -1,45 +1,48 @@
-import SecretKeyStore, { TypeSecretKeyStore } from '@/models/SecretKeyStore';
-import { query } from 'express';
-import { AnyKeys, FilterQuery, AnyObject, QueryOptions, Types } from 'mongoose';
+import SecretKeyStore, { ISecretKeyStore } from '@/models/SecretKeyStore';
 
-class SecretKeyStoreService {
-  static createStore = async (KeyStore: AnyKeys<TypeSecretKeyStore>) => {
-    return await SecretKeyStore.create(KeyStore);
-  };
-  static findTokenStore = async (
-    query: FilterQuery<TypeSecretKeyStore>,
-    option?: QueryOptions,
-  ) => {
-    return await SecretKeyStore.findOne(query, null, {
-      lean: true,
-      ...option,
-    }).exec();
-  };
-  static deleteALl = async (
-    query: FilterQuery<TypeSecretKeyStore>,
+import { FilterQuery, QueryOptions } from 'mongoose';
+import BaseService from './base.service';
+
+class SecretKeyStoreService extends BaseService<ISecretKeyStore> {
+  constructor() {
+    super(SecretKeyStore);
+  }
+  // static createStore = async (KeyStore: AnyKeys<ISecretKeyStore>) => {
+  //   return await SecretKeyStore.create(KeyStore);
+  // };
+  // static findTokenStore = async (
+  //   query: FilterQuery<ISecretKeyStore>,
+  //   option?: QueryOptions,
+  // ) => {
+  //   return await SecretKeyStore.findOne(query, null, {
+  //     lean: true,
+  //     ...option,
+  //   }).exec();
+  // };
+  deleteALl = async (
+    query: FilterQuery<ISecretKeyStore>,
     option?: QueryOptions,
   ) => {
     return await SecretKeyStore.deleteMany(query, option);
   };
-  static findOneUpdateTokenStore = async (
-    query: FilterQuery<TypeSecretKeyStore>,
-    update: AnyKeys<TypeSecretKeyStore>,
-  ) => {
-    return await SecretKeyStore.findOneAndUpdate(
-      query,
-      {
-        $set: update,
-      },
-      { upsert: true, new: true },
-    ).exec();
-  };
-
-  static deleteTokenStore = async (
-    query: FilterQuery<TypeSecretKeyStore>,
+  // static findOneUpdateTokenStore = async (
+  //   query: FilterQuery<ISecretKeyStore>,
+  //   update: AnyKeys<ISecretKeyStore>,
+  // ) => {
+  //   return await SecretKeyStore.findOneAndUpdate(
+  //     query,
+  //     {
+  //       $set: update,
+  //     },
+  //     { upsert: true, new: true },
+  //   ).exec();
+  // };
+  deleteTokenStore = async (
+    query: FilterQuery<ISecretKeyStore>,
     option?: QueryOptions,
   ) => {
     return await SecretKeyStore.deleteOne(query, option).exec();
   };
 }
 
-export default SecretKeyStoreService;
+export default new SecretKeyStoreService();

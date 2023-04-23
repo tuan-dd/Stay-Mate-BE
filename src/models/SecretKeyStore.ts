@@ -1,13 +1,13 @@
 import { Types, Schema, model, SchemaTypes } from 'mongoose';
 
-export interface TypeSecretKeyStore {
+export interface ISecretKeyStore {
   userId: Types.ObjectId;
   secretKey: string;
   refreshToken: string;
   deviceId: string;
 }
 
-const secretKeyStoreSchema = new Schema<TypeSecretKeyStore>(
+const secretKeyStoreSchema = new Schema<ISecretKeyStore>(
   {
     userId: {
       type: SchemaTypes.ObjectId,
@@ -30,8 +30,5 @@ const secretKeyStoreSchema = new Schema<TypeSecretKeyStore>(
   { timestamps: true, expires: '7day', collection: 'keyStores' },
 );
 
-const SecretKeyStore = model<TypeSecretKeyStore>(
-  'keyStores',
-  secretKeyStoreSchema,
-);
+const SecretKeyStore = model<ISecretKeyStore>('keyStores', secretKeyStoreSchema);
 export default SecretKeyStore;

@@ -1,42 +1,39 @@
 import { google } from 'googleapis';
 import nodemailer from 'nodemailer';
+import appConfig from '@/config/config';
 
-const CLIENT_ID: string | undefined = process.env.CLIENT_ID;
-const CLIENT_SECRET: string | undefined = process.env.CLIENT_SECRET;
-const REDIRECT_URL: string | undefined = process.env.REDIRECT_URL;
-const REFRESH_TOKEN: string | undefined = process.env.REFRESH_TOKEN;
+const { clientId, clientSecret, refreshToken, redirectUrl, email_from } = appConfig.email;
 
-interface Email {
-  from: string; // sender address
-  to: string; // list of receivers
-  subject: string; // Subject line
-  text: string; // plain text body
-  html: string; // html body
-}
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URL,
-);
+const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
 
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+oAuth2Client.setCredentials({ refresh_token: refreshToken });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const sendMail = async (email: Email): Promise<any> => {
+export const sendMail = async (sixCode: number | string, email: string): Promise<any> => {
   const accessToken = (await oAuth2Client.getAccessToken()) as string;
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       type: 'OAuth2',
-      user: 'huynh.atuan.97@gmail.com',
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-      refreshToken: REFRESH_TOKEN,
+      user: email_from,
+      clientId: clientId,
+      clientSecret: clientSecret,
+      refreshToken: refreshToken,
       accessToken: accessToken,
     },
   });
-  return transporter.sendMail({
-    ...email,
-  });
+  return transporter.sendMail(
+    {
+      from: appConfig.email.email_from,
+      to: `${email}`,
+      subject: 'Hello ✔',
+      text: ` Hello ${email} `,
+      html: `<b>${sixCode}</b>`,
+    },
+    (err, info) => {
+      if (err) return err;
+      return info;
+    },
+  );
 };

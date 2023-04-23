@@ -12,7 +12,18 @@ export enum Package {
   YEAR = 'YEAR',
 }
 
-export interface TypeHotel {
+export enum PricePackage {
+  FREE = 0,
+  WEEK = 7,
+  MONTH = 30,
+  YEAR = 365,
+}
+
+interface starRating {
+  countReview: number;
+  starAverage: number;
+}
+export interface IHotel {
   hotelName: string;
   image?: string;
   address: string;
@@ -21,21 +32,21 @@ export interface TypeHotel {
   zipCode: number;
   propertyType: PropertyType;
   star: number;
-  starRating?: number;
+  starRating?: starRating;
   latitude?: number;
   longitude?: number;
   package: Package;
   userId: Types.ObjectId;
   roomTypeIds?: Types.ObjectId[];
-  isdDelete?: boolean;
+  isDelete?: boolean;
 }
 
-export interface HotelDocument extends TypeHotel, Document {
+export interface HotelDocument extends IHotel, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const hotelSchema = new Schema<TypeHotel>(
+const hotelSchema = new Schema<IHotel>(
   {
     hotelName: {
       type: String,
@@ -67,15 +78,13 @@ const hotelSchema = new Schema<TypeHotel>(
     },
     star: {
       type: Number,
-      min: 1,
-      max: 5,
-      required: true,
-    },
-    starRating: {
-      type: Number,
       default: 5,
       min: 1,
       max: 5,
+    },
+    starRating: {
+      countReview: { type: Number, default: 0, required: true },
+      starAverage: { type: Number, default: 5, required: true },
     },
     latitude: {
       type: Number,
@@ -106,7 +115,7 @@ const hotelSchema = new Schema<TypeHotel>(
       ref: 'users',
       required: true,
     },
-    isdDelete: { type: Boolean, default: false, required: true },
+    isDelete: { type: Boolean, default: false, required: true },
   },
   {
     timestamps: true,
@@ -114,5 +123,5 @@ const hotelSchema = new Schema<TypeHotel>(
   },
 );
 
-const Hotel = model<TypeHotel>('hotels', hotelSchema);
+const Hotel = model<IHotel>('hotels', hotelSchema);
 export default Hotel;

@@ -1,38 +1,25 @@
 import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
 import { Package } from './Hotel';
 
-export interface TypeMembership {
+export interface IMembership {
   userId: Types.ObjectId;
-  hotelId: Types.ObjectId;
   package: Package;
   timeStart?: Date;
-  timeEnd: Date;
-  isExpires: boolean;
-  status?: StatusMemberShip;
+  timeEnd?: Date;
+  isExpire?: boolean;
 }
 
-export enum StatusMemberShip {
-  PENDING = 'PENDING',
-  SUCCESS = 'SUCCESS',
-  CANCEL = 'CANCEL',
-}
-
-export interface membershipDocument extends TypeMembership, Document {
+export interface MembershipDocument extends IMembership, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const membershipSchema = new Schema<TypeMembership>(
+const membershipSchema = new Schema<IMembership>(
   {
     userId: {
       type: SchemaTypes.ObjectId,
       required: true,
       ref: 'users',
-    },
-    hotelId: {
-      type: SchemaTypes.ObjectId,
-      required: true,
-      ref: 'hotels',
     },
     package: {
       type: String,
@@ -41,19 +28,14 @@ const membershipSchema = new Schema<TypeMembership>(
     },
     timeStart: { type: Date, default: new Date(), required: true },
     timeEnd: { type: Date, required: true },
-    isExpires: {
+    isExpire: {
       type: Boolean,
+      default: false,
       required: true,
-    },
-    status: {
-      type: String,
-      enum: Object.values(StatusMemberShip),
-      default: StatusMemberShip.PENDING,
-      require: true,
     },
   },
   { timestamps: true, collection: 'memberships' },
 );
 
-const Membership = model<TypeMembership>('memberships', membershipSchema);
+const Membership = model<IMembership>('memberships', membershipSchema);
 export default Membership;

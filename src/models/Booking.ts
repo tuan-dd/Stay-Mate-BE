@@ -1,4 +1,5 @@
-import { Types, Schema, model, SchemaTypes } from 'mongoose';
+import { Types, Schema, model, SchemaTypes, Document, PopulatedDoc } from 'mongoose';
+import { RoomDocument } from './Room-type';
 
 export enum Status {
   PENDING = 'PENDING',
@@ -9,21 +10,26 @@ export enum Status {
 }
 
 interface Room {
-  roomTypeId: Types.ObjectId;
+  roomTypeId: PopulatedDoc<Document<Types.ObjectId> & RoomDocument>;
   quantity: number;
 }
-interface TypeBooking {
-  total: number;
-  status: Status;
+export interface IBooking {
+  total?: number;
+  status?: Status;
   rooms: Room[];
-  userId?: Types.ObjectId;
-  hotelId?: Types.ObjectId;
+  userId: Types.ObjectId;
+  hotelId: Types.ObjectId;
   startDate: Date;
   endDate: Date;
 }
 
+export interface BookingDocument extends IBooking, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // cần thêm startDate, endDate
-const bookingSchema = new Schema<TypeBooking>(
+const bookingSchema = new Schema<IBooking>(
   {
     total: {
       type: Number,
@@ -33,12 +39,14 @@ const bookingSchema = new Schema<TypeBooking>(
       type: String,
       default: Status.PENDING,
       enum: Object.values(Status),
+      required: true,
     },
     rooms: [
       {
         roomTypeId: {
           type: SchemaTypes.ObjectId,
           required: true,
+          ref: 'roomTypes',
         },
         quantity: {
           type: Number,
@@ -62,5 +70,5 @@ const bookingSchema = new Schema<TypeBooking>(
   { timestamps: true, collection: 'booking' },
 );
 
-const Booking = model<TypeBooking>('booking', bookingSchema);
+const Booking = model<IBooking>('booking', bookingSchema);
 export default Booking;
