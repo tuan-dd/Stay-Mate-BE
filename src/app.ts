@@ -27,7 +27,7 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
-    this.app.use(express.static(path.join(__dirname, 'public/images')));
+    this.app.use(express.static(path.join(__dirname, 'public')));
     require('./services/worker.service');
     require('./database/init.mongoDb');
     require('./database/init.redisDb');
@@ -53,9 +53,7 @@ class App {
         console.log('ERROR', err);
         new SuccessResponse({
           success: false,
-          statusCode: err.httpCode
-            ? err.httpCode
-            : HttpCode.INTERNAL_SERVER_ERROR,
+          statusCode: err.httpCode ? err.httpCode : HttpCode.INTERNAL_SERVER_ERROR,
           errors: { message: err.message },
           message: err.isOperational ? err.errorType : 'Internal Server Error',
         }).send(res);
