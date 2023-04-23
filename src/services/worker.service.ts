@@ -3,12 +3,12 @@ import appConfig from '@/config/config';
 import { EJob, WorkerJob } from '@/utils/jobs';
 import { Worker, Job } from 'bullmq';
 import { getLogger } from 'log4js';
-import paymentService from './payment.service';
+import { memberShipService, bookingService } from './payment.service';
 import { Status } from '@/models/Booking';
 import { Types } from 'mongoose';
 import userService from './user.service';
 import hotelsService from './hotels.service';
-import reviewService from './review.schema';
+import reviewService from './review.service';
 import addJobToQueue from '@/queue/queue';
 import { Package } from '@/models/Hotel';
 
@@ -41,13 +41,9 @@ class WorkerService {
   workerHandler = async (job: Job<WorkerJob>) => {
     switch (job.data.type) {
       case EJob.BOOKING_DECLINE: {
-        const bookingDb = await paymentService.bookingService.findById(
-          job.data.job.id,
-          null,
-          {
-            lean: false,
-          },
-        );
+        const bookingDb = await bookingService.findById(job.data.job.id, null, {
+          lean: false,
+        });
         if (!bookingDb) {
           return;
         }
@@ -60,26 +56,34 @@ class WorkerService {
         return;
       }
       case EJob.BOOKING_STAY: {
-        const bookingDb = await paymentService.bookingService.findByPopulate(
+        const bookingDb = await bookingService.findByPopulate(
           {
             _id: job.data.job.id,
           },
-          { lean: true },
+          { lean: false },
           { path: 'rooms.roomTypeId', select: 'nameOfRoom -_id' },
         );
         if (!bookingDb) {
           return;
         }
-        bookingDb.status = Status.STAY;
-
-        await bookingDb.save();
-
-        const { role, name, _id } = await userService.findById(bookingDb.userId);
 
         const hotelDb = await hotelsService.findById(bookingDb.hotelId);
 
+        await userService.findByIdUpdate(hotelDb.userId, {
+          $inc: {
+            'account.balance': bookingDb.total,
+            'account.virtualBalance': -bookingDb.total,
+          },
+        });
+
+        const userDb = await userService.findById(bookingDb.userId);
+
+        bookingDb.status = Status.STAY;
+        await bookingDb.save();
+
+        const { _id, role, name } = userDb;
+
         const createReview = await reviewService.createOne({
-          context: '',
           images: [],
           starRating: 0,
           slug: new Date().getTime().toString(),
@@ -109,16 +113,16 @@ class WorkerService {
       }
       case EJob.DELETE_REVIEW: {
         const reviewDb = await reviewService.findById(job.data.job.id, null, {
-          lean: true,
+          lean: false,
         });
 
-        if (!reviewDb.context && !reviewDb.starRating) {
+        if (!reviewDb.context || !reviewDb.starRating) {
           await reviewDb.deleteOne();
         }
         return;
       }
       case EJob.MEMBERSHIP: {
-        const membershipsDb = await paymentService.memberShipService.findMany(
+        const membershipsDb = await memberShipService.findMany(
           {
             query: new Types.ObjectId(job.data.job.userID),
             page: null,

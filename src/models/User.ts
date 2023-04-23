@@ -6,11 +6,15 @@ export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
 }
+interface Account {
+  balance: number;
+  virtualBalance: number;
+}
 export interface IUser {
   name: string;
   email?: string;
   password: string;
-  balance?: number;
+  account?: Account;
   verify?: boolean;
   avatar?: string;
   role?: Role;
@@ -38,11 +42,9 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
     },
-    // TODO rename to balance
-    balance: {
-      type: Number,
-      default: 0,
-      required: true, // TODO: default to 0
+    account: {
+      balance: { type: Number, default: 0, required: true },
+      virtualBalance: { type: Number, default: 0, required: true },
     },
     verify: {
       type: Boolean,

@@ -18,8 +18,7 @@ import {
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
-import { getLogger } from '@/utils/loggers';
-import paymentService from '@/services/payment.service';
+import { memberShipService } from '@/services/payment.service';
 import RoomTypeService from '@/services/roomType.service';
 import UserService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
@@ -71,9 +70,8 @@ class HotelController {
 
     const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
 
-    // gift tăng quà membership 1 tuần tăng tính trải nghiệm cho new Holier
     if (!hotelsDb.length) {
-      const createMembership = await paymentService.memberShipService.createOne({
+      const createMembership = await memberShipService.createOne({
         userId: newHotel.userId,
         timeEnd: week,
         package: Package.WEEK,
@@ -88,8 +86,6 @@ class HotelController {
         { delay: week.getTime() },
       );
       if (!createJob) {
-        const log = getLogger('error bullmq');
-        log.error('cant not create new membership');
         throw new BadRequestError('can`t payment, try again ');
       }
 

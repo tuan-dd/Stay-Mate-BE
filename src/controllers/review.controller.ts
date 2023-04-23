@@ -13,7 +13,7 @@ import {
   UpdateReviewSchema,
 } from '@/schema/review.schema';
 import hotelsService from '@/services/hotels.service';
-import reviewService from '@/services/review.schema';
+import reviewService from '@/services/review.service';
 import { Pros, getDeleteFilter } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
 import { Types } from 'mongoose';
@@ -44,10 +44,13 @@ class ReviewController {
 
     if (!hotelDb) throw new NotFoundError('Not found hotel');
 
-    const reviewDb = await reviewService.findById(req.params.id);
+    const reviewDb = await reviewService.findById(req.params.id, null, { lean: false });
 
     if (!parent_slug) {
+      if (reviewDb.starRating > 0) throw new NotAuthorizedError('Review has already ');
+
       if (!reviewDb) throw new NotAuthorizedError('User have already expired reviews');
+
       if (isOwnerHotel)
         throw new NotAuthorizedError('Hotelier cant not reviewDb their hotel');
     }
@@ -58,14 +61,13 @@ class ReviewController {
 
     if (parent_slug) {
       const replyReview: Pros<IReview> = getDeleteFilter(
-        ['_id , createdAt,updatedAt'],
+        ['_id', 'createdAt', 'updatedAt', 'images'],
         reviewDb,
       );
+      //check nếu chủ ks k được  tạo reply
+      if (!isOwnerHotel) throw new NotAuthorizedError(' Only hotelier can reply review ');
 
       if (parent_slug !== reviewDb.slug) throw new BadRequestError('Wrong parent slug');
-
-      //check nếu chủ ks k được  tạo reply
-      if (!isOwnerHotel) throw new NotAuthorizedError(' Only Hotelier can reply review ');
 
       //mỗi người chỉ tạo 1 reply
       if (reviewDb.isReply) throw new BadRequestError('Review has already reply');
@@ -141,34 +143,38 @@ class ReviewController {
     req: Request<any, any, any, GetReviewsByUserSchema>,
     res: Response,
   ) => {
-    const { hotelId, statusBooking, parent_slug, isReview } = req.query;
-    const page = req.query.page || 1;
-    const limit = req.body.limit || 10;
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
-    let reviews = [];
-
     /**
      * @case_1 nếu k hotelId parent_slug thì lấy reviews theo 2 điều kiện đã review hoặc chưa review
      * @case_2 hotelId parent_slug
      */
+    const { hotelId, statusBooking, parent_slug, isReview } = req.query;
+
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    let reviews = [];
+
+    if (Object.keys(req.query).every((key) => !req.query[key]))
+      throw new BadRequestError('Request must have one value');
+
     if (statusBooking) {
       if (isReview) {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
             starRating: { $gte: 0.5 },
+            parent_slug: '',
           },
           page: page,
           limit: limit,
         });
-        return oke(reviews);
       }
 
       if (!isReview) {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
-            status: statusBooking,
+            parent_slug: '',
             starRating: 0,
           },
           page: page,
@@ -189,6 +195,7 @@ class ReviewController {
           query: {
             'hotel.hotelId': hotelId,
             starRating: { $gte: 0.5 },
+            parent_slug,
           },
           page: page,
           limit: limit,
@@ -204,12 +211,15 @@ class ReviewController {
           limit: limit,
         });
       }
-      return reviews;
+      return oke(reviews);
     }
 
     function oke(reviews) {
       if (!reviews) throw new NotFoundError('Not found reviews');
-      new CreatedResponse({ message: ' get Data`review successfully' }).send(res);
+      new CreatedResponse({
+        message: ' get Data`review successfully',
+        data: reviews,
+      }).send(res);
     }
   };
 
@@ -217,8 +227,10 @@ class ReviewController {
     const { hotelId, parent_slug } = req.query;
     const page = req.query.page || 1;
     const limit = req.body.limit || 10;
-
     let reviews: [] | object;
+
+    if (Object.keys(req.query).every((key) => !req.query[key]))
+      throw new BadRequestError('Request must have one value');
 
     if (parent_slug) {
       const regex = new RegExp(parent_slug, 'i');
@@ -243,7 +255,10 @@ class ReviewController {
 
     function oke(reviews) {
       if (!reviews) throw new NotFoundError('Not found reviews');
-      new CreatedResponse({ message: ' get Data`review successfully' }).send(res);
+      new CreatedResponse({
+        message: ' Get Data`s review successfully',
+        data: reviews,
+      }).send(res);
     }
   };
 }

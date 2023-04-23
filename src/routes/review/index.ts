@@ -9,6 +9,7 @@ import {
   createReviewSchema,
   getReviewsByUserSchema,
   getReviewsSchema,
+  updateReviewSchema,
 } from '@/schema/review.schema';
 
 import express from 'express';
@@ -44,7 +45,7 @@ router.post(
 router.put(
   '/:id',
   checkParamsId,
-  validateRequest(getReviewsSchema),
+  validateRequest(updateReviewSchema),
   catchError(reviewController.updateReview),
 );
 

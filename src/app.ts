@@ -51,23 +51,6 @@ class App {
       ): void => {
         // eslint-disable-next-line no-console
         console.log('ERROR', err);
-        // if (err instanceof Error)
-        //   new SuccessResponse({
-        //     success: false,
-        //     statusCode: err.httpCode
-        //       ? err.httpCode
-        //       : HttpCode.INTERNAL_SERVER_ERROR,
-        //     errors: { message: err.message },
-        //     message: err.errorType || 'Internal Server Error',
-        //   }).send(res);
-        // if (err instanceof AppError)
-        //   new SuccessResponse({
-        //     success: false,
-        //     statusCode: err.httpCode,
-        //     errors: { message: err.message },
-        //     message: err.errorType,
-        //   }).send(res);
-
         new SuccessResponse({
           success: false,
           statusCode: err.httpCode

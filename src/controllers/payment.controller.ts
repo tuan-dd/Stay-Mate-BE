@@ -21,22 +21,19 @@ import {
   WithdrawSchema,
 } from '@/schema/payment.schema';
 import hotelsService from '@/services/hotels.service';
-import paymentService from '@/services/payment.service';
+import { bookingService, memberShipService } from '@/services/payment.service';
 import userService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
 import { getConvertCreatedAt, getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
 
-/**
- *  @ thiếu cần bullmq cập nhật lại tiền , vì có cancel để hoàn tiền nên, cần 2 loại balance :
- */
 class PaymentController {
   createBooking = async (req: Request<any, any, CreateBookingSchema>, res: Response) => {
     /**
-     * @check get numberOfRoom in redis nếu k có mean còn trống
      * @check khách sạn có loai phòng đó k
-     * @create tao booking lưu booking id và bullmq 5p redis, giảm số phòng
+     * @check
+     * @create tao booking lưu booking id và bullmq
      */
 
     const newBooking: IBooking = {
@@ -52,115 +49,47 @@ class PaymentController {
 
     const rooms = newBooking.rooms;
 
-    // kiểm tra số lượng
-    // const numberOfRoomsRedis = await Promise.all(
-    //   rooms.map((room) => redisUtil.get(room.roomTypeId.toHexString())),
-    // );
-    // numberOfRoomsRedis.forEach((number, i) => {
-    //   const convert = parseInt(number);
-    //   if (convert === 0) {
-    //     throw new BadRequestError('Out Of room');
-    //   }
-    //   if (convert < rooms[i].quantity) {
-    //     throw new BadRequestError('overbooked the number of rooms ');
-    //   }
-    // });
-
-    const hotelDb = await hotelsService.findOneAndPopulateByQuery(
-      {
-        _id: newBooking.hotelId,
-        roomTypeIds: {
-          // kiểm các loại phòng đặt có phải trong hotelDb k
-          $all: newBooking.rooms.map((room) => room.roomTypeId),
-        },
-      },
-      {
-        path: 'roomTypeIds',
-        match: { _id: { $in: rooms.map((room) => room.roomTypeId) } }, // chỉ lấy ra những phòng user đặt
-        select: 'price numberOfRoom nameOfRoom',
-      },
+    const NumberOfRoomAfterCheck = await bookingService.isEnoughRoom(
+      newBooking,
+      rooms.map((room) => room.roomTypeId),
     );
 
-    if (!hotelDb) throw new NotFoundError('Cant not find hotel');
-
-    // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
-    const bookingsDb = await paymentService.bookingService.findMany({
-      query: {
-        hotelId: newBooking.hotelId,
-        status: Status.SUCCESS,
-        startDate: { $gte: newBooking.startDate },
-        endDate: { $lte: newBooking.endDate },
-        'rooms.roomTypeId': { $in: rooms.map((room) => room.roomTypeId) },
-      },
-      page: null,
-      limit: null,
-    });
-
-    // kiểm tra trùng room in booking trừ ra số phòng đăt ra
-    hotelDb.roomTypeIds.forEach((hotelDbRoom, i) => {
-      bookingsDb.forEach((booking) => {
-        booking.rooms.forEach((room) => {
-          if (room.roomTypeId.equals(hotelDbRoom._id)) {
-            hotelDb.roomTypeIds[i].numberOfRoom -= room.quantity;
-          }
-        });
-      });
-    });
     // tại đây loop qua để tính tổng tiền và kiểm tra còn đủ k
     let total = 0;
     const roomsResults = [];
-    hotelDb.roomTypeIds.forEach((hotelDbRoom) => {
-      rooms.forEach((roomOrder) => {
-        if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
-          if (roomOrder.quantity > hotelDbRoom.numberOfRoom)
+    NumberOfRoomAfterCheck.roomTypeIds.forEach((hotelDbRoom) => {
+      rooms.forEach((roomOrderId) => {
+        if (roomOrderId.roomTypeId.equals(hotelDbRoom._id)) {
+          if (roomOrderId.quantity > hotelDbRoom.numberOfRoom)
             throw new BadRequestError('Exceed the number of rooms');
           // lấy tên phòng và số lượng để trả res
           const roomResult = {
             nameOfRoom: hotelDbRoom.nameOfRoom,
-            quantity: roomOrder.quantity,
+            quantity: roomOrderId.quantity,
           };
           roomsResults.push(roomResult);
-          total += roomOrder.quantity * hotelDbRoom.price;
+          total += roomOrderId.quantity * hotelDbRoom.price;
         }
       });
     });
     newBooking.total = total;
 
-    const createBooking = await paymentService.bookingService.createOne(newBooking);
+    const createBooking = await bookingService.createOne(newBooking);
 
     await addJobToQueue(
       {
         type: EJob.BOOKING_DECLINE,
         job: { id: createBooking._id.toHexString() },
       },
-      { removeOnComplete: true, delay: 1000 * 60 * 0.5, removeOnFail: true },
+      { removeOnComplete: true, delay: 1000 * 60 * 5, removeOnFail: true },
     );
-
-    // await Promise.all(
-    //   // lưu số lượng phòng lên redis/ cái nào k có thì set mới , nào có thì trừ ra số lương user booking
-    //   numberOfRoomsRedis.map((number, i) => {
-    //     if (number === null) {
-    //       const indexId = hotelDb.roomTypeIds.findIndex((hotelDbRoom) =>
-    //         rooms[i].roomTypeId.equals(hotelDbRoom._id),
-    //       );
-    //       if (indexId > -1) {
-    //         return redisUtil.set(
-    //           rooms[i].roomTypeId.toHexString(),
-    //           hotelDb.roomTypeIds[indexId].numberOfRoom - rooms[i].quantity,
-    //         );
-    //       }
-    //     } else {
-    //       return redisUtil.decrBy(rooms[i].roomTypeId.toHexString(), rooms[i].quantity);
-    //     }
-    //   }),
-    // );
 
     new CreatedResponse({
       message: 'Create Booking successfully',
       data: {
         ...getFilterData(['total', 'startDate', 'endDate', '_id'], createBooking),
         rooms: roomsResults,
-        hotel: hotelDb.hotelName,
+        hotel: NumberOfRoomAfterCheck.hotelName,
       },
     }).send(res);
   };
@@ -180,7 +109,7 @@ class PaymentController {
     session.startTransaction();
 
     try {
-      const bookingDb = await paymentService.bookingService.findOne(
+      const bookingDb = await bookingService.findOne(
         {
           _id: newPayment.bookingId,
           hotelId: newPayment.hotelId,
@@ -199,7 +128,7 @@ class PaymentController {
       if (typeof userDb === 'boolean')
         throw new ForbiddenError('can`t payment, try again');
 
-      if (userDb.balance < bookingDb.total)
+      if (userDb.account.balance < bookingDb.total)
         throw new ForbiddenError('balance less than booking');
 
       const hotel = await hotelsService.findById(newPayment.hotelId);
@@ -207,14 +136,14 @@ class PaymentController {
       const hotelierDb = await userService.findByIdUpdate(
         hotel.userId,
         {
-          $inc: { balance: bookingDb.total },
+          $inc: { 'account.virtualBalance': bookingDb.total },
         },
         { session },
       );
 
       if (!hotelierDb) throw new NotFoundError('Not found Hotelier');
 
-      userDb.balance = userDb.balance - bookingDb.total;
+      userDb.account.balance = userDb.account.balance - bookingDb.total;
 
       await userDb.save({ session });
 
@@ -224,7 +153,7 @@ class PaymentController {
 
       const createJob = await addJobToQueue(
         {
-          type: EJob.BOOKING_DECLINE,
+          type: EJob.BOOKING_STAY,
           job: { id: bookingDb._id.toHexString() },
         },
         {
@@ -239,7 +168,6 @@ class PaymentController {
 
       new SuccessResponse({
         message: 'Payment Booking successfully',
-        data: bookingDb,
       }).send(res);
     } catch (error) {
       await session.abortTransaction();
@@ -260,13 +188,9 @@ class PaymentController {
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
     try {
-      const bookingDb = await paymentService.bookingService.findById(
-        cancelPayment.bookingId,
-        null,
-        {
-          lean: false,
-        },
-      );
+      const bookingDb = await bookingService.findById(cancelPayment.bookingId, null, {
+        lean: false,
+      });
 
       if (!bookingDb) throw new NotFoundError('Not found payment');
 
@@ -286,7 +210,7 @@ class PaymentController {
       const hotelierDb = await userService.findByIdUpdate(
         hotelDb.userId,
         {
-          $inc: { balance: -bookingDb.total },
+          $inc: { 'account.virtualBalance': -bookingDb.total },
         },
         { session },
       );
@@ -296,7 +220,7 @@ class PaymentController {
       await userService.findByIdUpdate(
         userId,
         {
-          $inc: { balance: bookingDb.total },
+          $inc: { 'account.balance': bookingDb.total },
         },
         { session },
       );
@@ -337,10 +261,10 @@ class PaymentController {
 
       if (typeof userDb === 'boolean') throw new BadRequestError('Wrong Password');
 
-      if (userDb.balance < PricePackage[newMemberShip.package])
+      if (userDb.account.balance < PricePackage[newMemberShip.package])
         throw new ForbiddenError('Balance less than package');
 
-      const membershipsOfUser = await paymentService.memberShipService.findMany({
+      const membershipsOfUser = await memberShipService.findMany({
         query: { userId: new Types.ObjectId(userId), isExpire: false },
         page: null,
         limit: null,
@@ -365,12 +289,9 @@ class PaymentController {
           1000 * 60 * 60 * 24 * PricePackage[newMemberShip.package],
       );
 
-      const createMemberShip = await paymentService.memberShipService.createOneAtomic(
-        [newMemberShip],
-        {
-          session,
-        },
-      );
+      const createMemberShip = await memberShipService.createOneAtomic([newMemberShip], {
+        session,
+      });
       if (newMemberShip.package === Package.WEEK)
         await hotelsService.findOneUpdate(
           {
@@ -402,7 +323,8 @@ class PaymentController {
         );
       }
 
-      userDb.balance = userDb.balance - PricePackage[newMemberShip.package];
+      userDb.account.balance =
+        userDb.account.balance - PricePackage[newMemberShip.package];
 
       await userDb.save({ session });
 
@@ -436,7 +358,7 @@ class PaymentController {
     const updateBalance = await userService.findByIdUpdate(
       userId,
       {
-        $inc: { balance: balance },
+        $inc: { 'account.balance': balance },
       },
       {
         new: true,
@@ -445,7 +367,7 @@ class PaymentController {
 
     new SuccessResponse({
       message: 'charge successfully',
-      data: updateBalance.balance,
+      data: updateBalance.account.balance,
     }).send(res);
   };
 
@@ -460,10 +382,10 @@ class PaymentController {
 
       if (typeof userDb === 'boolean') throw new BadRequestError('Wrong Password');
 
-      if (userDb.balance < newUpdate.withdraw)
+      if (userDb.account.balance < newUpdate.withdraw)
         throw new ForbiddenError('Balance less than withdraw');
 
-      userDb.balance = userDb.balance - newUpdate.withdraw;
+      userDb.account.balance = userDb.account.balance - newUpdate.withdraw;
 
       await userDb.save({ session });
 
@@ -494,7 +416,7 @@ class PaymentController {
     query.userId = userId;
     const page = req.query.page || 1;
 
-    const memberships = await paymentService.memberShipService.findMany({
+    const memberships = await memberShipService.findMany({
       query,
       page: page,
       limit: 10,
@@ -516,7 +438,7 @@ class PaymentController {
 
     query.userId = userId;
 
-    const bookings = await paymentService.bookingService.findMany({
+    const bookings = await bookingService.findMany({
       query,
       page: page,
       limit: 10,
@@ -532,3 +454,22 @@ class PaymentController {
 const paymentController = new PaymentController();
 
 export default paymentController;
+
+// jest => unit test
+// liet ke test cases cho 1 function cần test:
+// - ko đủ balance
+// - dư balance
+// - vừa khớp balance
+
+// mock/mocking
+// const mockDb = jest.mock();
+
+// e2e (end-to-end) testing
+// e2e cho postman
+// cho 1 api => define posibility input pairs
+// e2e cho expressjs
+
+// QC define test cases cho function/feature
+// - ko đủ balance
+// - dư balance
+// - vừa khớp balance

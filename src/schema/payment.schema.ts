@@ -7,9 +7,10 @@ import * as Yup from 'yup';
 
 // add function check objectId
 Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
-  return this.test('objectIdValid', message || 'Wrong Id', (value) =>
-    Types.ObjectId.isValid(value),
-  );
+  return this.test('objectIdValid', message || 'Wrong Id', (value) => {
+    if (!value) return true;
+    return Types.ObjectId.isValid(value);
+  });
 });
 
 declare module 'yup' {

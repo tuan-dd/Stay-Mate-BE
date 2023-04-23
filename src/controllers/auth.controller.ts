@@ -131,7 +131,7 @@ class AuthController {
         upsert: true,
       },
     );
-    // console.log(accessToken);
+
     res
       .cookie('refreshToken', refreshToken, {
         httpOnly: true,

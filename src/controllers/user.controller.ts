@@ -52,8 +52,6 @@ class UserController {
   getMe = async (req: Request, res: Response) => {
     const dataUser = await userService.findOne({});
 
-    //????
-
     new SuccessResponse({
       message: 'update user successfully',
       data: dataUser,

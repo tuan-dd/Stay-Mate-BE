@@ -2,7 +2,7 @@ import Review, { IReview, ReviewDocument } from '@/models/Review';
 import BaseService, { QueryWithPagination } from './base.service';
 import { QueryOptions } from 'mongoose';
 
-class ReviewService extends BaseService<IReview> {
+class ReviewService extends BaseService<IReview, ReviewDocument> {
   constructor() {
     super(Review);
   }
