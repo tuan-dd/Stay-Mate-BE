@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "set NODE_ENV=dev&&nodemon --exec ts-node ./bin/www.ts",
+    "start": "ts-node ./bin/www.ts",
     "build": "sh etc/build.sh",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
