@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "node ./bin/www.ts",
+    "start": "ts-node ./bin/www.ts",
     "build": "sh etc/build.sh",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
