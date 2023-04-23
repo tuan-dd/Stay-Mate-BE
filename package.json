@@ -30,6 +30,7 @@
     "nodemailer": "^6.9.1",
     "redis": "^4.6.5",
     "rimraf": "^5.0.0",
+    "tsc": "^2.0.4",
     "yup": "^1.0.2"
   },
   "devDependencies": {
