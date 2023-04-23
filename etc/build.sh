@@ -1,6 +1,6 @@
 rimraf dist
 
-export NODE_ENV=production
+set NODE_ENV=production
 
 tsc -p ./tsconfig.build.json --pretty
 
