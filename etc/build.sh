@@ -1,3 +1,4 @@
+export NODE_ENV=dev
 
 rimraf dist
 
