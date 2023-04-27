@@ -4,8 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "node ./dist/bin/www.js",
-    "build": "tsc",
+    "start": "ts-node ./dist/bin/www.js",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
   },
