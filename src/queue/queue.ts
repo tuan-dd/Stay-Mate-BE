@@ -13,6 +13,6 @@ const myQueue = new Queue('myQueue', {
 });
 
 const addJobToQueue = async (job: WorkerJob, option: JobsOptions) =>
-  await myQueue.add(job.type, job, option);
+  myQueue.add(job.type, job, option);
 
 export default addJobToQueue;

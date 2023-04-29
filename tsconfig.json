@@ -14,5 +14,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "exclude": ["dataInput/**/*.js"]
+  "exclude": []
 }

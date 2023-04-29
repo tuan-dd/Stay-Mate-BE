@@ -23,7 +23,7 @@ class UserService extends BaseService<IUser, UserDocument> {
   };
 
   findUserByAggregate = async (userId: string, project: { [key: string]: 0 | 1 }) => {
-    return await User.aggregate([
+    return User.aggregate([
       { $match: { _id: new Types.ObjectId(userId) } },
       {
         $lookup: {
@@ -47,7 +47,7 @@ class UserService extends BaseService<IUser, UserDocument> {
   };
 
   findUserAddInfo = async (userId: string, project: { [key: string]: 0 | 1 }) => {
-    return await User.aggregate([
+    return User.aggregate([
       { $match: { _id: new Types.ObjectId(userId) } },
       {
         $lookup: {

@@ -5,9 +5,11 @@ import appConfig from '@/config/config';
 
 class Database {
   static instance: Database;
+
   constructor() {
     this.connect();
   }
+
   connect() {
     const logger = getLogger('MONGO');
     if (1 === 1) {
@@ -23,6 +25,7 @@ class Database {
       .then(() => console.log('Connected Mongodb Success'))
       .catch((err: mongoose.Error) => logger.error('MongoDB Error', err));
   }
+
   static getInstance = () => {
     if (!Database.instance) {
       Database.instance = new Database();

@@ -1,3 +1,4 @@
+/* eslint-disable operator-linebreak */
 const PASSWORD_REGEX = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
 
 const URL_REGEX =

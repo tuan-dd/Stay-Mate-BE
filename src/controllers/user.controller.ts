@@ -49,6 +49,7 @@ class UserController {
       message: 'update user successfully',
     }).send(res);
   };
+
   getMe = async (req: Request, res: Response) => {
     const dataUser = await userService.findOne({});
 

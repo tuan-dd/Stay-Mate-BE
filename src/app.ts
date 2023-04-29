@@ -12,7 +12,9 @@ import { HttpCode } from './utils/httpCode';
 
 class App {
   public app: express.Application;
+
   private allowlist = ['http://localhost:5000', 'http://localhost:3000'];
+
   constructor() {
     this.app = express();
     this.config();
@@ -27,14 +29,14 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
-    this.app.use(express.static(path.join(__dirname, 'public/images')));
+    this.app.use(express.static(path.join(__dirname, 'public')));
     require('./services/worker.service');
     require('./database/init.mongoDb');
     require('./database/init.redisDb');
   }
 
   private routerSetup() {
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     this.app.use('/', indexRouter);
 
     this.app.use((_res, _req, next) => {
@@ -53,9 +55,7 @@ class App {
         console.log('ERROR', err);
         new SuccessResponse({
           success: false,
-          statusCode: err.httpCode
-            ? err.httpCode
-            : HttpCode.INTERNAL_SERVER_ERROR,
+          statusCode: err.httpCode ? err.httpCode : HttpCode.INTERNAL_SERVER_ERROR,
           errors: { message: err.message },
           message: err.isOperational ? err.errorType : 'Internal Server Error',
         }).send(res);

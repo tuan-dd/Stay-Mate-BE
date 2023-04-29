@@ -17,11 +17,11 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     super(Booking);
   }
 
-  override findMany = async (
+  override findMany = (
     query: QueryWithPagination<BookingDocument>,
     option?: QueryOptions,
   ) => {
-    return await this.Model.find(query.query, null, {
+    return Booking.find(query.query, null, {
       lean: true,
       ...option,
     })
@@ -36,13 +36,14 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     option?: QueryOptions,
     optionPopulate?: PopulateOptions,
   ) => {
-    return await Booking.findById(query, null, { lean: true, ...option })
+    return Booking.findById(query, null, { lean: true, ...option })
       .populate({
         path: 'rooms.roomTypeId',
         ...optionPopulate,
       })
       .exec();
   };
+
   isEnoughRoom = async (newBooking: IBooking, rooms: Types.ObjectId[]) => {
     const hotelDb = await hotelsService.findOneAndPopulateByQuery(
       {
@@ -62,7 +63,7 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     if (!hotelDb) throw new NotAuthorizedError('Cant not find hotel');
 
     // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
-    const bookingsDb = await bookingService.findMany({
+    const bookingsDb = await Booking.find({
       query: {
         hotelId: newBooking.hotelId,
         status: Status.SUCCESS,
@@ -91,15 +92,16 @@ class MemberShipService extends BaseService<IMembership> {
   constructor() {
     super(Membership);
   }
-  createOneAtomic = async (doc: AnyKeys<IMembership>[], option: SaveOptions) => {
-    return await Membership.create(doc, option);
+
+  createOneAtomic = (doc: AnyKeys<IMembership>[], option: SaveOptions) => {
+    return Membership.create(doc, option);
   };
 
-  override findMany = async (
+  override findMany = (
     query: QueryWithPagination<MembershipDocument>,
     option?: QueryOptions,
   ) => {
-    return await this.Model.find(query.query, null, {
+    return Membership.find(query.query, null, {
       lean: true,
       ...option,
     })

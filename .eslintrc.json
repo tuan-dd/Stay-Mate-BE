@@ -1,14 +1,16 @@
 {
   "parser": "@typescript-eslint/parser",
-  "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier", "airbnb-typescript"],
   "parserOptions": {
-    " ecmaVersion": 2020,
+    "project": "./tsconfig.json",
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "env": {
     "es2019": true,
     "node": true
   },
+  "plugins": ["prettier", "import"],
   "rules": {
     "no-var": "error",
     "semi": "error",
@@ -20,6 +22,22 @@
     "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
     "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "comma-dangle": [
+      "off",
+      {
+        "arrays": "always",
+        "objects": "always",
+        "imports": "never",
+        "exports": "never",
+        "functions": "never"
+      }
+    ],
+    "import/extensions": ["off", { "ts": "always" }],
+    "no-param-reassign": "off",
+    "react/jsx-filename-extension": [0, { "extensions": ["Ts", "js"] }],
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/indent": "off",
+    "@typescript-eslint/no-use-before-define": "off"
   }
 }

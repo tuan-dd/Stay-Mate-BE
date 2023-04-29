@@ -4,13 +4,15 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "set NODE_ENV=dev&&nodemon --exec ts-node ./bin/www.ts",
+    "dev": "set NODE_ENV=dev&&nodemon --exec ts-node ./bin/www.ts",
+"start": "node ./dist/bin/www.js",
     "build": "sh etc/build.sh",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
   },
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
+    "@redis/client": "^1.5.7",
     "bcrypt": "^5.1.0",
     "bullmq": "^3.11.0",
     "compression": "^1.7.4",
@@ -29,7 +31,7 @@
     "morgan": "~1.9.1",
     "nodemailer": "^6.9.1",
     "redis": "^4.6.5",
-    "rimraf": "^3.0.2",
+    "rimraf": "^5.0.0",
     "yup": "^1.0.2"
   },
   "devDependencies": {
@@ -51,14 +53,20 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.7",
-    "ts-node": "^10.2.1",
+    "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
   },
   "_moduleAliases": {
     "@": "./src"
+  },
+    "engines": {
+    "node": ">=14 <15"
   }
 }

@@ -38,7 +38,6 @@ class AdminController {
 
   detailUser = async (req: Request, res: Response) => {
     const id = req.params.id;
-
     const userDb = await userService.findById(id);
 
     if (userDb.role === Role.HOTELIER) {
@@ -53,13 +52,16 @@ class AdminController {
       oke(userDbByFindOne);
     }
 
-    function oke(value: any) {
+    function oke(value) {
+      if (!value) throw new NotFoundError('Not found user');
+
       new SuccessResponse({
         message: 'Get user data successfully',
         data: value,
       }).send(res);
     }
   };
+
   updateHotelByAdmin = async (
     req: Request<any, any, UpdateHotelByAdminSchema>,
     res: Response,

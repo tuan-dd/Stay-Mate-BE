@@ -15,7 +15,7 @@ const appConfig = {
     clientSecret: process.env.EMAIL_CLIENT_SECRET,
     refreshToken: process.env.EMAIL_REFRESH_TOKEN,
     redirectUrl: process.env.EMAIL_REDIRECT_URL,
-    email_from: process.env.EMAIL_FROM,
+    emailFrom: process.env.EMAIL_FROM,
   },
 };
 

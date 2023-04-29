@@ -169,8 +169,8 @@ class HotelController {
 
     oke(result);
 
-    function oke(result) {
-      if (!result) throw new NotFoundError('Not found hotel');
+    function oke(value) {
+      if (!value) throw new NotFoundError('Not found hotel');
 
       new SuccessResponse({
         message: 'Update hotel successfully',
@@ -180,7 +180,6 @@ class HotelController {
 
   createRoom = async (req: Request<any, any, CreateRoomSchema>, res: Response) => {
     const newRooms = await RoomTypeService.createMany(req.body.roomTypes);
-
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const roomIds = newRooms.map((pros) => pros._id);
     const hotelId = new Types.ObjectId(req.params.id);

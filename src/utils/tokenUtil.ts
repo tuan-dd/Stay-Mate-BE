@@ -12,11 +12,11 @@ export interface DataAfterEncode extends JWT.JwtPayload {
   name?: string;
 }
 
-const createTokenPair = (PayLoadInToken: PayLoadInToken, secretKey: string) => {
-  const accessToken = JWT.sign(PayLoadInToken, secretKey, {
+const createTokenPair = (payLoadInToken: PayLoadInToken, secretKey: string) => {
+  const accessToken = JWT.sign(payLoadInToken, secretKey, {
     expiresIn: '3 day',
   });
-  const refreshToken = JWT.sign(PayLoadInToken, secretKey, {
+  const refreshToken = JWT.sign(payLoadInToken, secretKey, {
     expiresIn: '7 day',
   });
 
@@ -24,17 +24,14 @@ const createTokenPair = (PayLoadInToken: PayLoadInToken, secretKey: string) => {
 };
 
 const createToken = (
-  PayLoadInToken: PayLoadInToken,
+  payLoadInToken: PayLoadInToken,
   secretKey: string,
   expires: string | number,
 ) => {
-  return JWT.sign(PayLoadInToken, secretKey, { expiresIn: expires });
+  return JWT.sign(payLoadInToken, secretKey, { expiresIn: expires });
 };
 
-const verifyToken = (
-  token: string,
-  secretKey: string,
-): DataAfterEncode | false => {
+const verifyToken = (token: string, secretKey: string): DataAfterEncode | false => {
   try {
     const decodedToken = JWT.verify(token, secretKey);
     return decodedToken as DataAfterEncode;

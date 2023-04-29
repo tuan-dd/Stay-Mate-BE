@@ -8,5 +8,5 @@
   "bracketSameLine": false,
   "singleQuote": true,
   "useTabs": false,
-  "endOfLine": "lf"
+  "endOfLine": "crlf"
 }

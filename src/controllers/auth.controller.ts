@@ -92,20 +92,22 @@ class AuthController {
       throw new ForbiddenError('You are not in current device');
     }
 
-    if (parseInt(userRedis.sixCode) === 0) {
+    if (parseInt(userRedis.sixCode, 10) === 0) {
       await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForbiddenError('no guess, try sign in again');
     }
     const isValid = await pwdUtil.getCompare(sixCode.toString(), userRedis.sixCode);
 
-    if (parseInt(userRedis.sixCode) === 1) {
+    if (parseInt(userRedis.sixCode, 10) === 1) {
       await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForbiddenError('wrong otp and no guess, try sign in again');
     }
 
     if (!isValid) {
       await redisUtil.hIncrBy(userDb._id.toHexString(), 'number', -1);
-      throw new ForbiddenError(`wrong Code, you have ${parseInt(userRedis.number) - 1}`);
+      throw new ForbiddenError(
+        `wrong Code, you have ${parseInt(userRedis.number, 10) - 1}`,
+      );
     }
 
     await redisUtil.deleteKey(userDb._id.toHexString());
@@ -147,6 +149,7 @@ class AuthController {
       });
 
     new SuccessResponse({
+      data: userDb,
       message: 'Login successfully',
     }).send(res);
   };
@@ -184,8 +187,9 @@ class AuthController {
 
     if (!refreshToken) throw new BadRequestError('Header must have access token');
 
-    if (!Types.ObjectId.isValid(userId as string))
+    if (!Types.ObjectId.isValid(userId as string)) {
       throw new NotFoundError('UserId wrong');
+    }
 
     const tokenStore = await SecretKeyStoreService.findOne(
       {

@@ -28,7 +28,7 @@ export interface IMembershipJob {
     userID: string | Types.ObjectId;
   };
 }
-export interface IDelete_reviewJob {
+export interface IDeleteReviewJob {
   type: EJob.DELETE_REVIEW;
   job: {
     id: string | Types.ObjectId;
@@ -38,4 +38,4 @@ export type WorkerJob =
   | IBookingPaymentJob
   | IBookingStayedJob
   | IMembershipJob
-  | IDelete_reviewJob;
+  | IDeleteReviewJob;
