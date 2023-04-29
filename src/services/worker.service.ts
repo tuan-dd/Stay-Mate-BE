@@ -22,7 +22,7 @@ class WorkerService {
     const worker = new Worker('myQueue', this.workerHandler, {
       connection: {
         host: host,
-        port: parseInt(port),
+        port: parseInt(port, 10),
         password,
         name,
       },
@@ -38,7 +38,9 @@ class WorkerService {
       console.log(`${job.data.type} has failed with ${err.message}`);
     });
   }
+
   workerHandler = async (job: Job<WorkerJob>) => {
+    // eslint-disable-next-line default-case
     switch (job.data.type) {
       case EJob.BOOKING_DECLINE: {
         const bookingDb = await bookingService.findById(job.data.job.id, null, {
@@ -81,14 +83,15 @@ class WorkerService {
         bookingDb.status = Status.STAY;
         await bookingDb.save();
 
-        const { _id, role, name } = userDb;
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const { _id, role } = userDb;
 
         const createReview = await reviewService.createOne({
           images: [],
           starRating: 0,
           slug: new Date().getTime().toString(),
           parent_slug: '',
-          author: { name, role, authorId: _id },
+          author: { name: userDb.name, role, authorId: _id },
           hotel: {
             hotelId: new Types.ObjectId(bookingDb.hotelId),
             name: hotelDb.hotelName,
@@ -140,15 +143,14 @@ class WorkerService {
 
         await membershipsDb[indexMembershipExpired].save();
 
-        if (indexMembershipExpired === 0)
+        if (indexMembershipExpired === 0) {
           await hotelsService.updateMany(
             {
               userId: new Types.ObjectId(job.data.job.userID),
             },
             { $set: { package: Package.FREE } },
           );
-
-        return;
+        }
       }
     }
   };

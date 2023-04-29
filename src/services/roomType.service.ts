@@ -7,27 +7,10 @@ class RoomTypeService extends BaseService<IRoom, RoomDocument> {
     super(RoomType);
   }
 
-  createMany = async (doc: AnyKeys<IRoom>[]) => {
-    return await RoomType.create(doc);
-  };
+  createMany = (doc: AnyKeys<IRoom>[]) => RoomType.create(doc);
 
-  deleteRoomType = async (
-    query: FilterQuery<RoomDocument>,
-    option?: QueryOptions,
-  ) => {
-    return await RoomType.deleteMany(query, option);
-  };
-
-  // static findOneRoomIdUpdate = async (
-  //   roomId: string,
-  //   update?: UpdateQuery<RoomDocument>,
-  //   option?: QueryOptions,
-  // ) => {
-  //   return await RoomType.findByIdAndUpdate(roomId, update, {
-  //     lean: true,
-  //     ...option,
-  //   }).exec();
-  // };
+  deleteRoomType = (query: FilterQuery<RoomDocument>, option?: QueryOptions) =>
+    RoomType.deleteMany(query, option);
 }
 
 export default new RoomTypeService();

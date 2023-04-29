@@ -27,8 +27,10 @@ const secretKeyStoreSchema = new Schema<ISecretKeyStore>(
       required: true,
     },
   },
-  { timestamps: true, expires: '7day', collection: 'keyStores' },
+  { timestamps: true, collection: 'keyStores' },
 );
+
+secretKeyStoreSchema.index({ createdAt: 1 }, { expires: '7d' });
 
 const SecretKeyStore = model<ISecretKeyStore>('keyStores', secretKeyStoreSchema);
 export default SecretKeyStore;

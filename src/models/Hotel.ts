@@ -19,7 +19,7 @@ export enum PricePackage {
   YEAR = 365,
 }
 
-interface starRating {
+interface StarRating {
   countReview: number;
   starAverage: number;
 }
@@ -32,7 +32,7 @@ export interface IHotel {
   zipCode: number;
   propertyType: PropertyType;
   star: number;
-  starRating?: starRating;
+  starRating?: StarRating;
   latitude?: number;
   longitude?: number;
   package: Package;

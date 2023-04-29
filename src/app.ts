@@ -12,7 +12,9 @@ import { HttpCode } from './utils/httpCode';
 
 class App {
   public app: express.Application;
+
   private allowlist = ['http://localhost:5000', 'http://localhost:3000'];
+
   constructor() {
     this.app = express();
     this.config();
@@ -34,7 +36,7 @@ class App {
   }
 
   private routerSetup() {
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     this.app.use('/', indexRouter);
 
     this.app.use((_res, _req, next) => {

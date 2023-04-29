@@ -11,7 +11,7 @@ import Debug from 'debug';
 import http from 'http';
 
 const debug = Debug('final-project:server');
-import { bootstrapLogger } from '@/utils/loggers';
+import bootstrapLogger from '@/utils/loggers';
 bootstrapLogger();
 
 /**

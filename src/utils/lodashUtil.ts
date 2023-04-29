@@ -1,5 +1,4 @@
 import _ from 'lodash';
-
 interface ObjectLodash {
   [key: string]: any;
 }
@@ -53,7 +52,11 @@ export const getConvertCreatedAt = (pros: Pros<any>, includes: string[]): Pros<a
       pros[key] = regExp;
     }
     if (isCreatedAt.includes(key) && pros[key]) {
-      key === 'createdAt_gte' ? convertDate('$gte') : convertDate('$lte');
+      if (key === 'createdAt_gte') {
+        convertDate('$gte');
+      } else {
+        convertDate('$lte');
+      }
     }
   });
 

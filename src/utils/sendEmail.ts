@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 import nodemailer from 'nodemailer';
 import appConfig from '@/config/config';
 
-const { clientId, clientSecret, refreshToken, redirectUrl, email_from } = appConfig.email;
+const { clientId, clientSecret, refreshToken, redirectUrl, emailFrom } = appConfig.email;
 
 const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl);
 
@@ -16,7 +16,7 @@ export const sendMail = async (sixCode: number | string, email: string): Promise
     service: 'gmail',
     auth: {
       type: 'OAuth2',
-      user: email_from,
+      user: emailFrom,
       clientId: clientId,
       clientSecret: clientSecret,
       refreshToken: refreshToken,
@@ -25,7 +25,7 @@ export const sendMail = async (sixCode: number | string, email: string): Promise
   });
   return transporter.sendMail(
     {
-      from: appConfig.email.email_from,
+      from: appConfig.email.emailFrom,
       to: `${email}`,
       subject: 'Hello ✔',
       text: ` Hello ${email} `,

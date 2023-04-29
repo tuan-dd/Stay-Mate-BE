@@ -12,9 +12,7 @@ export const createUserSchema = Yup.object().shape({
         'Password contain at least one numeric digit, one uppercase and one lowercase letter,min 6 max 20',
       )
       .required(),
-    avatar: Yup.string()
-      .matches(regexUtil.URL_REGEX, 'Must be url')
-      .notRequired(),
+    avatar: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
   }),
 });
 
@@ -22,9 +20,7 @@ export const updateUserSchema = Yup.object().shape({
   body: Yup.object().shape({
     _id: Yup.string().max(0, 'No update _id'),
     name: Yup.string().notRequired(),
-    avatar: Yup.string()
-      .matches(regexUtil.URL_REGEX, 'Must be url')
-      .notRequired(),
+    avatar: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     password: Yup.string().notRequired(),
     newPassword: Yup.string().when('password', (password, field) =>
       password[0]
@@ -33,21 +29,13 @@ export const updateUserSchema = Yup.object().shape({
               regexUtil.URL_REGEX,
               'New Password contain at least one numeric digit, one uppercase and one lowercase letter, min 6 max 20',
             )
-            .notOneOf(
-              [Yup.ref('password'), null],
-              'New password must same password',
-            )
+            .notOneOf([Yup.ref('password'), null], 'New password must same password')
             .required()
-        : field.max(
-            0,
-            'Not input value because you don`t input current password',
-          ),
+        : field.max(0, 'Not input value because you don`t input current password'),
     ),
     confirmPassword: Yup.string().when('newPassword', (newPassword, field) =>
       newPassword[0]
-        ? field
-            .oneOf([Yup.ref('newPassword')], 'not match new password')
-            .required()
+        ? field.oneOf([Yup.ref('newPassword')], 'not match new password').required()
         : field.max(0, 'Not input value because you don`t input newPassword '),
     ),
   }),

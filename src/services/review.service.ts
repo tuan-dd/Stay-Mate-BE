@@ -7,14 +7,15 @@ class ReviewService extends BaseService<IReview, ReviewDocument> {
     super(Review);
   }
 
-  override findMany = async (
+  override findMany = (
     query: QueryWithPagination<ReviewDocument>,
     option?: QueryOptions,
   ) => {
-    return await this.Model.find(query.query, null, {
-      lean: true,
-      ...option,
-    })
+    return this.model
+      .find(query.query, null, {
+        lean: true,
+        ...option,
+      })
       .skip(query.limit * (query.page - 1))
       .limit(query.limit)
       .sort('-createdAt')

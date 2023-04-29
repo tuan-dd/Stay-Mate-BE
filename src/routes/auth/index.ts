@@ -11,19 +11,11 @@ import { otpSchema } from '@/schema/otp.schema';
 
 const router = express.Router();
 
-router.post(
-  '/sign-in',
-  validateRequest(signinSchema),
-  catchError(authController.signIn),
-);
+router.post('/sign-in', validateRequest(signinSchema), catchError(authController.signIn));
 
-router.post(
-  '/authCode',
-  validateRequest(otpSchema),
-  catchError(authController.authCode),
-);
+router.post('/authcode', validateRequest(otpSchema), catchError(authController.authCode));
 
-router.post('/new-access-token', catchError(authController.getNewAccessToken));
+router.get('/new-access-token', catchError(authController.getNewAccessToken));
 
 /// check header have access token userId
 router.use(checkUser);

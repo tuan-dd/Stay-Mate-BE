@@ -117,9 +117,13 @@ Go to **schemas/auth.schema.ts** to see schema
 
 - [x]
 
-`POST auth/login` all can login
+`POST auth/sign-in` all can login
 
-`PUT auth/changePass` **Login required** update profile
+`POST auth/authcode` check code
+
+`GET auth/new-access-token` **Login required** get new AccessToken
+
+`POST auth/sign-out` **Login required** sign out
 
 ### User
 
@@ -157,7 +161,7 @@ Go to **schemas/review.schema.ts** to see schema
 
 - [x]
 
-`GET review/:reviewId` \*\*\* get all review in post
+`GET review/` \*\*\* get all review in post
 
 `POST/review/:id` \*\*\* **Login required** tenant stayed can review or hotelier reply
 

@@ -8,11 +8,13 @@ const { host, port, password, name } = appConfig.redis;
 const logger = getLogger('REDIS');
 class RedisConfig {
   private static instance: RedisConfig;
+
   private clientInstance: ReturnType<typeof createClient>;
 
   private constructor() {
     this.connectRedis();
   }
+
   async connectRedis() {
     const url = `redis://${host}:${port}`;
     const client = createClient({

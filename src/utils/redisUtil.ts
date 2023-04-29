@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import client from '@/database/init.redisDb';
 import { RedisCommandArgument } from '@redis/client/dist/lib/commands';
 import { SetOptions } from 'redis';

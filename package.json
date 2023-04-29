@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
+    "@redis/client": "^1.5.7",
     "bcrypt": "^5.1.0",
     "bullmq": "^3.11.0",
     "compression": "^1.7.4",
@@ -52,7 +53,10 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.7",

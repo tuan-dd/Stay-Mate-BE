@@ -4,8 +4,11 @@ import { Response } from 'express';
 
 export class AppError extends Error {
   public readonly errorType: string;
+
   public readonly httpCode: HttpCode;
+
   public readonly isOperational: boolean;
+
   constructor(message: string, httpCode: HttpCode, errorType: string) {
     super(message);
     this.httpCode = httpCode;
@@ -83,9 +86,13 @@ interface SendResponse {
 
 export class SuccessResponse implements SendResponse {
   statusCode: HttpCode;
+
   success: boolean;
+
   data: object | string | number;
+
   errors: string | object;
+
   message: string;
 
   constructor(

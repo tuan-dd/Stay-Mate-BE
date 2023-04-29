@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
   BadRequestError,
   CreatedResponse,
@@ -133,8 +134,9 @@ class ReviewController {
     );
 
     return oke(newUpdate);
-    function oke(newUpdate) {
-      if (!newUpdate) throw new NotFoundError('Not found review');
+
+    function oke(value) {
+      if (!value) throw new NotFoundError('Not found review');
       new CreatedResponse({ message: ' Update Review successfully' }).send(res);
     }
   };
@@ -181,7 +183,7 @@ class ReviewController {
           limit: limit,
         });
       }
-      return oke(reviews);
+      return oke();
     }
 
     if (hotelId) {
@@ -211,10 +213,10 @@ class ReviewController {
           limit: limit,
         });
       }
-      return oke(reviews);
+      return oke();
     }
 
-    function oke(reviews) {
+    function oke() {
       if (!reviews) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
         message: ' get Data`review successfully',
@@ -237,7 +239,7 @@ class ReviewController {
 
       reviews = await reviewService.findOne({ slug: regex });
 
-      return oke(reviews);
+      return oke();
     }
 
     if (!parent_slug) {
@@ -250,10 +252,10 @@ class ReviewController {
         limit: limit,
       });
 
-      return oke(reviews);
+      return oke();
     }
 
-    function oke(reviews) {
+    function oke() {
       if (!reviews) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
         message: ' Get Data`s review successfully',
