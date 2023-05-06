@@ -41,19 +41,23 @@ const bookingSchema = new Schema<IBooking>(
       enum: Object.values(Status),
       required: true,
     },
-    rooms: [
-      {
-        roomTypeId: {
-          type: SchemaTypes.ObjectId,
-          required: true,
-          ref: 'roomTypes',
+    rooms: {
+      type: [
+        {
+          roomTypeId: {
+            type: SchemaTypes.ObjectId,
+            required: true,
+            ref: 'roomTypes',
+          },
+          quantity: {
+            type: Number,
+            required: true,
+          },
         },
-        quantity: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+      ],
+      required: true,
+      min: 1,
+    },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     userId: {

@@ -36,11 +36,9 @@ const reviewSchema = new Schema<IReview>(
       default: 'no',
       required: true,
     },
-    images: [
-      {
-        type: String,
-      },
-    ],
+    images: {
+      type: [String],
+    },
     starRating: {
       type: Number,
       default: 0,
@@ -75,13 +73,11 @@ const reviewSchema = new Schema<IReview>(
       required: true,
       ref: 'hotels',
     },
-    roomName: [
-      {
-        type: String,
-        required: true,
-        min: 1,
-      },
-    ],
+    roomName: {
+      type: [String],
+      required: true,
+      min: 1,
+    },
     isReply: {
       type: Boolean, // Date().getTime
       required: true,

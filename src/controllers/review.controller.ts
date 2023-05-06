@@ -246,6 +246,7 @@ class ReviewController {
       reviews = await reviewService.findMany({
         query: {
           'hotel.hotelId': hotelId,
+          parent_slug: '',
           starRating: { $gte: 0.5 },
         },
         page: page,

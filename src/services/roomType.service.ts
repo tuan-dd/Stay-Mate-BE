@@ -10,7 +10,7 @@ class RoomTypeService extends BaseService<IRoom, RoomDocument> {
   createMany = (doc: AnyKeys<IRoom>[]) => RoomType.create(doc);
 
   deleteRoomType = (query: FilterQuery<RoomDocument>, option?: QueryOptions) =>
-    RoomType.deleteMany(query, option);
+    RoomType.deleteMany(query, option).exec();
 }
 
 export default new RoomTypeService();

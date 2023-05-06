@@ -18,13 +18,11 @@ const chatBoxSchema = new Schema<IBoxChat>(
       required: true,
       ref: 'users',
     },
-    messageIds: [
-      {
-        type: SchemaTypes.ObjectId,
-        required: true,
-        ref: 'chatMessages',
-      },
-    ],
+    messageIds: {
+      type: [SchemaTypes.ObjectId],
+      required: true,
+      ref: 'chatMessages',
+    },
   },
   { timestamps: true, collection: 'boxChats' },
 );
