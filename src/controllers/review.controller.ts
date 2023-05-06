@@ -237,7 +237,7 @@ class ReviewController {
     if (parent_slug) {
       const regex = new RegExp(parent_slug, 'i');
 
-      reviews = await reviewService.findOne({ slug: regex });
+      reviews = await reviewService.findOne({ slug: regex, parent_slug: { $ne: '' } });
 
       return oke();
     }
