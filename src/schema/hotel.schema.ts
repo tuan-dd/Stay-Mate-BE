@@ -116,8 +116,8 @@ export const getHotelSchema = Yup.object().shape({
         ),
       otherwise: (field) => field.notRequired(),
     }),
-    page: Yup.number().integer().negative().min(1).notRequired(),
-    limit: Yup.number().integer().negative().min(15).max(45).notRequired(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(3).max(45).notRequired(),
   }),
 });
 

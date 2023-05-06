@@ -228,7 +228,7 @@ class ReviewController {
   getReviews = async (req: Request<any, any, any, GetReviewsSchema>, res: Response) => {
     const { hotelId, parent_slug } = req.query;
     const page = req.query.page || 1;
-    const limit = req.body.limit || 10;
+    const limit = req.query.limit || 10;
     let reviews: [] | object;
 
     if (Object.keys(req.query).every((key) => !req.query[key]))

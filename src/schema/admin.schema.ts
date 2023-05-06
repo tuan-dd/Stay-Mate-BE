@@ -17,8 +17,8 @@ export const queryUserSchema = Yup.object().shape({
         ),
       otherwise: (field) => field.notRequired(),
     }),
-    page: Yup.number().integer().negative().min(1).notRequired(),
-    limit: Yup.number().integer().negative().min(10).max(30).notRequired(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(10).max(30).notRequired(),
   }),
 });
 
