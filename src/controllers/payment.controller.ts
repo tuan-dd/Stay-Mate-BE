@@ -45,6 +45,7 @@ class PaymentController {
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
       startDate: req.body.startDate,
       endDate: req.body.endDate,
+      duration: 1000 * 60 * 5,
     };
 
     const rooms = newBooking.rooms;

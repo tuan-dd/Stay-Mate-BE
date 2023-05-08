@@ -124,4 +124,5 @@ const hotelSchema = new Schema<IHotel>(
 );
 
 const Hotel = model<IHotel>('hotels', hotelSchema);
+
 export default Hotel;

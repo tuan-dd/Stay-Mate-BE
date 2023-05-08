@@ -66,7 +66,7 @@ class ReviewController {
         reviewDb,
       );
       //check nếu chủ ks k được  tạo reply
-      if (!isOwnerHotel) throw new NotAuthorizedError(' Only hotelier can reply review ');
+      if (!isOwnerHotel) throw new NotAuthorizedError('Only hotelier can reply review ');
 
       if (parent_slug !== reviewDb.slug) throw new BadRequestError('Wrong parent slug');
 

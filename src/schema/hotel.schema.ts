@@ -100,7 +100,7 @@ export const getHotelSchema = Yup.object().shape({
     address: Yup.string().notRequired(),
     city: Yup.string().notRequired(),
     country: Yup.string().when('city', (city, field) =>
-      city.length ? field.notRequired() : field.required(),
+      city.length > 0 ? field.notRequired() : field.required(),
     ),
     zipCode: Yup.number().integer().min(999).notRequired(),
     propertyType: Yup.string().oneOf(Object.values(PropertyType)).notRequired(),

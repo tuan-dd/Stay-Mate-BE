@@ -9,18 +9,20 @@ export enum Status {
   CANCEL = 'CANCEL',
 }
 
-interface Room {
+export interface KeyRoomBooking {
   roomTypeId: PopulatedDoc<Document<Types.ObjectId> & RoomDocument>;
   quantity: number;
 }
+
 export interface IBooking {
   total?: number;
   status?: Status;
-  rooms: Room[];
+  rooms: KeyRoomBooking[];
   userId: Types.ObjectId;
   hotelId: Types.ObjectId;
   startDate: Date;
   endDate: Date;
+  duration: number;
 }
 
 export interface BookingDocument extends IBooking, Document {
@@ -51,6 +53,7 @@ const bookingSchema = new Schema<IBooking>(
           },
           quantity: {
             type: Number,
+            min: 1,
             required: true,
           },
         },
@@ -60,6 +63,10 @@ const bookingSchema = new Schema<IBooking>(
     },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
+    duration: {
+      type: Number,
+      required: true,
+    },
     userId: {
       type: SchemaTypes.ObjectId,
       required: true,

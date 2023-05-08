@@ -96,7 +96,12 @@ class WorkerService {
             hotelId: new Types.ObjectId(bookingDb.hotelId),
             name: hotelDb.hotelName,
           },
-          roomName: bookingDb.rooms.map((room) => room.roomTypeId.nameOfRoom),
+          rooms: bookingDb.rooms.map((room) => ({
+            name: room.roomTypeId.nameOfRoom,
+            quantity: room.quantity,
+          })),
+          startDate: bookingDb.startDate,
+          endDate: bookingDb.endDate,
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
@@ -143,6 +148,7 @@ class WorkerService {
 
         await membershipsDb[indexMembershipExpired].save();
 
+        // find many sort created so index 0 is latest memberships so remove all hotel service
         if (indexMembershipExpired === 0) {
           await hotelsService.updateMany(
             {
