@@ -58,6 +58,7 @@ const bookingSchema = new Schema<IBooking>(
           },
         },
       ],
+      _id: false,
       required: true,
       min: 1,
     },

@@ -95,6 +95,7 @@ const reviewSchema = new Schema<IReview>(
           },
         },
       ],
+      _id: false,
       required: true,
       min: 1,
     },
