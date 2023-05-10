@@ -6,7 +6,7 @@ import {
   SuccessResponse,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
-import { HotelDocument, Package, IHotel } from '@/models/Hotel';
+import { Package, IHotel } from '@/models/Hotel';
 import { Role } from '@/models/User';
 import addJobToQueue from '@/queue/queue';
 import {
@@ -15,6 +15,7 @@ import {
   GetHotelSchema,
   UpdateHotelSchema,
   UpdateRoomSchema,
+  getHotelSchema,
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
@@ -31,7 +32,7 @@ import {
 import tokenUtil from '@/utils/tokenUtil';
 import crypto from 'crypto';
 import { Request, Response } from 'express';
-import { FilterQuery, Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 class HotelController {
   createHotel = async (req: Request<any, any, CreateHotelSchema>, res: Response) => {
@@ -239,16 +240,23 @@ class HotelController {
   };
 
   getHotels = async (req: Request<any, any, any, GetHotelSchema>, res: Response) => {
-    let query: FilterQuery<HotelDocument> = getDeleteFilter(['page,limit'], req.query);
+    let query = getHotelSchema.cast(req, {
+      stripUnknown: true,
+    }).query;
+
+    query = getDeleteFilter(['page,limit'], query);
     const page = req.query.page | 1;
     const limit = req.query.limit | 15;
 
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
-    query.isDelete = false;
-    query.package = { $ne: Package.FREE };
+    const isDelete = false;
 
-    const hotels = await HotelService.findMany({ query, page, limit });
+    const hotels = await HotelService.findMany({
+      query: { ...query, isDelete, package: { $ne: Package.FREE } },
+      page,
+      limit,
+    });
 
     if (!hotels.length) throw new NotFoundError('Not found hotel');
 

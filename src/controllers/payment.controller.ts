@@ -19,6 +19,8 @@ import {
   PaymentBookingSchema,
   PaymentMembershipSchema,
   WithdrawSchema,
+  getBookingSchema,
+  getMembershipSchema,
 } from '@/schema/payment.schema';
 import hotelsService from '@/services/hotels.service';
 import { bookingService, memberShipService } from '@/services/payment.service';
@@ -408,17 +410,19 @@ class PaymentController {
     req: Request<any, any, any, GetMembershipSchema>,
     res: Response,
   ) => {
+    let query = getMembershipSchema.cast(req, {
+      stripUnknown: true,
+    }).query;
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
 
-    let query = getDeleteFilter(['page'], req.query);
+    query = getDeleteFilter(['page'], req.query);
 
     query = getConvertCreatedAt(query, ['']);
 
-    query.userId = userId;
     const page = req.query.page || 1;
 
     const memberships = await memberShipService.findMany({
-      query,
+      query: { ...query, userId },
       page: page,
       limit: 10,
     });
@@ -430,17 +434,18 @@ class PaymentController {
   };
 
   getBookings = async (req: Request<any, any, any, GetBookingSchema>, res: Response) => {
+    let query = getBookingSchema.cast(req, {
+      stripUnknown: true,
+    }).query;
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const page = req.query.page || 1;
 
-    let query = getDeleteFilter(['page'], req.query);
+    query = getDeleteFilter(['page'], query);
 
     query = getConvertCreatedAt(query, ['']);
 
-    query.userId = userId;
-
     const bookings = await bookingService.findMany({
-      query,
+      query: { ...query, userId },
       page: page,
       limit: 10,
     });
