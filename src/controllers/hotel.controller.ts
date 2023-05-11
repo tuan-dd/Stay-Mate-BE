@@ -246,13 +246,21 @@ class HotelController {
     }).query;
 
     let queryRooms = getFilterData(
-      ['price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      ['price_gte', 'price_lte', 'rateDescription', 'mealType', 'roomAmenities'],
       query,
     );
     queryRooms = convertRoom(queryRooms);
 
     query = getDeleteFilter(
-      ['page', 'limit', 'price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      [
+        'page',
+        'limit',
+        'price_gte',
+        'price_lte',
+        'rateDescription',
+        'mealType',
+        'roomAmenities',
+      ],
       query,
     );
 
