@@ -244,7 +244,8 @@ class HotelController {
       stripUnknown: true,
     }).query;
 
-    query = getDeleteFilter(['page,limit'], query);
+    query = getDeleteFilter(['page', 'limit'], query);
+
     const page = req.query.page | 1;
     const limit = req.query.limit | 15;
 
