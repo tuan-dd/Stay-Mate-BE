@@ -6,7 +6,7 @@ import {
   SuccessResponse,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
-import { HotelDocument, Package, IHotel } from '@/models/Hotel';
+import { Package, IHotel } from '@/models/Hotel';
 import { Role } from '@/models/User';
 import addJobToQueue from '@/queue/queue';
 import {
@@ -15,6 +15,7 @@ import {
   GetHotelSchema,
   UpdateHotelSchema,
   UpdateRoomSchema,
+  getHotelSchema,
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
@@ -24,6 +25,7 @@ import UserService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
 import {
   Pros,
+  convertRoom,
   getConvertCreatedAt,
   getDeleteFilter,
   getFilterData,
@@ -31,7 +33,7 @@ import {
 import tokenUtil from '@/utils/tokenUtil';
 import crypto from 'crypto';
 import { Request, Response } from 'express';
-import { FilterQuery, Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 class HotelController {
   createHotel = async (req: Request<any, any, CreateHotelSchema>, res: Response) => {
@@ -239,22 +241,48 @@ class HotelController {
   };
 
   getHotels = async (req: Request<any, any, any, GetHotelSchema>, res: Response) => {
-    let query: FilterQuery<HotelDocument> = getDeleteFilter(['page,limit'], req.query);
+    let query = getHotelSchema.cast(req, {
+      stripUnknown: true,
+    }).query;
+
+    let queryRooms = getFilterData(
+      ['price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      query,
+    );
+    queryRooms = convertRoom(queryRooms);
+
+    query = getDeleteFilter(
+      ['page', 'limit', 'price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      query,
+    );
+
     const page = req.query.page | 1;
     const limit = req.query.limit | 15;
 
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
-    query.isDelete = false;
-    query.package = { $ne: Package.FREE };
+    const isDelete = false;
 
-    const hotels = await HotelService.findMany({ query, page, limit });
+    const hotels = await HotelService.findManyAndPopulateById(
+      {
+        query: { ...query, isDelete, package: { $ne: Package.FREE } },
+        page,
+        limit,
+      },
+      {
+        path: 'roomTypeIds',
+        match: queryRooms,
+        select: 'price rateDescription mealType -_id',
+      },
+    );
 
-    if (!hotels.length) throw new NotFoundError('Not found hotel');
+    const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length);
+
+    if (!checkHotel.length) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'get hotel`s data successfully',
-      data: hotels,
+      data: checkHotel,
     }).send(res);
   };
 

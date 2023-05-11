@@ -100,11 +100,26 @@ export const getHotelSchema = Yup.object().shape({
     address: Yup.string().notRequired(),
     city: Yup.string().notRequired(),
     country: Yup.string().when('city', (city, field) =>
-      city.length ? field.notRequired() : field.required(),
+      city.length > 0 ? field.notRequired() : field.required(),
     ),
     zipCode: Yup.number().integer().min(999).notRequired(),
     propertyType: Yup.string().oneOf(Object.values(PropertyType)).notRequired(),
     star: Yup.number().min(0.5).max(5).notRequired(),
+    price_gte: Yup.number().min(0).max(20000).notRequired(),
+    price_lte: Yup.number()
+      .min(50)
+      .max(2000)
+      .test('comparePrice', 'Not less or equal than price_gte', (data, context) =>
+        data < context.parent.price_gte ? false : true,
+      )
+      .notRequired(),
+    rateDescription: Yup.string()
+      .oneOf(['single', 'double', 'queen', 'king'])
+      .notRequired(),
+    mealType: Yup.string().oneOf(['breakfast', 'Dinner', 'Parking']).notRequired(),
+    roomAmenities: Yup.array(
+      Yup.string().oneOf(Object.values(RoomAmenities)),
+    ).notRequired(),
     createdAt_gte: Yup.date().max(new Date()).notRequired(),
     createdAt_lte: Yup.date().min('2023-04-06').notRequired(),
     createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {
@@ -116,8 +131,8 @@ export const getHotelSchema = Yup.object().shape({
         ),
       otherwise: (field) => field.notRequired(),
     }),
-    page: Yup.number().integer().negative().min(1).notRequired(),
-    limit: Yup.number().integer().negative().min(15).max(45).notRequired(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(3).max(45).notRequired(),
   }),
 });
 

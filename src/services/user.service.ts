@@ -43,7 +43,7 @@ class UserService extends BaseService<IUser, UserDocument> {
         },
       },
       { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
-    ]);
+    ]).exec();
   };
 
   findUserAddInfo = async (userId: string, project: { [key: string]: 0 | 1 }) => {
@@ -69,7 +69,7 @@ class UserService extends BaseService<IUser, UserDocument> {
       { $unwind: '$reviews' },
       { $group: { _id: 'countReview' } },
       { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
-    ]);
+    ]).exec();
   };
 }
 const userService = new UserService();

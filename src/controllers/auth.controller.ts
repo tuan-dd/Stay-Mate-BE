@@ -147,7 +147,7 @@ class AuthController {
         path: '/',
         sameSite: 'strict',
       });
-
+    // console.log(accessToken);
     new SuccessResponse({
       data: userDb,
       message: 'Login successfully',

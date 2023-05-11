@@ -25,7 +25,7 @@ interface StarRating {
 }
 export interface IHotel {
   hotelName: string;
-  image?: string;
+  images?: string[];
   address: string;
   city: string;
   country: string;
@@ -52,8 +52,10 @@ const hotelSchema = new Schema<IHotel>(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
+    images: {
+      type: [String],
+      default: [],
+      required: true,
     },
     address: {
       type: String,
@@ -102,14 +104,12 @@ const hotelSchema = new Schema<IHotel>(
       require: true,
       enum: Object.values(Package),
     },
-    roomTypeIds: [
-      {
-        type: Types.ObjectId,
-        ref: 'roomTypes',
-        min: 1,
-        required: true,
-      },
-    ],
+    roomTypeIds: {
+      type: [SchemaTypes.ObjectId],
+      ref: 'roomTypes',
+      required: true,
+      min: 1,
+    },
     userId: {
       type: SchemaTypes.ObjectId,
       ref: 'users',
@@ -124,4 +124,5 @@ const hotelSchema = new Schema<IHotel>(
 );
 
 const Hotel = model<IHotel>('hotels', hotelSchema);
+
 export default Hotel;

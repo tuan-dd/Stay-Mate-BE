@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "set NODE_ENV=dev&&nodemon --exec ts-node ./bin/www.ts",
-"start": "node ./dist/bin/www.js",
-    "build": "sh etc/build.sh",
+    "start": "node ./bin/www.js",
+    "build": "tsc",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
   },
@@ -66,7 +66,7 @@
   "_moduleAliases": {
     "@": "./src"
   },
-    "engines": {
+  "engines": {
     "node": ">=14 <15"
   }
 }

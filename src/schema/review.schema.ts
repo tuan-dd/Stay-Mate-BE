@@ -28,8 +28,8 @@ export const getReviewsByUserSchema = Yup.object().shape({
     statusBooking: Yup.string().oneOf([Status.STAY]).notRequired(),
     isReview: Yup.boolean().notRequired(),
     parent_slug: Yup.boolean().notRequired(),
-    page: Yup.number().integer().negative().min(1).notRequired(),
-    limit: Yup.number().integer().negative().min(15).max(45).notRequired(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(3).max(45).notRequired(),
     hotelId: Yup.string().objectIdValid().notRequired(),
   }),
 });
@@ -38,8 +38,8 @@ export const getReviewsSchema = Yup.object().shape({
   query: Yup.object().shape({
     hotelId: Yup.string().objectIdValid().notRequired(),
     parent_slug: Yup.string().notRequired(),
-    page: Yup.number().integer().negative().min(1).notRequired(),
-    limit: Yup.number().integer().negative().min(15).max(45).notRequired(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(3).max(45).notRequired(),
   }),
 });
 

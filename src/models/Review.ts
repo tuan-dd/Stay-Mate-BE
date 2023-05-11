@@ -10,15 +10,21 @@ interface Hotel {
   name: string;
   hotelId: Types.ObjectId;
 }
+interface KeyRoomsReview {
+  name: string;
+  quantity: number;
+}
 export interface IReview {
   context?: string;
   images: string[];
   starRating: number;
+  startDate: Date;
+  endDate: Date;
   slug?: string;
   parent_slug?: string;
   author: Author;
   hotel: Hotel;
-  roomName?: string[];
+  rooms?: KeyRoomsReview[];
   bookingId: Types.ObjectId;
   isReply?: boolean;
   isDelete?: boolean;
@@ -36,11 +42,11 @@ const reviewSchema = new Schema<IReview>(
       default: 'no',
       required: true,
     },
-    images: [
-      {
-        type: String,
-      },
-    ],
+    images: {
+      type: [String],
+    },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
     starRating: {
       type: Number,
       default: 0,
@@ -75,13 +81,25 @@ const reviewSchema = new Schema<IReview>(
       required: true,
       ref: 'hotels',
     },
-    roomName: [
-      {
-        type: String,
-        required: true,
-        min: 1,
-      },
-    ],
+    rooms: {
+      type: [
+        {
+          name: {
+            type: String,
+            required: true,
+          },
+          quantity: {
+            type: Number,
+            required: true,
+            min: 1,
+          },
+        },
+      ],
+      _id: false,
+      required: true,
+      min: 1,
+    },
+
     isReply: {
       type: Boolean, // Date().getTime
       required: true,

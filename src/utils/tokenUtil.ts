@@ -14,7 +14,7 @@ export interface DataAfterEncode extends JWT.JwtPayload {
 
 const createTokenPair = (payLoadInToken: PayLoadInToken, secretKey: string) => {
   const accessToken = JWT.sign(payLoadInToken, secretKey, {
-    expiresIn: '3 day',
+    expiresIn: '1 day',
   });
   const refreshToken = JWT.sign(payLoadInToken, secretKey, {
     expiresIn: '7 day',

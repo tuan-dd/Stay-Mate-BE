@@ -9,7 +9,7 @@ class SecretKeyStoreService extends BaseService<ISecretKeyStore> {
   }
 
   deleteALl = (query: FilterQuery<ISecretKeyStore>, option?: QueryOptions) => {
-    return SecretKeyStore.deleteMany(query, option);
+    return SecretKeyStore.deleteMany(query, option).exec();
   };
 
   deleteTokenStore = (query: FilterQuery<ISecretKeyStore>, option?: QueryOptions) => {

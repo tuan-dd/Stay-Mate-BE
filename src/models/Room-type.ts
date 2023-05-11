@@ -110,13 +110,12 @@ export interface RoomDocument extends IRoom, Document {
 }
 const roomTypeSchema = new Schema<IRoom>(
   {
-    roomAmenities: [
-      {
-        type: String,
-        required: true,
-        enum: Object.values(RoomAmenities),
-      },
-    ],
+    roomAmenities: {
+      type: [String],
+      required: true,
+      enum: Object.values(RoomAmenities),
+      min: 1,
+    },
     nameOfRoom: {
       type: String, //
       required: true,
@@ -148,12 +147,10 @@ const roomTypeSchema = new Schema<IRoom>(
       required: true,
       min: 1,
     },
-    images: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
+    images: {
+      type: [String],
+      required: true,
+    },
   },
   { timestamps: true, collection: 'roomTypes' },
 );

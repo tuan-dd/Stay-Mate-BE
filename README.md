@@ -163,7 +163,9 @@ Go to **schemas/review.schema.ts** to see schema
 
 `GET review/` \*\*\* get all review in post
 
-`POST/review/:id` \*\*\* **Login required** tenant stayed can review or hotelier reply
+`GET review/user` \*\*\* get review of user
+
+`POST/review/:id` \*\*\* **Login required** post review
 
 `PUT review/:id` \*\*\* **Login required** author can update
 

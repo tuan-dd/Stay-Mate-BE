@@ -2,6 +2,7 @@ import {
   BadRequestError,
   CreatedResponse,
   ForbiddenError,
+  NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
@@ -51,7 +52,10 @@ class UserController {
   };
 
   getMe = async (req: Request, res: Response) => {
-    const dataUser = await userService.findOne({});
+    const email = req.user.email;
+    const dataUser = await userService.findOne({ email });
+
+    if (!dataUser) throw new NotFoundError('Not found user');
 
     new SuccessResponse({
       message: 'update user successfully',

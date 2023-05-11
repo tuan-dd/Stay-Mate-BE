@@ -1,19 +1,24 @@
 import { NotAuthorizedError, NotFoundError, SuccessResponse } from '@/helpers/utils';
-import { Role, UserDocument } from '@/models/User';
+import { Role } from '@/models/User';
 import {
   QueryUserSchema,
   UpdateHotelByAdminSchema,
   UpdateUserByAdminSchema,
+  queryUserSchema,
 } from '@/schema/admin.schema';
 import hotelsService from '@/services/hotels.service';
 import userService from '@/services/user.service';
 import { getConvertCreatedAt, getDeleteFilter } from '@/utils/lodashUtil';
 import { Request, Response } from 'express';
-import { FilterQuery, Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 class AdminController {
   queryUsers = async (req: Request<any, any, any, QueryUserSchema>, res: Response) => {
-    let query: FilterQuery<UserDocument> = getDeleteFilter(['page,limit'], req.query);
+    let query = queryUserSchema.cast(req, {
+      stripUnknown: true,
+    }).query;
+
+    query = getDeleteFilter(['page,limit'], query);
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
 

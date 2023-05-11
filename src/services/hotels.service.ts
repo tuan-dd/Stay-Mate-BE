@@ -1,6 +1,6 @@
 import Hotel, { HotelDocument, IHotel } from '@/models/Hotel';
 import { FilterQuery, PopulateOptions, Types } from 'mongoose';
-import BaseService from './base.service';
+import BaseService, { QueryWithPagination } from './base.service';
 import { RoomDocument } from '@/models/Room-type';
 
 class HotelService extends BaseService<IHotel, HotelDocument> {
@@ -31,6 +31,20 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
         ...options,
       })
       .lean()
+      .exec();
+  };
+
+  findManyAndPopulateById = (
+    query: QueryWithPagination<HotelDocument>,
+    options?: PopulateOptions,
+  ) => {
+    return Hotel.find(query.query)
+      .populate<{ roomTypeIds: RoomDocument[] }>({
+        path: 'roomTypeIds',
+        ...options,
+      })
+      .skip(query.limit * (query.page - 1))
+      .limit(query.limit)
       .exec();
   };
 }

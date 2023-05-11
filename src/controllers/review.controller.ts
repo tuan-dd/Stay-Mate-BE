@@ -66,7 +66,7 @@ class ReviewController {
         reviewDb,
       );
       //check nếu chủ ks k được  tạo reply
-      if (!isOwnerHotel) throw new NotAuthorizedError(' Only hotelier can reply review ');
+      if (!isOwnerHotel) throw new NotAuthorizedError('Only hotelier can reply review ');
 
       if (parent_slug !== reviewDb.slug) throw new BadRequestError('Wrong parent slug');
 
@@ -228,7 +228,7 @@ class ReviewController {
   getReviews = async (req: Request<any, any, any, GetReviewsSchema>, res: Response) => {
     const { hotelId, parent_slug } = req.query;
     const page = req.query.page || 1;
-    const limit = req.body.limit || 10;
+    const limit = req.query.limit || 10;
     let reviews: [] | object;
 
     if (Object.keys(req.query).every((key) => !req.query[key]))
@@ -237,7 +237,7 @@ class ReviewController {
     if (parent_slug) {
       const regex = new RegExp(parent_slug, 'i');
 
-      reviews = await reviewService.findOne({ slug: regex });
+      reviews = await reviewService.findOne({ slug: regex, parent_slug: { $ne: '' } });
 
       return oke();
     }
@@ -246,6 +246,7 @@ class ReviewController {
       reviews = await reviewService.findMany({
         query: {
           'hotel.hotelId': hotelId,
+          parent_slug: '',
           starRating: { $gte: 0.5 },
         },
         page: page,
