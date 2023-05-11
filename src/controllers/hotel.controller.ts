@@ -25,6 +25,7 @@ import UserService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
 import {
   Pros,
+  convertRoom,
   getConvertCreatedAt,
   getDeleteFilter,
   getFilterData,
@@ -244,7 +245,16 @@ class HotelController {
       stripUnknown: true,
     }).query;
 
-    query = getDeleteFilter(['page', 'limit'], query);
+    let queryRooms = getFilterData(
+      ['price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      query,
+    );
+    queryRooms = convertRoom(queryRooms);
+
+    query = getDeleteFilter(
+      ['page', 'limit', 'price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      query,
+    );
 
     const page = req.query.page | 1;
     const limit = req.query.limit | 15;
@@ -253,17 +263,26 @@ class HotelController {
 
     const isDelete = false;
 
-    const hotels = await HotelService.findMany({
-      query: { ...query, isDelete, package: { $ne: Package.FREE } },
-      page,
-      limit,
-    });
+    const hotels = await HotelService.findManyAndPopulateById(
+      {
+        query: { ...query, isDelete, package: { $ne: Package.FREE } },
+        page,
+        limit,
+      },
+      {
+        path: 'roomTypeIds',
+        match: queryRooms,
+        select: 'price rateDescription mealType -_id',
+      },
+    );
 
-    if (!hotels.length) throw new NotFoundError('Not found hotel');
+    const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length);
+
+    if (!checkHotel.length) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'get hotel`s data successfully',
-      data: hotels,
+      data: checkHotel,
     }).send(res);
   };
 

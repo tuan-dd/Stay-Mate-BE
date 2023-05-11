@@ -60,5 +60,45 @@ export const getConvertCreatedAt = (pros: Pros<any>, includes: string[]): Pros<a
     }
   });
 
-  return pros;
+  return { ...pros };
+};
+
+export const convertRoom = (pros: Pros<any>): Pros<any> => {
+  const prices = ['price_gte', 'price_lte'];
+  const keyExp = ['rateDescription', 'mealType'];
+
+  const convertPrice = (key: '$gte' | '$lte') => {
+    if (key === '$gte') {
+      pros.price = {
+        ...pros.price,
+        [key]: pros.price_gte,
+      };
+      delete pros.price_gte;
+    } else {
+      pros.price = {
+        ...pros.price,
+        [key]: pros.price_lte,
+      };
+
+      delete pros.price_lte;
+    }
+  };
+
+  Object.keys(pros).forEach((key) => {
+    if (!pros[key] && pros[key] !== 0) delete pros[key];
+
+    // RegExp like value.includes('abc')
+    if (keyExp.includes(key) && pros[key]) {
+      const regExp = new RegExp(pros[key], 'i');
+      pros[key] = regExp;
+    }
+    if (prices.includes(key) && (pros[key] || pros[key] === 0)) {
+      if (key === 'price_gte') {
+        convertPrice('$gte');
+      } else {
+        convertPrice('$lte');
+      }
+    }
+  });
+  return { ...pros };
 };

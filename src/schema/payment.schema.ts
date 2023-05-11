@@ -52,7 +52,7 @@ export const createBookingSchema = Yup.object().shape({
       .test(
         'compareStartDate',
         'Not less or equal than start date',
-        (endDate: Date, context) => (endDate <= context.parent.startDate ? false : true),
+        (endDate: Date, context) => (endDate < context.parent.startDate ? false : true),
       )
       .required(),
   }),
