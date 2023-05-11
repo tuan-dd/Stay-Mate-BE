@@ -116,7 +116,9 @@ export const getHotelSchema = Yup.object().shape({
     rateDescription: Yup.string()
       .oneOf(['single', 'double', 'queen', 'king'])
       .notRequired(),
-    mealType: Yup.string().oneOf(['breakfast', 'Dinner', 'Parking']).notRequired(),
+    mealType: Yup.string()
+      .oneOf(['breakfast', 'dinner', 'parking', 'lunch'])
+      .notRequired(),
     roomAmenities: Yup.array(
       Yup.string().oneOf(Object.values(RoomAmenities)),
     ).notRequired(),
