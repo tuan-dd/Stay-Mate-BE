@@ -270,7 +270,6 @@ class HotelController {
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
     const isDelete = false;
-
     const hotels = await HotelService.findManyAndPopulateById(
       {
         query: { ...query, isDelete, package: { $ne: Package.FREE } },
@@ -280,7 +279,7 @@ class HotelController {
       {
         path: 'roomTypeIds',
         match: queryRooms,
-        select: 'price rateDescription mealType -_id',
+        select: 'price rateDescription mealType -_id roomAmenities',
       },
     );
 
