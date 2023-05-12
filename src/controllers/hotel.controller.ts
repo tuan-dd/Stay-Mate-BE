@@ -246,13 +246,21 @@ class HotelController {
     }).query;
 
     let queryRooms = getFilterData(
-      ['price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      ['price_gte', 'price_lte', 'rateDescription', 'mealType', 'roomAmenities'],
       query,
     );
     queryRooms = convertRoom(queryRooms);
 
     query = getDeleteFilter(
-      ['page', 'limit', 'price_gte', 'price_lte', 'rateDescription', 'mealType'],
+      [
+        'page',
+        'limit',
+        'price_gte',
+        'price_lte',
+        'rateDescription',
+        'mealType',
+        'roomAmenities',
+      ],
       query,
     );
 
@@ -262,7 +270,6 @@ class HotelController {
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
     const isDelete = false;
-
     const hotels = await HotelService.findManyAndPopulateById(
       {
         query: { ...query, isDelete, package: { $ne: Package.FREE } },
@@ -272,7 +279,7 @@ class HotelController {
       {
         path: 'roomTypeIds',
         match: queryRooms,
-        select: 'price rateDescription mealType -_id',
+        select: 'price rateDescription mealType -_id roomAmenities',
       },
     );
 
