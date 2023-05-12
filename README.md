@@ -65,7 +65,7 @@ Overall, Web book hotel represents a significant leap forward in travel booking 
 `Tenant`
 
 - [x] Seeing a list of hotel
-- [x] Seeing a hotel hotel
+- [x] Seeing a detail hotel
 - [x] Seeing review and reply
 - [x] Filtering
 
@@ -150,6 +150,8 @@ Go to **schemas/hotel.schema.ts** to see schema
 `PUT hotel/update-room/:id` \*\*\* **Login required** hotelier can update
 
 `PUT hotel/update-hotel/:id` \*\*\* **Login required** hotelier can update
+
+`GET hotel/me` \*\*\* **Login required** get hotels of hotelier
 
 `GET hotel/` \*\*\* get hotels
 
