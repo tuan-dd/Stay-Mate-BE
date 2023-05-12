@@ -282,7 +282,6 @@ class HotelController {
         select: 'price rateDescription mealType -_id roomAmenities',
       },
     );
-
     const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length);
 
     if (!checkHotel.length) throw new NotFoundError('Not found hotel');

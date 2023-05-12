@@ -28,10 +28,6 @@ router.put(
   catchError(userController.updateUser),
 );
 
-router.get(
-  '/me',
-  validateRequest(updateUserSchema),
-  catchError(userController.updateUser),
-);
+router.get('/me', catchError(userController.updateUser));
 
 export default router;
