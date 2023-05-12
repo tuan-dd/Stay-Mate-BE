@@ -24,11 +24,7 @@ const router = express.Router();
  * @user can see all my account
  */
 
-router.get(
-  '/',
-  validateRequest(getHotelSchema),
-  catchError(hotelController.getHotels),
-);
+router.get('/', validateRequest(getHotelSchema), catchError(hotelController.getHotels));
 
 router.get('/:id', checkParamsId, catchError(hotelController.detailHotel));
 
@@ -42,6 +38,8 @@ router.post(
 
 // hotelier can use router
 router.use(checkRole(Role.HOTELIER));
+
+router.get('/me', catchError(hotelController.updateHotel));
 
 router.put(
   '/update-hotel/:id',

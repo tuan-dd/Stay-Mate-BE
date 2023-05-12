@@ -270,7 +270,7 @@ class HotelController {
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
     const isDelete = false;
-    const hotels = await HotelService.findManyAndPopulateById(
+    const hotels = await HotelService.findManyAndPopulateByQuery(
       {
         query: { ...query, isDelete, package: { $ne: Package.FREE } },
         page,
@@ -301,6 +301,23 @@ class HotelController {
 
     new SuccessResponse({
       message: 'Get detail hotel successfully',
+      data: hotel,
+    }).send(res);
+  };
+
+  getHotelsByHotelier = async (req: Request, res: Response) => {
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+
+    const hotel = await HotelService.findManyAndPopulateByQuery({
+      query: { userId },
+      page: null,
+      limit: null,
+    });
+
+    if (!hotel.length) throw new NotFoundError('Not found hotel');
+
+    new SuccessResponse({
+      message: 'Get detail hotel of hotelier successfully',
       data: hotel,
     }).send(res);
   };

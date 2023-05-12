@@ -34,7 +34,7 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
       .exec();
   };
 
-  findManyAndPopulateById = (
+  findManyAndPopulateByQuery = (
     query: QueryWithPagination<HotelDocument>,
     options?: PopulateOptions,
   ) => {
