@@ -44,6 +44,7 @@ const cartSchema = new Schema<ICart>(
                   min: 1,
                   required: true,
                 },
+                _id: false,
               },
             ],
           },
