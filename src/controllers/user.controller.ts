@@ -9,7 +9,7 @@ import { KeyHeader } from '@/middleware/validate';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
-import { getFilterData } from '@/utils/lodashUtil';
+import { getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
 
 class UserController {
@@ -23,7 +23,7 @@ class UserController {
 
     new CreatedResponse({
       message: 'Create user successfully',
-      data: getFilterData(['_id', 'name', 'email', 'role', 'avatar'], newUser),
+      data: getDeleteFilter(['password', 'isActive'], newUser),
     }).send(res);
   };
 
