@@ -40,7 +40,7 @@ class AuthController {
 
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
-    const hashSixCode = await pwdUtil.getHash(sixCode.toString(), 10);
+    const hashSixCode = await pwdUtil.getHash(sixCode, 10);
 
     await redisUtil.hSet(userDb._id.toHexString(), [
       'sixCode',
@@ -233,6 +233,31 @@ class AuthController {
       message: 'Send new access token',
       data: newAccessToken,
     }).send(res);
+  };
+
+  getNewPassWord = async (req: Request, res: Response) => {
+    const email = req.body.email;
+    const sixCode = crypto.randomInt(100_000, 999_999).toString();
+    const hashSixCode = await pwdUtil.getHash(sixCode, 10);
+
+    const userDb = await userService.findOneUpdate(
+      { email },
+      { $set: { password: hashSixCode } },
+    );
+
+    if (!userDb) throw new NotFoundError('Not found user');
+
+    await sendMail(sixCode, email, 'New Password')
+      .then(() =>
+        new SuccessResponse({
+          message: 'Send new password to email successfully',
+        }).send(res),
+      )
+      .catch((error) => {
+        getLogger('Send Email Error').error(error);
+
+        throw new BadRequestError('Can`t not send email');
+      });
   };
 }
 

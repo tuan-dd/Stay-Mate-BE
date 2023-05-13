@@ -6,6 +6,7 @@ import {
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { Order, ICart } from '@/models/Cart';
+import { Package } from '@/models/Hotel';
 import { CreateCartSchema } from '@/schema/cart.schema';
 import cartService from '@/services/cart.service';
 import hotelsService from '@/services/hotels.service';
@@ -58,20 +59,34 @@ class CartController {
       select: 'numberOfRoom nameOfRoom',
     });
 
-    if (!hotelDb) throw new NotFoundError('Not found hotel');
+    if (!hotelDb && hotelDb.isDelete && hotelDb.package === Package.FREE)
+      throw new NotFoundError('Not found hotel');
 
     // check rooms of hotel
-    newOrder.rooms.forEach((room) => {
-      const isRoomOfHotelDB = hotelDb.roomTypeIds.some((e) => {
-        if (e._id.equals(room.roomTypeId)) {
-          if (e.numberOfRoom < room.quantity)
-            throw new BadRequestError(`order exceed quantity of Room : ${e.nameOfRoom}`);
-          return true;
-        }
-        return false;
-      });
-      if (!isRoomOfHotelDB) throw new NotFoundError('Not found room of hotel');
+    const roomTypeIds = hotelDb.roomTypeIds.map((room) => room._id);
+
+    newOrder.rooms.forEach((roomOrder) => {
+      const index = roomTypeIds.findIndex((e) => e.equals(roomOrder.roomTypeId)); //check have room of hotel
+      if (index < 0) throw new NotFoundError('Not found room of hotel');
+
+      if (hotelDb.roomTypeIds[index].numberOfRoom < roomOrder.quantity)
+        // check order exceed number Of Room
+        throw new BadRequestError(
+          `Order exceed quantity of Room : ${hotelDb.roomTypeIds[index].nameOfRoom}`,
+        );
     });
+
+    // newOrder.rooms.forEach((roomOrder) => {
+    //   const isRoomOfHotelDB = hotelDb.roomTypeIds.some((e) => { // loop if each roomOrder in newOrder same room in hotel
+    //     if (e._id.equals(roomOrder.roomTypeId)) {
+    //       if (e.numberOfRoom < roomOrder.quantity) // check order exceed number Of Room
+    //         throw new BadRequestError(`order exceed quantity of Room : ${e.nameOfRoom}`);
+    //       return true;
+    //     }
+    //     return false;
+    //   });
+    //   if (!isRoomOfHotelDB) throw new NotFoundError('Not found room of hotel');
+    // });
 
     // if user dont have cart create cart
     const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });

@@ -53,7 +53,7 @@ class UserController {
 
   getMe = async (req: Request, res: Response) => {
     const email = req.user.email;
-    const dataUser = await userService.findOne({ email });
+    const dataUser = await userService.findOne({ email }, { password: 0 });
 
     if (!dataUser) throw new NotFoundError('Not found user');
 
