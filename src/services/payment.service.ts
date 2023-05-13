@@ -9,8 +9,9 @@ import {
   SaveOptions,
   Types,
 } from 'mongoose';
-import { NotAuthorizedError } from '@/helpers/utils';
+import { BadRequestError, NotFoundError } from '@/helpers/utils';
 import hotelsService from './hotels.service';
+import { Package } from '@/models/Hotel';
 
 class BookingService extends BaseService<IBooking, BookingDocument> {
   constructor() {
@@ -60,7 +61,8 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       },
     );
 
-    if (!hotelDb) throw new NotAuthorizedError('Cant not find hotel');
+    if (!hotelDb && hotelDb.isDelete && hotelDb.package === Package.FREE)
+      throw new NotFoundError('Not found hotel');
 
     // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
     const bookingsDb = await Booking.find({
@@ -78,9 +80,11 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     // kiểm tra trùng room in booking trừ ra số phòng đăt ra
     hotelDb.roomTypeIds.forEach((hotelDbRoom, i) => {
       bookingsDb.forEach((booking) => {
-        booking.rooms.forEach((room) => {
-          if (room.roomTypeId.equals(hotelDbRoom._id)) {
-            hotelDb.roomTypeIds[i].numberOfRoom -= room.quantity;
+        booking.rooms.forEach((roomOrder) => {
+          if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
+            if (hotelDb.roomTypeIds[i].numberOfRoom < roomOrder.quantity)
+              throw new BadRequestError('Exceed the number of rooms');
+            hotelDb.roomTypeIds[i].numberOfRoom -= roomOrder.quantity;
           }
         });
       });

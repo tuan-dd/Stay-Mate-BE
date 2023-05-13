@@ -58,14 +58,12 @@ class PaymentController {
       rooms.map((room) => room.roomTypeId),
     );
 
-    // tại đây loop qua để tính tổng tiền và kiểm tra còn đủ k
+    // tại đây loop qua để tính tổng tiền
     let total = 0;
     const roomsResults = [];
     NumberOfRoomAfterCheck.roomTypeIds.forEach((hotelDbRoom) => {
       rooms.forEach((roomOrderId) => {
         if (roomOrderId.roomTypeId.equals(hotelDbRoom._id)) {
-          if (roomOrderId.quantity > hotelDbRoom.numberOfRoom)
-            throw new BadRequestError('Exceed the number of rooms');
           // lấy tên phòng và số lượng để trả res
           const roomResult = {
             nameOfRoom: hotelDbRoom.nameOfRoom,
@@ -88,6 +86,7 @@ class PaymentController {
       { removeOnComplete: true, delay: 1000 * 60 * 5, removeOnFail: true },
     );
 
+    // If have in cart , remove when  create booking successfully
     await cartService.findOneUpdate(
       { userId: newBooking.userId },
       {
@@ -102,7 +101,7 @@ class PaymentController {
     );
 
     new CreatedResponse({
-      message: 'Create Booking successfully',
+      message: 'Create booking successfully',
       data: {
         ...getFilterData(['total', 'startDate', 'endDate', '_id'], createBooking),
         rooms: roomsResults,

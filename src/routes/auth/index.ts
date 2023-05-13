@@ -15,6 +15,8 @@ router.post('/sign-in', validateRequest(signinSchema), catchError(authController
 
 router.post('/authcode', validateRequest(otpSchema), catchError(authController.authCode));
 
+router.post('/forget-pwd', catchError(authController.getNewPassWord));
+
 router.get('/new-access-token', catchError(authController.getNewAccessToken));
 
 /// check header have access token userId

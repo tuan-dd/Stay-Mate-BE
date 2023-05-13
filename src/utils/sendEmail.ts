@@ -9,7 +9,11 @@ const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUrl)
 oAuth2Client.setCredentials({ refresh_token: refreshToken });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const sendMail = async (sixCode: number | string, email: string): Promise<any> => {
+export const sendMail = async (
+  sixCode: number | string,
+  email: string,
+  text?: string,
+): Promise<any> => {
   const accessToken = (await oAuth2Client.getAccessToken()) as string;
 
   const transporter = nodemailer.createTransport({
@@ -29,7 +33,7 @@ export const sendMail = async (sixCode: number | string, email: string): Promise
       to: `${email}`,
       subject: 'Hello ✔',
       text: ` Hello ${email} `,
-      html: `<b>${sixCode}</b>`,
+      html: `<b>${text}${sixCode}</b>`,
     },
     (err, info) => {
       if (err) return err;
