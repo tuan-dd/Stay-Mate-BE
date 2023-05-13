@@ -123,7 +123,14 @@ class CartController {
   getCarts = async (req: Request, res: Response) => {
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
 
-    const cartDb = await cartService.findOne({ userId: userId, isActive: true });
+    const cartDb = await cartService.findOneAndPopulateByQuery(
+      {
+        userId: userId,
+        isActive: true,
+      },
+      { path: 'orders.hotelId', select: 'hotelName country city' },
+      { path: 'orders.rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+    );
 
     new SuccessResponse({
       message: 'add cart successfully',
