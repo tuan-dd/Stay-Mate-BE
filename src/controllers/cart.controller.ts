@@ -45,7 +45,7 @@ class CartController {
 
       if (!result) throw new NotFoundError('Not found cart');
       // no order can not get cart
-      if (!result.orders) {
+      if (!result.orders.length) {
         result.isActive = false;
         await result.save();
       }
@@ -120,6 +120,7 @@ class CartController {
     // if not add order
     if (!updateCartOfUser) {
       cartDb.orders.push(newOrder);
+      cartDb.isActive = true;
 
       await cartDb.save();
       return oke(newOrder);
