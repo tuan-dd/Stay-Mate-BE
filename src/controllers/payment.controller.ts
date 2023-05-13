@@ -22,6 +22,7 @@ import {
   getBookingSchema,
   getMembershipSchema,
 } from '@/schema/payment.schema';
+import cartService from '@/services/cart.service';
 import hotelsService from '@/services/hotels.service';
 import { bookingService, memberShipService } from '@/services/payment.service';
 import userService from '@/services/user.service';
@@ -36,8 +37,8 @@ class PaymentController {
      * @check khách sạn có loai phòng đó k
      * @check
      * @create tao booking lưu booking id và bullmq
+     * @remove order
      */
-
     const newBooking: IBooking = {
       rooms: req.body.rooms.map((room) => ({
         quantity: room.quantity,
@@ -85,6 +86,19 @@ class PaymentController {
         job: { id: createBooking._id.toHexString() },
       },
       { removeOnComplete: true, delay: 1000 * 60 * 5, removeOnFail: true },
+    );
+
+    await cartService.findOneUpdate(
+      { userId: newBooking.userId },
+      {
+        $pull: {
+          orders: {
+            hotelId: newBooking.hotelId,
+            startDate: req.body.startDate,
+            endDate: req.body.endDate,
+          },
+        },
+      },
     );
 
     new CreatedResponse({
