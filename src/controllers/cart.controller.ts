@@ -123,15 +123,14 @@ class CartController {
       cartDb.isActive = true;
 
       await cartDb.save();
-      return oke(newOrder);
+      return oke(cartDb);
     }
 
-    oke(newOrder);
-    function oke(value: Order | ICart) {
+    oke(updateCartOfUser);
+    function oke(value: ICart) {
       if (!value) throw new ServiceUnavailableError('Update unsuccessfully');
       return new SuccessResponse({
         message: 'Add cart successfully',
-        data: value,
       }).send(res);
     }
   };
