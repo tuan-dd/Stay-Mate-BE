@@ -114,7 +114,7 @@ class CartController {
     function oke(value: Order | ICart) {
       if (!value) throw new ServiceUnavailableError('Update unsuccessfully');
       return new SuccessResponse({
-        message: 'add cart successfully',
+        message: 'Add cart successfully',
         data: value,
       }).send(res);
     }
