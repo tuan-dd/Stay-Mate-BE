@@ -84,7 +84,6 @@ class AuthController {
     if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
-
     if (!userRedis) throw new BadRequestError('Otp expires');
 
     if (userRedis.ip !== ip) {
