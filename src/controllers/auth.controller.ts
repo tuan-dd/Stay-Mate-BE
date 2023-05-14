@@ -82,7 +82,7 @@ class AuthController {
       { password: 0, isActive: 0 },
     );
 
-    if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
+    if (!userDb) throw new NotFoundError('User not exist');
 
     if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
