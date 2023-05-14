@@ -138,13 +138,13 @@ class AuthController {
         httpOnly: false,
         secure: false,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
       })
       .cookie('accessToken', accessToken, {
         httpOnly: false,
-        secure: false,
+        secure: true,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
       });
     // console.log(accessToken);
     new SuccessResponse({
@@ -224,9 +224,9 @@ class AuthController {
 
     res.cookie('accessToken', newAccessToken, {
       httpOnly: false,
-      secure: false,
+      secure: true,
       path: '/',
-      sameSite: 'strict',
+      sameSite: 'none',
     });
     new SuccessResponse({
       message: 'Send new access token',
