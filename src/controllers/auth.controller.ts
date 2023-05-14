@@ -77,7 +77,10 @@ class AuthController {
     // console.log(ip, 'authcode');
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
-    const userDb = await userService.findOne({ email }, { password: 0, isActive: 0 });
+    const userDb = await userService.findOne(
+      { email, isActive: true },
+      { password: 0, isActive: 0 },
+    );
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
 
