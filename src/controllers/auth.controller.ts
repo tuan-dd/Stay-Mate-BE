@@ -77,7 +77,7 @@ class AuthController {
     // console.log(ip, 'authcode');
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
-    const userDb = await userService.findOne({ email }, { password: 0 });
+    const userDb = await userService.findOne({ email }, { password: 0, isActive: 0 });
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
 
@@ -133,22 +133,22 @@ class AuthController {
       },
     );
 
-    res
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: false,
-        secure: false,
-        path: '/',
-        sameSite: 'lax',
-      })
-      .cookie('accessToken', accessToken, {
-        httpOnly: false,
-        secure: false,
-        path: '/',
-        sameSite: 'lax',
-      });
+    // res
+    //   .cookie('refreshToken', refreshToken, {
+    //     httpOnly: false,
+    //     secure: false,
+    //     path: '/',
+    //     sameSite: 'lax',
+    //   })
+    //   .cookie('accessToken', accessToken, {
+    //     httpOnly: false,
+    //     secure: false,
+    //     path: '/',
+    //     sameSite: 'lax',
+    //   });
     // console.log(accessToken);
     new SuccessResponse({
-      data: userDb,
+      data: { ...userDb, accessToken, refreshToken },
       message: 'Login successfully',
     }).send(res);
   };
@@ -222,12 +222,12 @@ class AuthController {
       '3day',
     );
 
-    res.cookie('accessToken', newAccessToken, {
-      httpOnly: false,
-      secure: false,
-      path: '/',
-      sameSite: 'lax',
-    });
+    // res.cookie('accessToken', newAccessToken, {
+    //   httpOnly: false,
+    //   secure: false,
+    //   path: '/',
+    //   sameSite: 'lax',
+    // });
     new SuccessResponse({
       message: 'Send new access token',
       data: newAccessToken,
