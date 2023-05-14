@@ -22,7 +22,7 @@ class App {
 
   private config() {
     this.app.use(helmet());
-    this.app.use(cors({ origin: this.allowlist, credentials: true }));
+    this.app.use(cors({ credentials: true, origin: this.allowlist }));
     this.app.use(compression());
     this.app.use(logger('dev'));
     this.app.use(express.json());
