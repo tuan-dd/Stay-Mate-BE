@@ -74,9 +74,7 @@ class AuthController {
      */
     const { sixCode, email } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    // console.log(ip, 'authcode');
-    // const ip = req.ip;
-    // const idAddress_2 = req.headers['x-forwarded-for'];
+
     const userDb = await userService.findOne(
       { email, isActive: true },
       { password: 0, isActive: 0 },
@@ -157,14 +155,15 @@ class AuthController {
   };
 
   signOut = async (req: Request, res: Response) => {
-    const ip = req.ip;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ipSave = (ip as string).split(', ');
     const userId = req.headers[KeyHeader.USER_ID];
 
     const objectId = new Types.ObjectId(userId as string);
 
     await SecretKeyStoreService.deleteTokenStore({
       userId: objectId,
-      deviceId: ip,
+      deviceId: ipSave[0],
     });
 
     res
@@ -183,7 +182,8 @@ class AuthController {
   getNewAccessToken = async (req: Request, res: Response) => {
     const userId = req.headers[KeyHeader.USER_ID] as string;
     const refreshToken = req.headers[KeyHeader.REFRESH_TOKEN] as string;
-    const ip = req.ip;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ipSave = (ip as string).split(', ');
 
     if (!userId) throw new BadRequestError('Header must have userId');
 
@@ -196,7 +196,7 @@ class AuthController {
     const tokenStore = await SecretKeyStoreService.findOne(
       {
         userId,
-        deviceId: ip,
+        deviceId: ipSave[0],
       },
       { lean: false },
     );

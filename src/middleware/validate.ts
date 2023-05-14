@@ -52,7 +52,8 @@ export const validateRequest =
 export const checkUser = async (req: Request, _res: Response, next: NextFunction) => {
   const userId = req.headers[KeyHeader.USER_ID] as string;
   const accessToken = req.headers[KeyHeader.ACCESS_TOKEN] as string;
-  const ip = req.ip;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ipSave = (ip as string).split(', ');
   try {
     if (!userId) throw new BadRequestError('Header must have userId');
 
@@ -67,7 +68,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
 
     const tokenStore = await SecretKeyStoreService.findOne({
       userId,
-      deviceId: ip,
+      deviceId: ipSave[0],
     });
 
     if (!tokenStore) {
