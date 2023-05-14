@@ -40,14 +40,15 @@ class AuthController {
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
     const hashSixCode = await pwdUtil.getHash(sixCode, 10);
-    console.log(ip);
+    const ipSave = (ip as string).split(', ');
+    console.log(ipSave);
     await redisUtil.hSet(userDb._id.toHexString(), [
       'sixCode',
       hashSixCode,
       'number',
       5,
       'ip',
-      ip[0],
+      ipSave[0],
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
@@ -85,7 +86,7 @@ class AuthController {
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
     if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
 
-    if ((userRedis.ip as string).includes(ip[0])) {
+    if (!ip.includes(userRedis.ip)) {
       await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForbiddenError('You are not in current device');
     }
