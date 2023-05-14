@@ -41,7 +41,7 @@ class AuthController {
     // const a = userDb._id.toHexString();
     const hashSixCode = await pwdUtil.getHash(sixCode, 10);
     const ipSave = (ip as string).split(', ');
-    console.log(ipSave);
+    // console.log(ipSave);
     await redisUtil.hSet(userDb._id.toHexString(), [
       'sixCode',
       hashSixCode,
@@ -74,7 +74,7 @@ class AuthController {
      */
     const { sixCode, email } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log(ip, 'authcode');
+    // console.log(ip, 'authcode');
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
     const userDb = await userService.findOne({ email }, { password: 0 });
@@ -117,10 +117,10 @@ class AuthController {
       { email: userDb.email, role: userDb.role },
       secretKey,
     );
-
+    const ipSave = (ip as string).split(', ');
     // prevent duplicate same deviceId
     await KeyStoresService.findOneUpdate(
-      { userId: userDb._id, deviceId: ip },
+      { userId: userDb._id, deviceId: ipSave[0] },
       {
         $set: {
           refreshToken,
@@ -138,13 +138,13 @@ class AuthController {
         httpOnly: false,
         secure: false,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
       })
       .cookie('accessToken', accessToken, {
         httpOnly: false,
         secure: false,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
       });
     // console.log(accessToken);
     new SuccessResponse({
@@ -226,7 +226,7 @@ class AuthController {
       httpOnly: false,
       secure: false,
       path: '/',
-      sameSite: 'strict',
+      sameSite: 'none',
     });
     new SuccessResponse({
       message: 'Send new access token',
