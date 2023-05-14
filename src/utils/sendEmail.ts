@@ -12,7 +12,7 @@ oAuth2Client.setCredentials({ refresh_token: refreshToken });
 export const sendMail = async (
   sixCode: number | string,
   email: string,
-  text?: string,
+  text = '',
 ): Promise<any> => {
   const accessToken = (await oAuth2Client.getAccessToken()) as string;
 
