@@ -10,6 +10,8 @@ import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
 import { getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
+import pwdUtil from '@/utils/pwdUtil';
+
 import { Response, Request } from 'express';
 
 class UserController {
@@ -18,6 +20,8 @@ class UserController {
     const userDb = await UserService.findOne({ email });
 
     if (userDb) throw new BadRequestError('User exit');
+
+    req.body.password = await pwdUtil.getHash(req.body.password, 10);
 
     const newUser = await UserService.createOne(req.body);
 
@@ -29,16 +33,17 @@ class UserController {
 
   updateUser = async (req: Request<any, any, UpdateUserSchema>, res: Response) => {
     const body = req.body;
-    const { email } = req.user;
     const userId = req.headers[KeyHeader.USER_ID] as string;
 
     const userDb = await UserService.findByIdAndCheckPass(userId, body.password, {
-      lean: true,
+      lean: false,
     });
 
     if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
 
-    if (email === userDb.email) throw new ForbiddenError('Wrong Email');
+    if (body.newPassword) {
+      body.password = await pwdUtil.getHash(body.newPassword, 10);
+    }
 
     Object.keys(body).forEach((key) => {
       userDb[key] = body[key];
@@ -47,7 +52,7 @@ class UserController {
     await userDb.save();
 
     new SuccessResponse({
-      message: 'update user successfully',
+      message: 'Update user successfully',
     }).send(res);
   };
 
@@ -58,7 +63,7 @@ class UserController {
     if (!dataUser) throw new NotFoundError('Not found user');
 
     new SuccessResponse({
-      message: 'update user successfully',
+      message: 'Get current user successfully',
       data: dataUser,
     }).send(res);
   };
