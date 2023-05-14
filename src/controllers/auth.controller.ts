@@ -28,8 +28,7 @@ class AuthController {
      * @send send code to email
      */
     const { password, email } = req.body;
-    const ip = req.headers['x-forwarded-for'];
-
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userDb = await userService.findOne({ email });
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
@@ -41,16 +40,27 @@ class AuthController {
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
     const hashSixCode = await pwdUtil.getHash(sixCode, 10);
-
-    await redisUtil.hSet(userDb._id.toHexString(), [
-      'sixCode',
-      hashSixCode,
-      'number',
-      5,
-      'ip',
-      ip[0],
-    ]);
-    await redisUtil.expire(userDb._id.toString(), 60 * 4);
+    if (typeof ip === 'object') {
+      await redisUtil.hSet(userDb._id.toHexString(), [
+        'sixCode',
+        hashSixCode,
+        'number',
+        5,
+        'ip',
+        ip[0],
+      ]);
+      await redisUtil.expire(userDb._id.toString(), 60 * 4);
+    } else {
+      await redisUtil.hSet(userDb._id.toHexString(), [
+        'sixCode',
+        hashSixCode,
+        'number',
+        5,
+        'ip',
+        ip,
+      ]);
+      await redisUtil.expire(userDb._id.toString(), 60 * 4);
+    }
 
     await sendMail(sixCode, email)
       .then(() =>
@@ -73,10 +83,9 @@ class AuthController {
      * @send redisUtil
      */
     const { sixCode, email } = req.body;
-    const ip = req.headers['x-forwarded-for'];
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
-
     const userDb = await userService.findOne({ email }, { password: 0 });
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
@@ -85,10 +94,16 @@ class AuthController {
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
     if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
-
-    if (userRedis.ip !== ip[0]) {
-      await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForbiddenError('You are not in current device');
+    if (typeof ip === 'object') {
+      if (userRedis.ip !== ip[0]) {
+        await redisUtil.deleteKey(userDb._id.toHexString());
+        throw new ForbiddenError('You are not in current device');
+      }
+    } else {
+      if (userRedis.ip !== ip) {
+        await redisUtil.deleteKey(userDb._id.toHexString());
+        throw new ForbiddenError('You are not in current device');
+      }
     }
 
     if (parseInt(userRedis.sixCode, 10) === 0) {
@@ -135,13 +150,13 @@ class AuthController {
 
     res
       .cookie('refreshToken', refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: false,
         path: '/',
         sameSite: 'strict',
       })
       .cookie('accessToken', accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: false,
         path: '/',
         sameSite: 'strict',
@@ -223,7 +238,7 @@ class AuthController {
     );
 
     res.cookie('accessToken', newAccessToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
       path: '/',
       sameSite: 'strict',
