@@ -29,13 +29,13 @@ export interface IHotel {
   address: string;
   city: string;
   country: string;
-  zipCode: number;
+  zipCode?: number;
   propertyType: PropertyType;
   star: number;
   starRating?: StarRating;
-  latitude?: number;
-  longitude?: number;
-  package: Package;
+  latitude: number;
+  longitude: number;
+  package?: Package;
   userId: Types.ObjectId;
   roomTypeIds?: Types.ObjectId[];
   isDelete?: boolean;
