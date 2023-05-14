@@ -9,7 +9,6 @@ import compression from 'compression';
 import indexRouter from './routes/index';
 import { AppError, NotFoundError, SuccessResponse } from './helpers/utils';
 import { HttpCode } from './utils/httpCode';
-
 class App {
   public app: express.Application;
 
