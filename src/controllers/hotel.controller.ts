@@ -68,11 +68,9 @@ class HotelController {
 
     newHotel.roomTypeIds = createRoomsSuccess.map((room) => room._id);
 
-    const createHotelSuccess = await HotelService.createOne(newHotel);
-
-    const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
-
     if (!hotelsDb.length) {
+      const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
+
       const createMembership = await memberShipService.createOne({
         userId: newHotel.userId,
         timeEnd: week,
@@ -92,9 +90,11 @@ class HotelController {
       }
 
       newHotel.package = Package.WEEK;
+    } else {
+      newHotel.package = hotelsDb[0].package;
     }
 
-    newHotel.package = hotelsDb[0].package;
+    const createHotelSuccess = await HotelService.createOne(newHotel);
 
     if (role === Role.USER) {
       const secretKey = crypto.randomBytes(32).toString('hex');
@@ -104,6 +104,7 @@ class HotelController {
       );
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
       const ipSave = (ip as string).split(', ');
+
       await SecretKeyStoreService.findOneUpdate(
         { userId: newHotel.userId, deviceId: ipSave[0] },
         {
@@ -116,33 +117,21 @@ class HotelController {
         { _id: newHotel.userId },
         { $set: { role: Role.HOTELIER } },
       );
-      res
-        .cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: false,
-          path: '/',
-          sameSite: 'strict',
-        })
-        .cookie('accessToken', accessToken, {
-          httpOnly: true,
-          secure: false,
-          path: '/',
-          sameSite: 'strict',
-        });
 
-      return oke();
-    }
-
-    oke();
-    function oke() {
-      new CreatedResponse({
+      return new CreatedResponse({
         message: 'Create hotel successfully',
-        data: getFilterData(
-          ['hotelName', 'image', 'address', 'package', 'city', 'country', '_id'],
-          createHotelSuccess,
-        ),
+        data: {
+          ...getDeleteFilter(['isDelete'], createHotelSuccess),
+          accessToken,
+          refreshToken,
+        },
       }).send(res);
     }
+
+    new CreatedResponse({
+      message: 'Create hotel successfully',
+      data: getDeleteFilter(['isDelete'], createHotelSuccess),
+    }).send(res);
   };
 
   updateHotel = async (req: Request<any, any, UpdateHotelSchema>, res: Response) => {

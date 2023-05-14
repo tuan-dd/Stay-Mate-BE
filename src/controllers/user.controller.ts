@@ -9,7 +9,7 @@ import { KeyHeader } from '@/middleware/validate';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
-import { getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
+import { getDeleteFilter } from '@/utils/lodashUtil';
 import pwdUtil from '@/utils/pwdUtil';
 
 import { Response, Request } from 'express';
