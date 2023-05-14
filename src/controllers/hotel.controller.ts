@@ -102,9 +102,10 @@ class HotelController {
         { role: Role.HOTELIER, email },
         secretKey,
       );
-
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const ipSave = (ip as string).split(', ');
       await SecretKeyStoreService.findOneUpdate(
-        { userId: newHotel.userId, deviceId: req.ip },
+        { userId: newHotel.userId, deviceId: ipSave[0] },
         {
           refreshToken,
           secretKey,
