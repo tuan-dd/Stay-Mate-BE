@@ -40,27 +40,16 @@ class AuthController {
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
     // const a = userDb._id.toHexString();
     const hashSixCode = await pwdUtil.getHash(sixCode, 10);
-    if (typeof ip === 'string') {
-      await redisUtil.hSet(userDb._id.toHexString(), [
-        'sixCode',
-        hashSixCode,
-        'number',
-        5,
-        'ip',
-        ip,
-      ]);
-      await redisUtil.expire(userDb._id.toString(), 60 * 4);
-    } else {
-      await redisUtil.hSet(userDb._id.toHexString(), [
-        'sixCode',
-        hashSixCode,
-        'number',
-        5,
-        'ip',
-        ip[0],
-      ]);
-      await redisUtil.expire(userDb._id.toString(), 60 * 4);
-    }
+    console.log(ip);
+    await redisUtil.hSet(userDb._id.toHexString(), [
+      'sixCode',
+      hashSixCode,
+      'number',
+      5,
+      'ip',
+      ip[0],
+    ]);
+    await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
     await sendMail(sixCode, email)
       .then(() =>
@@ -84,6 +73,7 @@ class AuthController {
      */
     const { sixCode, email } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log(ip, 'authcode');
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
     const userDb = await userService.findOne({ email }, { password: 0 });
@@ -94,16 +84,10 @@ class AuthController {
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
     if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
-    if (typeof ip === 'string') {
-      if (userRedis.ip !== ip) {
-        await redisUtil.deleteKey(userDb._id.toHexString());
-        throw new ForbiddenError('You are not in current device');
-      }
-    } else {
-      if (userRedis.ip !== ip[0]) {
-        await redisUtil.deleteKey(userDb._id.toHexString());
-        throw new ForbiddenError('You are not in current device');
-      }
+
+    if ((userRedis.ip as string).includes(ip[0])) {
+      await redisUtil.deleteKey(userDb._id.toHexString());
+      throw new ForbiddenError('You are not in current device');
     }
 
     if (parseInt(userRedis.sixCode, 10) === 0) {
