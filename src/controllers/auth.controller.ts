@@ -28,7 +28,7 @@ class AuthController {
      * @send send code to email
      */
     const { password, email } = req.body;
-    const ip = req.ip;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     const userDb = await userService.findOne({ email });
 
@@ -48,7 +48,7 @@ class AuthController {
       'number',
       5,
       'ip',
-      ip,
+      ip.toString(),
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
@@ -73,8 +73,8 @@ class AuthController {
      * @send redisUtil
      */
     const { sixCode, email } = req.body;
-
-    const ip = req.ip;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+    // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
 
     const userDb = await userService.findOne({ email }, { password: 0 });
@@ -84,7 +84,8 @@ class AuthController {
     if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
-    if (!userRedis) throw new BadRequestError('Otp expires');
+
+    if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
 
     if (userRedis.ip !== ip) {
       await redisUtil.deleteKey(userDb._id.toHexString());
