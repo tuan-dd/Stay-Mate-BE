@@ -28,7 +28,7 @@ class AuthController {
      * @send send code to email
      */
     const { password, email } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = req.headers['x-forwarded-for'];
 
     const userDb = await userService.findOne({ email });
 
@@ -73,7 +73,7 @@ class AuthController {
      * @send redisUtil
      */
     const { sixCode, email } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = req.headers['x-forwarded-for'];
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
 
