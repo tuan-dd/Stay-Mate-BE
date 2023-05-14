@@ -28,6 +28,6 @@ router.put(
   catchError(userController.updateUser),
 );
 
-router.get('/me', catchError(userController.updateUser));
+router.get('/me', catchError(userController.getMe));
 
 export default router;
