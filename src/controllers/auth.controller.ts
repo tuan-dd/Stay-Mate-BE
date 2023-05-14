@@ -48,7 +48,7 @@ class AuthController {
       'number',
       5,
       'ip',
-      ip.toString(),
+      ip[0],
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 4);
 
@@ -73,7 +73,7 @@ class AuthController {
      * @send redisUtil
      */
     const { sixCode, email } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     // const ip = req.ip;
     // const idAddress_2 = req.headers['x-forwarded-for'];
 
@@ -84,10 +84,9 @@ class AuthController {
     if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
-
     if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
 
-    if (userRedis.ip !== ip) {
+    if (userRedis.ip !== ip[0]) {
       await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForbiddenError('You are not in current device');
     }
