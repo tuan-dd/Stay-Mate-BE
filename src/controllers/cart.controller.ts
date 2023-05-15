@@ -10,6 +10,7 @@ import { Package } from '@/models/Hotel';
 import { CreateCartSchema } from '@/schema/cart.schema';
 import cartService from '@/services/cart.service';
 import hotelsService from '@/services/hotels.service';
+import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 
@@ -101,32 +102,38 @@ class CartController {
       return oke(newCart);
     }
 
-    // update order if order exist
-    const updateCartOfUser = await cartService.findOneUpdate(
-      {
-        userId,
-        'orders.hotelId': newOrder.hotelId,
-        'orders.startDate': newOrder.startDate,
-        'orders.endDate': newOrder.endDate,
-      },
-      {
-        $set: { 'orders.$': newOrder, isActive: true },
-      },
-      {
-        new: true,
-      },
-    );
+    const orderIndex = cartDb.orders.findIndex((value) => {
+      const isSameStartDate = dayjs(newOrder.startDate, 'YYYY-MM-DD').isSame(
+        dayjs(value.startDate).format('YYYY-MM-DD'),
+        'day',
+      );
+      const isSameEndDate = dayjs(newOrder.endDate, 'YYYY-MM-DD').isSame(
+        dayjs(value.endDate).format('YYYY-MM-DD'),
+        'day',
+      );
+      const isSameHotelId = value.hotelId.equals(value.hotelId);
+      return isSameStartDate && isSameEndDate && isSameHotelId;
+    });
 
-    // if not add order
-    if (!updateCartOfUser) {
-      cartDb.orders.push(newOrder);
-      cartDb.isActive = true;
+    if (orderIndex > -1) {
+      const updateOrder = cartDb.orders[orderIndex];
 
-      await cartDb.save();
-      return oke(cartDb);
+      const indexRoom = updateOrder.rooms.findIndex((room) =>
+        room.roomTypeId.equals(newOrder.rooms[0].roomTypeId),
+      );
+      if (indexRoom > -1)
+        updateOrder.rooms[indexRoom].quantity = newOrder.rooms[0].quantity;
+
+      if (indexRoom < -1) updateOrder.rooms = [...updateOrder.rooms, newOrder.rooms[0]];
+
+      cartDb.orders[orderIndex] = updateOrder;
     }
 
-    oke(updateCartOfUser);
+    if (orderIndex < 0) cartDb.orders.push(newOrder);
+
+    await cartDb.save();
+
+    oke(cartDb);
     function oke(value: ICart) {
       if (!value) throw new ServiceUnavailableError('Update unsuccessfully');
       return new SuccessResponse({
