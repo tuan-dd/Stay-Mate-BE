@@ -124,7 +124,7 @@ class CartController {
       if (indexRoom > -1)
         updateOrder.rooms[indexRoom].quantity = newOrder.rooms[0].quantity;
 
-      if (indexRoom < -1) updateOrder.rooms = [...updateOrder.rooms, newOrder.rooms[0]];
+      if (indexRoom === -1) updateOrder.rooms = [...updateOrder.rooms, newOrder.rooms[0]];
 
       cartDb.orders[orderIndex] = updateOrder;
     }
