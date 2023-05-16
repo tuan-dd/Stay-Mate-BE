@@ -13,6 +13,12 @@ router.post(
   catchError(cartController.createOrAddToCart),
 );
 
+router.put(
+  '/',
+  validateRequest(createCartSchema),
+  catchError(cartController.updateOrder),
+);
+
 router.get('/', catchError(cartController.getCarts));
 
 export default router;

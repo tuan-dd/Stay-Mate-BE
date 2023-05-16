@@ -102,16 +102,16 @@ class CartController {
       return oke(newCart);
     }
 
-    const orderIndex = cartDb.orders.findIndex((value) => {
+    const orderIndex = cartDb.orders.findIndex((order) => {
       const isSameStartDate = dayjs(newOrder.startDate, 'YYYY-MM-DD').isSame(
-        dayjs(value.startDate).format('YYYY-MM-DD'),
+        dayjs(order.startDate).format('YYYY-MM-DD'),
         'day',
       );
       const isSameEndDate = dayjs(newOrder.endDate, 'YYYY-MM-DD').isSame(
-        dayjs(value.endDate).format('YYYY-MM-DD'),
+        dayjs(order.endDate).format('YYYY-MM-DD'),
         'day',
       );
-      const isSameHotelId = value.hotelId.equals(value.hotelId);
+      const isSameHotelId = order.hotelId.equals(newOrder.hotelId);
       return isSameStartDate && isSameEndDate && isSameHotelId;
     });
 
@@ -138,8 +138,40 @@ class CartController {
       if (!value) throw new ServiceUnavailableError('Update unsuccessfully');
       return new SuccessResponse({
         message: 'Add cart successfully',
+        data: value,
       }).send(res);
     }
+  };
+
+  updateOrder = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+
+    const newOrder: Order = {
+      hotelId: new Types.ObjectId(req.body.hotelId),
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      rooms: req.body.rooms?.map((room) => ({
+        roomTypeId: new Types.ObjectId(room.roomTypeId),
+        quantity: room.quantity,
+      })),
+    };
+
+    const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });
+
+    if (!cartDb && !cartDb.isActive) throw new NotFoundError('Not found cart');
+
+    const orderIndex = cartDb.orders.findIndex((order) => {
+      return order.hotelId.equals(newOrder.hotelId);
+    });
+
+    if (orderIndex === -1) throw new NotFoundError('Not found order');
+
+    cartDb.orders[orderIndex] = newOrder;
+    await cartDb.save();
+
+    new SuccessResponse({
+      message: 'Update order successfully',
+    }).send(res);
   };
 
   getCarts = async (req: Request, res: Response) => {
