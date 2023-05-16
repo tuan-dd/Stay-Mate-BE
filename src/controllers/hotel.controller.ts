@@ -10,8 +10,10 @@ import { Package, IHotel } from '@/models/Hotel';
 import { Role } from '@/models/User';
 import addJobToQueue from '@/queue/queue';
 import {
+  CheckHotelSchema,
   CreateHotelSchema,
   CreateRoomSchema,
+  GetDetailSchema,
   GetHotelSchema,
   UpdateHotelSchema,
   UpdateRoomSchema,
@@ -19,7 +21,7 @@ import {
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
-import { memberShipService } from '@/services/payment.service';
+import { bookingService, memberShipService } from '@/services/payment.service';
 import RoomTypeService from '@/services/roomType.service';
 import UserService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
@@ -282,12 +284,11 @@ class HotelController {
     }).send(res);
   };
 
-  detailHotel = async (req: Request, res: Response) => {
-    const hotelId = req.params.id;
+  detailHotel = async (req: Request<any, any, GetDetailSchema>, res: Response) => {
+    const hotelId = new Types.ObjectId(req.params.id);
 
-    const hotel = await HotelService.findOneAndPopulateById(hotelId);
-
-    if (!hotel) throw new NotFoundError('Not found hotel');
+    const body = req.body;
+    const hotel = await bookingService.checkHotel(body, hotelId);
 
     new SuccessResponse({
       message: 'Get detail hotel successfully',
@@ -309,6 +310,20 @@ class HotelController {
     new SuccessResponse({
       message: 'Get detail hotel of hotelier successfully',
       data: hotel,
+    }).send(res);
+  };
+
+  checkRoomsAvailable = async (
+    req: Request<any, any, any, CheckHotelSchema>,
+    res: Response,
+  ) => {
+    const body = req.query;
+    const hotelId = new Types.ObjectId(req.query.hotelId);
+
+    await bookingService.checkHotel(body, hotelId);
+
+    new SuccessResponse({
+      message: 'Rooms available',
     }).send(res);
   };
 }

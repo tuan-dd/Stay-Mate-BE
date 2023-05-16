@@ -17,7 +17,8 @@ class CartService extends BaseService<ICart, CartDocument> {
         path: 'orders.hotelId',
         ...options1,
       })
-      .populate({ path: 'orders.rooms.roomTypeId', ...options2 });
+      .populate({ path: 'orders.rooms.roomTypeId', ...options2 })
+      .exec();
   };
 
   deleteOneCart = (query: FilterQuery<CartDocument>, option?: QueryOptions) =>

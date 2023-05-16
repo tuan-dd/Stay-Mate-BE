@@ -1,7 +1,28 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PropertyType } from '@/models/Hotel';
 import { RoomAmenities } from '@/models/Room-type';
 import regexUtil from '@/utils/regexUtil';
+import dayjs from 'dayjs';
+import { Types } from 'mongoose';
 import * as Yup from 'yup';
+
+Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
+  return this.test('objectIdValid', message || 'Wrong Id', (value) => {
+    if (!value) return true;
+    return Types.ObjectId.isValid(value);
+  });
+});
+
+declare module 'yup' {
+  interface Schema<
+    TType = any,
+    TContext = any,
+    TDefault = any,
+    TFlags extends Yup.Flags = '',
+  > {
+    objectIdValid(message?: string): this;
+  }
+}
 
 export const createHotelSchema = Yup.object().shape({
   body: Yup.object().shape({
@@ -140,8 +161,36 @@ export const getHotelSchema = Yup.object().shape({
   }),
 });
 
+export const getDetailSchema = Yup.object().shape({
+  query: Yup.object().shape({
+    startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
+    endDate: Yup.date()
+      .test(
+        'compareStartDate',
+        'Not less or equal than start date',
+        (endDate: Date, context) =>
+          dayjs(endDate, 'YYYY-MM-DD').isAfter(context.parent.startDate, 'day'),
+      )
+      .required(),
+  }),
+});
+
+export const checkHotelSchema = Yup.object().shape({
+  query: Yup.object().shape({
+    hotelId: Yup.string().objectIdValid().required(),
+    startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
+    endDate: Yup.date()
+      .test('compareStartDate', 'Not less or equal than start date', (endDate, context) =>
+        dayjs(endDate, 'YYYY-MM-DD').isAfter(context.parent.startDate, 'day'),
+      )
+      .required(),
+  }),
+});
+
 export type CreateHotelSchema = Yup.InferType<typeof createHotelSchema>['body'];
 export type UpdateHotelSchema = Yup.InferType<typeof updateHotelSchema>['body'];
 export type CreateRoomSchema = Yup.InferType<typeof createRoomSchema>['body'];
 export type UpdateRoomSchema = Yup.InferType<typeof updateRoomSchema>['body'];
 export type GetHotelSchema = Yup.InferType<typeof getHotelSchema>['query'];
+export type CheckHotelSchema = Yup.InferType<typeof checkHotelSchema>['query'];
+export type GetDetailSchema = Yup.InferType<typeof getDetailSchema>['query'];

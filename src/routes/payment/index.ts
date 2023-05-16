@@ -1,9 +1,11 @@
 import paymentController from '@/controllers/payment.controller';
-import { catchError, checkUser, validateRequest } from '@/middleware/validate';
+import { catchError, checkRole, checkUser, validateRequest } from '@/middleware/validate';
+import { Role } from '@/models/User';
 import {
   cancelBookingSchema,
   chargeSchema,
   createBookingSchema,
+  getBookingByHotelierSchema,
   getBookingSchema,
   getMembershipSchema,
   paymentBookingSchema,
@@ -61,6 +63,14 @@ router.get(
   validateRequest(getBookingSchema),
   catchError(paymentController.getBookings),
 );
+
+router.get(
+  '/hotelier/booking',
+  checkRole(Role.HOTELIER),
+  validateRequest(getBookingByHotelierSchema),
+  catchError(paymentController.getBookingsByHotelier),
+);
+
 router.get(
   '/membership',
   validateRequest(getMembershipSchema),

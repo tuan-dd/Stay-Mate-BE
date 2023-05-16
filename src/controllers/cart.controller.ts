@@ -182,7 +182,7 @@ class CartController {
         userId: userId,
         isActive: true,
       },
-      { path: 'orders.hotelId', select: 'hotelName country city' },
+      { path: 'orders.hotelId', select: 'hotelName country city star starRating' },
       { path: 'orders.rooms.roomTypeId', select: 'price -_id nameOfRoom' },
     );
 
