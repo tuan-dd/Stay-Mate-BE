@@ -13,38 +13,49 @@ import {
   getHotelSchema,
   updateHotelSchema,
   updateRoomSchema,
+  getDetailSchema,
+  checkHotelSchema,
 } from '@/schema/hotel.schema';
 import express from 'express';
 const router = express.Router();
 
-/**
- * @Admin send new pass(random)to email user
- * block user
- * see all user ( cant not see money,password)
- * @user can see all my account
- */
-
 router.get('/', validateRequest(getHotelSchema), catchError(hotelController.getHotels));
 
-router.get('/:id', checkParamsId, catchError(hotelController.detailHotel));
+router.get(
+  '/:id',
+  checkParamsId,
+  validateRequest(getDetailSchema),
+  catchError(hotelController.detailHotel),
+);
 
-router.use(checkUser);
+router.get(
+  '/option/check',
+  validateRequest(checkHotelSchema),
+  catchError(hotelController.checkRoomsAvailable),
+);
 
 router.post(
   '/create-hotel',
   validateRequest(createHotelSchema),
+  checkUser,
   catchError(hotelController.createHotel),
 );
 
 // hotelier can use router
-router.use(checkRole(Role.HOTELIER));
 
-router.get('/me', catchError(hotelController.updateHotel));
+router.get(
+  '/hotelier/me',
+  checkUser,
+  checkRole(Role.HOTELIER),
+  catchError(hotelController.getHotelsByHotelier),
+);
 
 router.put(
   '/update-hotel/:id',
   checkParamsId,
   validateRequest(updateHotelSchema),
+  checkUser,
+  checkRole(Role.HOTELIER),
   catchError(hotelController.updateHotel),
 );
 
@@ -52,13 +63,17 @@ router.post(
   '/create-room/:id',
   checkParamsId,
   validateRequest(createRoomSchema),
+  checkUser,
+  checkRole(Role.HOTELIER),
   catchError(hotelController.createRoom),
 );
 
 router.put(
   '/update-room/:id',
   checkParamsId,
+  checkUser,
   validateRequest(updateRoomSchema),
+  checkRole(Role.HOTELIER),
   catchError(hotelController.updateRoomType),
 );
 export default router;

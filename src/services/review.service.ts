@@ -12,7 +12,7 @@ class ReviewService extends BaseService<IReview, ReviewDocument> {
     option?: QueryOptions,
   ) => {
     return this.model
-      .find(query.query, null, {
+      .find<ReviewDocument>(query.query, null, {
         lean: true,
         ...option,
       })

@@ -69,7 +69,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     option?: QueryOptions,
   ) => {
     return this.model
-      .find(query.query, select, {
+      .find<Doc>(query.query, select, {
         lean: true,
         ...option,
       })

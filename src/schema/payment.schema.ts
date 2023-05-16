@@ -1,28 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Status } from '@/models/Booking';
 import { Package } from '@/models/Hotel';
-import { Types } from 'mongoose';
+import dayjs from 'dayjs';
 
 import * as Yup from 'yup';
-
-// add function check objectId
-Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
-  return this.test('objectIdValid', message || 'Wrong Id', (value) => {
-    if (!value) return true;
-    return Types.ObjectId.isValid(value);
-  });
-});
-
-declare module 'yup' {
-  interface Schema<
-    TType = any,
-    TContext = any,
-    TDefault = any,
-    TFlags extends Yup.Flags = '',
-  > {
-    objectIdValid(message?: string): this;
-  }
-}
 
 export const chargeSchema = Yup.object().shape({
   body: Yup.object().shape({
@@ -47,7 +28,7 @@ export const createBookingSchema = Yup.object().shape({
       }),
     ),
     hotelId: Yup.string().objectIdValid().required(),
-    startDate: Yup.date().min(new Date()).required(),
+    startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
     endDate: Yup.date()
       .test(
         'compareStartDate',
@@ -89,6 +70,19 @@ export const getBookingSchema = Yup.object().shape({
   }),
 });
 
+export const getBookingByHotelierSchema = Yup.object().shape({
+  query: Yup.object().shape({
+    allHotel: Yup.boolean().required(),
+    hotelId: Yup.string()
+      .objectIdValid()
+      .when('allHotel', (allHotel, field) =>
+        allHotel[0] ? field.notRequired() : field.required(),
+      ),
+    page: Yup.number().integer().min(1).notRequired(),
+    status: Yup.string().oneOf(Object.values(Status)).notRequired(),
+  }),
+});
+
 export const getMembershipSchema = Yup.object().shape({
   query: Yup.object().shape({
     page: Yup.number().integer().min(1).notRequired(),
@@ -109,3 +103,6 @@ export type PaymentBookingSchema = Yup.InferType<typeof paymentBookingSchema>['b
 export type CancelBookingSchema = Yup.InferType<typeof cancelBookingSchema>['body'];
 export type GetBookingSchema = Yup.InferType<typeof getBookingSchema>['query'];
 export type GetMembershipSchema = Yup.InferType<typeof getMembershipSchema>['query'];
+export type GetBookingByHotelierSchema = Yup.InferType<
+  typeof getBookingByHotelierSchema
+>['query'];

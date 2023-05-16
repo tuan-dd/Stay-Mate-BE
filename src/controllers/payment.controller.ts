@@ -14,12 +14,12 @@ import {
   CancelBookingSchema,
   ChargeSchema,
   CreateBookingSchema,
+  GetBookingByHotelierSchema,
   GetBookingSchema,
   GetMembershipSchema,
   PaymentBookingSchema,
   PaymentMembershipSchema,
   WithdrawSchema,
-  getBookingSchema,
   getMembershipSchema,
 } from '@/schema/payment.schema';
 import cartService from '@/services/cart.service';
@@ -48,29 +48,29 @@ class PaymentController {
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
       startDate: req.body.startDate,
       endDate: req.body.endDate,
-      duration: 1000 * 60 * 5,
+      duration: 1000 * 60 * 10,
     };
 
-    const rooms = newBooking.rooms;
+    const roomsOrders = newBooking.rooms;
 
     const NumberOfRoomAfterCheck = await bookingService.isEnoughRoom(
       newBooking,
-      rooms.map((room) => room.roomTypeId),
+      roomsOrders.map((room) => room.roomTypeId),
     );
 
     // tại đây loop qua để tính tổng tiền
     let total = 0;
     const roomsResults = [];
     NumberOfRoomAfterCheck.roomTypeIds.forEach((hotelDbRoom) => {
-      rooms.forEach((roomOrderId) => {
-        if (roomOrderId.roomTypeId.equals(hotelDbRoom._id)) {
+      roomsOrders.forEach((roomOrder) => {
+        if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
           // lấy tên phòng và số lượng để trả res
           const roomResult = {
             nameOfRoom: hotelDbRoom.nameOfRoom,
-            quantity: roomOrderId.quantity,
+            quantity: roomOrder.quantity,
           };
           roomsResults.push(roomResult);
-          total += roomOrderId.quantity * hotelDbRoom.price;
+          total += roomOrder.quantity * hotelDbRoom.price;
         }
       });
     });
@@ -447,21 +447,88 @@ class PaymentController {
   };
 
   getBookings = async (req: Request<any, any, any, GetBookingSchema>, res: Response) => {
-    let query = getBookingSchema.cast(req, {
-      stripUnknown: true,
-    }).query;
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const page = req.query.page || 1;
 
-    query = getDeleteFilter(['page'], query);
+    const bookings = await bookingService.findManyAndPopulateByQuery(
+      {
+        query: { status: req.query.status, userId },
+        page: page,
+        limit: 10,
+      },
+      { path: 'hotelId', select: 'hotelName country city star starRating' },
+      { path: 'rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+    );
 
-    query = getConvertCreatedAt(query, ['']);
+    if (!bookings.length) throw new NotFoundError('Not found booking');
 
-    const bookings = await bookingService.findMany({
-      query: { ...query, userId },
-      page: page,
-      limit: 10,
+    new CreatedResponse({
+      message: 'Get data`s Bookings successfully',
+      data: bookings,
+    }).send(res);
+  };
+
+  getBookingsByHotelier = async (
+    req: Request<any, any, any, GetBookingByHotelierSchema>,
+    res: Response,
+  ) => {
+    const query = req.query;
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const hotelId = new Types.ObjectId(query.hotelId);
+    const page = req.query.page || 1;
+
+    if (query.status === Status.PENDING)
+      throw new BadRequestError('Hotelier can not get pending booking');
+
+    if (query.allHotel) {
+      const hotelsDb = await hotelsService.findMany(
+        {
+          query: { userId, isDelete: false },
+          page: null,
+          limit: null,
+        },
+        '_id',
+      );
+
+      if (!hotelsDb.length) throw new NotFoundError('Not found hotel');
+
+      const bookings = await bookingService.findManyAndPopulateByQuery(
+        {
+          query: { status: req.query.status, hotelId: { $in: hotelsDb } },
+          page: page,
+          limit: 10,
+        },
+        { path: 'hotelId', select: 'hotelName country city star starRating' },
+        { path: 'rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+      );
+
+      if (!bookings.length) throw new NotFoundError('Not found booking');
+
+      return new CreatedResponse({
+        message: 'Get data`s Bookings successfully',
+        data: bookings,
+      }).send(res);
+    }
+
+    const hotelDb = await hotelsService.findOne({
+      _id: hotelId,
+      userId,
+      isDelete: false,
     });
+
+    if (!hotelDb) throw new NotFoundError('Not found hotel');
+
+    const bookings = await bookingService.findManyAndPopulateByQuery(
+      {
+        query: { status: req.query.status, hotelId },
+        page: page,
+        limit: 10,
+      },
+      { path: 'hotelId', select: 'hotelName country city star starRating' },
+      { path: 'rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+    );
+
+    if (!bookings.length) throw new NotFoundError('Not found booking');
 
     new CreatedResponse({
       message: 'Get data`s Bookings successfully',

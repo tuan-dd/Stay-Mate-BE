@@ -25,6 +25,7 @@ export enum KeyHeader {
   REFRESH_TOKEN = 'x-rtoken-id',
   ACCESS_TOKEN = 'x-atoken-id',
 }
+
 export const catchError = (fun: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fun(req, res, next)).catch(next);
@@ -109,8 +110,4 @@ export const checkRole =
   (role: Role) => (req: Request, _res: Response, next: NextFunction) => {
     if (req.user.role !== role) throw new NotAuthorizedError('you are not authorized');
     next();
-    try {
-    } catch (error) {
-      next(error);
-    }
   };
