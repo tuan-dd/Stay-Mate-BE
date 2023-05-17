@@ -18,6 +18,8 @@ class CartService extends BaseService<ICart, CartDocument> {
         ...options1,
       })
       .populate({ path: 'orders.rooms.roomTypeId', ...options2 })
+      .sort('-createdAt')
+      .lean()
       .exec();
   };
 
