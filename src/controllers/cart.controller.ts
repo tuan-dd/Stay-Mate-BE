@@ -156,6 +156,20 @@ class CartController {
       })),
     };
 
+    const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
+      path: 'roomTypeIds',
+      select: '_id numberOfRoom',
+    });
+
+    hotelDb?.roomTypeIds.forEach((roomTypeId) => {
+      const index = newOrder.rooms.findIndex((room) =>
+        room.roomTypeId.equals(roomTypeId._id),
+      );
+      if (index < 0) return;
+      if (roomTypeId.numberOfRoom < newOrder.rooms[index].quantity)
+        throw new BadRequestError('Exceed number of room');
+    });
+
     const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });
 
     if (!cartDb && !cartDb.isActive) throw new NotFoundError('Not found cart');
@@ -183,7 +197,7 @@ class CartController {
         isActive: true,
       },
       { path: 'orders.hotelId', select: 'hotelName country city star starRating' },
-      { path: 'orders.rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+      { path: 'orders.rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
     );
 
     new SuccessResponse({
