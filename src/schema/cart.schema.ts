@@ -9,9 +9,9 @@ export const createCartSchema = Yup.object().shape({
         roomTypeId: Yup.string().objectIdValid().required(),
         quantity: Yup.number().min(1).integer().required(),
       }),
-    )
-      .max(1)
-      .required(),
+    ).when('createdAt', (createdAt, field) =>
+      createdAt[0] ? field.min(1).required() : field.max(1).required(),
+    ),
     hotelId: Yup.string().objectIdValid().required(),
     createdAt: Yup.date().max(new Date()).notRequired(),
     startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),

@@ -152,11 +152,8 @@ class CartController {
     const orderIndex = cartDb.orders.findIndex(
       (order) =>
         order.hotelId.equals(newOrder.hotelId) &&
-        dayjs(req.body.createdAt, 'YYYY-MM-DD').isSame(
-          dayjs(order.createdAt).format('YYYY-MM-DD'),
-        ),
+        dayjs(req.body.createdAt).isSame(dayjs(order.createdAt), 'day'),
     );
-
     if (orderIndex < 0) throw new NotFoundError('Not found order');
 
     cartDb.orders[orderIndex] = newOrder;
