@@ -21,4 +21,6 @@ router.put(
 
 router.get('/', catchError(cartController.getCarts));
 
+router.delete('/', catchError(cartController.deleteOrder));
+
 export default router;
