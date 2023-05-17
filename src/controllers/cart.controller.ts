@@ -155,6 +155,7 @@ class CartController {
         quantity: room.quantity,
       })),
     };
+    if (!req.body.index) throw new BadRequestError('Must have index element');
 
     const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
       path: 'roomTypeIds',
@@ -174,13 +175,12 @@ class CartController {
 
     if (!cartDb && !cartDb.isActive) throw new NotFoundError('Not found cart');
 
-    const orderIndex = cartDb.orders.findIndex((order) => {
-      return order.hotelId.equals(newOrder.hotelId);
-    });
+    const isOrder = cartDb.orders.some((order) => order.hotelId.equals(newOrder.hotelId));
 
-    if (orderIndex === -1) throw new NotFoundError('Not found order');
+    if (!isOrder || req.body.index > cartDb.orders.length - 1)
+      throw new NotFoundError('Not found order');
 
-    cartDb.orders[orderIndex] = newOrder;
+    cartDb.orders[req.body.index] = newOrder;
     await cartDb.save();
 
     new SuccessResponse({
@@ -196,12 +196,15 @@ class CartController {
         userId: userId,
         isActive: true,
       },
-      { path: 'orders.hotelId', select: 'hotelName country city star starRating' },
+      {
+        path: 'orders.hotelId',
+        select: 'hotelName country city star starRating isDelete package',
+      },
       { path: 'orders.rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
     );
 
     new SuccessResponse({
-      message: 'add cart successfully',
+      message: 'Add cart successfully',
       data: cartDb,
     }).send(res);
   };
