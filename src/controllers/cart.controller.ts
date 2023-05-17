@@ -191,7 +191,7 @@ class CartController {
   deleteOrder = async (req: Request, res: Response) => {
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
 
-    if (req.query.createdAt) throw new BadRequestError('body must have createdAt');
+    if (!req.query.createdAt) throw new BadRequestError('body must have createdAt');
 
     const isDate = dayjs(req.query.createdAt as string).isValid();
 
