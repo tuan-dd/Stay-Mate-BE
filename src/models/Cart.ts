@@ -5,6 +5,7 @@ export interface Order {
   hotelId: Types.ObjectId;
   endDate: Date;
   startDate: Date;
+  createdAt?: Date;
   rooms: KeyRoomBooking[];
 }
 
@@ -31,6 +32,7 @@ const cartSchema = new Schema<ICart>(
           },
           startDate: { type: Date, required: true },
           endDate: { type: Date, required: true },
+          createdAt: { type: Date, default: Date.now(), required: true },
           rooms: {
             type: [
               {
