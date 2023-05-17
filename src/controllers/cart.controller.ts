@@ -28,32 +28,6 @@ class CartController {
       })),
     };
 
-    // delete order
-    if (req.body.isDeleteOrder) {
-      const result = await cartService.findOneUpdate(
-        { userId },
-        {
-          $pull: {
-            orders: {
-              hotelId: newOrder.hotelId,
-              startDate: newOrder.startDate,
-              endDate: newOrder.endDate,
-            },
-          },
-        },
-        { new: true, lean: false },
-      );
-
-      if (!result) throw new NotFoundError('Not found cart');
-      // no order can not get cart
-      if (!result.orders.length) {
-        result.isActive = false;
-        await result.save();
-      }
-
-      return oke(result);
-    }
-
     // check is have hotel
     const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
       path: 'roomTypeIds',
@@ -211,6 +185,39 @@ class CartController {
     new SuccessResponse({
       message: 'Add cart successfully',
       data: cartDb,
+    }).send(res);
+  };
+
+  deleteOrder = async (req: Request, res: Response) => {
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+
+    if (req.body.createdAt) throw new BadRequestError('body must have createdAt');
+
+    const isDate = dayjs(req.body.createdAt).isValid();
+
+    if (!isDate) throw new BadRequestError('createdAt is Date');
+
+    const result = await cartService.findOneUpdate(
+      { userId },
+      {
+        $pull: {
+          orders: {
+            createdAt: req.body.createdAt,
+          },
+        },
+      },
+      { new: true, lean: false },
+    );
+
+    if (!result) throw new NotFoundError('Not found cart');
+    // no order can not get cart
+    if (!result.orders.length) {
+      result.isActive = false;
+      await result.save();
+    }
+
+    new SuccessResponse({
+      message: 'Delete cart successfully',
     }).send(res);
   };
 }
