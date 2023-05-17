@@ -178,7 +178,7 @@ class CartController {
     const orderIndex = cartDb.orders.findIndex(
       (order) =>
         order.hotelId.equals(newOrder.hotelId) &&
-        dayjs(newOrder.endDate, 'YYYY-MM-DD').isSame(
+        dayjs(req.body.createdAt, 'YYYY-MM-DD').isSame(
           dayjs(order.createdAt).format('YYYY-MM-DD'),
         ),
     );
