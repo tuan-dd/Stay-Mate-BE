@@ -32,7 +32,7 @@ const cartSchema = new Schema<ICart>(
           },
           startDate: { type: Date, required: true },
           endDate: { type: Date, required: true },
-          createdAt: { type: Date, default: Date.now(), required: true },
+          createdAt: { type: Date, default: new Date(), required: true },
           rooms: {
             type: [
               {

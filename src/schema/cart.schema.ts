@@ -14,7 +14,7 @@ export const createCartSchema = Yup.object().shape({
       isDeleteOrder[0] ? field.notRequired() : field.min(1).required(),
     ),
     hotelId: Yup.string().objectIdValid().required(),
-    createdAt: Yup.date().min(Date.now()).notRequired(),
+    createdAt: Yup.date().min(new Date()).notRequired(),
     startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
     endDate: Yup.date()
       .test('compareStartDate', 'Not less or equal than start date', (endDate, context) =>
