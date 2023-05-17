@@ -155,7 +155,7 @@ class CartController {
         quantity: room.quantity,
       })),
     };
-    if (!req.body.index) throw new BadRequestError('Must have index element');
+    if (!req.body.createdAt) throw new BadRequestError('Must have createdAt element');
 
     const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
       path: 'roomTypeIds',
@@ -175,12 +175,17 @@ class CartController {
 
     if (!cartDb && !cartDb.isActive) throw new NotFoundError('Not found cart');
 
-    const isOrder = cartDb.orders.some((order) => order.hotelId.equals(newOrder.hotelId));
+    const orderIndex = cartDb.orders.findIndex(
+      (order) =>
+        order.hotelId.equals(newOrder.hotelId) &&
+        dayjs(newOrder.endDate, 'YYYY-MM-DD').isSame(
+          dayjs(order.createdAt).format('YYYY-MM-DD'),
+        ),
+    );
 
-    if (!isOrder || req.body.index > cartDb.orders.length - 1)
-      throw new NotFoundError('Not found order');
+    if (orderIndex < 0) throw new NotFoundError('Not found order');
 
-    cartDb.orders[req.body.index] = newOrder;
+    cartDb.orders[orderIndex] = newOrder;
     await cartDb.save();
 
     new SuccessResponse({
