@@ -77,16 +77,23 @@ class CartController {
     }
 
     const orderIndex = cartDb.orders.findIndex((order) => {
+      let isSameCreatedAt = true;
       const isSameStartDate = dayjs(newOrder.startDate, 'YYYY-MM-DD').isSame(
         dayjs(order.startDate).format('YYYY-MM-DD'),
         'day',
       );
+
       const isSameEndDate = dayjs(newOrder.endDate, 'YYYY-MM-DD').isSame(
         dayjs(order.endDate).format('YYYY-MM-DD'),
         'day',
       );
+
+      if (req.body.createdAt) {
+        isSameCreatedAt = dayjs(req.body.createdAt).isSame(order.createdAt);
+      }
       const isSameHotelId = order.hotelId.equals(newOrder.hotelId);
-      return isSameStartDate && isSameEndDate && isSameHotelId;
+
+      return isSameStartDate && isSameEndDate && isSameHotelId && isSameCreatedAt;
     });
 
     if (orderIndex > -1) {
@@ -108,8 +115,10 @@ class CartController {
     await cartDb.save();
 
     oke(cartDb);
+
     function oke(value: ICart) {
       if (!value) throw new ServiceUnavailableError('Update unsuccessfully');
+
       return new SuccessResponse({
         message: 'Add cart successfully',
         data: value,
@@ -129,6 +138,7 @@ class CartController {
         quantity: room.quantity,
       })),
     };
+
     if (!req.body.createdAt) throw new BadRequestError('Must have createdAt element');
 
     const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
@@ -154,6 +164,7 @@ class CartController {
         order.hotelId.equals(newOrder.hotelId) &&
         dayjs(req.body.createdAt).isSame(dayjs(order.createdAt), 'day'),
     );
+
     if (orderIndex < 0) throw new NotFoundError('Not found order');
 
     cartDb.orders[orderIndex] = newOrder;

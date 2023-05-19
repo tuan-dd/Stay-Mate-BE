@@ -28,16 +28,18 @@ export const createHotelSchema = Yup.object().shape({
   body: Yup.object().shape({
     _id: Yup.string().max(0, 'No have _id'),
     hotelName: Yup.string().required(),
+    images: Yup.array(Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').required())
+      .min(1)
+      .required(),
     address: Yup.string().required(),
     city: Yup.string().required(),
     country: Yup.string().required(),
     zipCode: Yup.number().integer().min(999).notRequired(),
     latitude: Yup.number().min(-90).max(90).required(),
     longitude: Yup.number().min(-180).max(180).required(),
-    propertyType: Yup.string().oneOf(Object.values(PropertyType)).required(),
+    propertyType: Yup.string().required(),
     star: Yup.number().min(0.5).max(5).required(),
     package: Yup.string().max(0, 'No have package'),
-    images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     roomTypes: Yup.array(
       Yup.object().shape({
         _id: Yup.string().max(0, 'No update _id'),
@@ -54,7 +56,9 @@ export const createHotelSchema = Yup.object().shape({
         ).required(),
         numberOfRoom: Yup.number().min(1).integer().required(),
       }),
-    ).required('RoomTypes have 1'),
+    )
+      .min(1)
+      .required('RoomTypes have 1'),
   }),
 });
 
