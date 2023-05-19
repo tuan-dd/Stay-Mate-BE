@@ -308,8 +308,9 @@ class PaymentController {
       const createMemberShip = await memberShipService.createOneAtomic([newMemberShip], {
         session,
       });
+
       if (newMemberShip.package === Package.WEEK)
-        await hotelsService.findOneUpdate(
+        await hotelsService.updateMany(
           {
             userId: newMemberShip.userId,
             package: Package.FREE,
@@ -319,7 +320,7 @@ class PaymentController {
           { session },
         );
       else if (newMemberShip.package === Package.MONTH) {
-        await hotelsService.findOneUpdate(
+        await hotelsService.updateMany(
           {
             userId: newMemberShip.userId,
             package: Package.WEEK,
@@ -329,7 +330,7 @@ class PaymentController {
           { session },
         );
       } else {
-        await hotelsService.findOneUpdate(
+        await hotelsService.updateMany(
           {
             userId: newMemberShip.userId,
             isDelete: false,
@@ -499,7 +500,7 @@ class PaymentController {
           limit: 10,
         },
         { path: 'hotelId', select: 'hotelName country city star starRating' },
-        { path: 'rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+        { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
       );
 
       if (!bookings.length) throw new NotFoundError('Not found booking');
@@ -525,7 +526,7 @@ class PaymentController {
         limit: 10,
       },
       { path: 'hotelId', select: 'hotelName country city star starRating' },
-      { path: 'rooms.roomTypeId', select: 'price -_id nameOfRoom' },
+      { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
     );
 
     if (!bookings.length) throw new NotFoundError('Not found booking');

@@ -131,10 +131,12 @@ const roomTypeSchema = new Schema<IRoom>(
     priceDiscount: {
       type: Number,
       default: 0,
+      required: true,
     },
     discount: {
       type: Number,
       default: 0,
+      required: true,
     },
     mealType: {
       type: String,
