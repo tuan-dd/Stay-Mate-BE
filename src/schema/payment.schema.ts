@@ -27,6 +27,7 @@ export const createBookingSchema = Yup.object().shape({
         quantity: Yup.number().min(1).integer().required(),
       }),
     ),
+    createdAt: Yup.date().max(new Date()).notRequired(),
     hotelId: Yup.string().objectIdValid().required(),
     startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
     endDate: Yup.date()
