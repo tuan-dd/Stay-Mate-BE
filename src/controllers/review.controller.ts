@@ -47,6 +47,7 @@ class ReviewController {
 
     const reviewDb = await reviewService.findById(req.params.id, null, { lean: false });
 
+    /// create review
     if (!parent_slug) {
       if (reviewDb.starRating > 0) throw new NotAuthorizedError('Review has already ');
 
@@ -70,7 +71,7 @@ class ReviewController {
 
       if (parent_slug !== reviewDb.slug) throw new BadRequestError('Wrong parent slug');
 
-      //mỗi người chỉ tạo 1 reply
+      //mỗi review chỉ tạo 1 reply
       if (reviewDb.isReply) throw new BadRequestError('Review has already reply');
 
       replyReview.parent_slug = parent_slug;
@@ -149,7 +150,7 @@ class ReviewController {
      * @case_1 nếu k hotelId parent_slug thì lấy reviews theo 2 điều kiện đã review hoặc chưa review
      * @case_2 hotelId parent_slug
      */
-    const { hotelId, statusBooking, parent_slug, isReview } = req.query;
+    const { hotelId, parent_slug, isReview } = req.query;
 
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
@@ -159,7 +160,7 @@ class ReviewController {
     if (Object.keys(req.query).every((key) => !req.query[key]))
       throw new BadRequestError('Request must have one value');
 
-    if (statusBooking) {
+    if (!hotelId) {
       if (isReview) {
         reviews = await reviewService.findMany({
           query: {
@@ -170,6 +171,7 @@ class ReviewController {
           page: page,
           limit: limit,
         });
+        return oke();
       }
 
       if (!isReview) {
@@ -182,8 +184,8 @@ class ReviewController {
           page: page,
           limit: limit,
         });
+        return oke();
       }
-      return oke();
     }
 
     if (hotelId) {
@@ -196,7 +198,6 @@ class ReviewController {
         reviews = await reviewService.findMany({
           query: {
             'hotel.hotelId': hotelId,
-            starRating: { $gte: 0.5 },
             parent_slug,
           },
           page: page,
@@ -217,7 +218,7 @@ class ReviewController {
     }
 
     function oke() {
-      if (!reviews) throw new NotFoundError('Not found reviews');
+      if (!reviews.length) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
         message: ' get Data`review successfully',
         data: reviews,

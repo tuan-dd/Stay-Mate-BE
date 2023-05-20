@@ -1,4 +1,3 @@
-import { Status } from '@/models/Booking';
 import regexUtil from '@/utils/regexUtil';
 import * as Yup from 'yup';
 
@@ -25,7 +24,6 @@ export const updateReviewSchema = Yup.object().shape({
 
 export const getReviewsByUserSchema = Yup.object().shape({
   query: Yup.object().shape({
-    statusBooking: Yup.string().oneOf([Status.STAY]).notRequired(),
     isReview: Yup.boolean().notRequired(),
     parent_slug: Yup.boolean().notRequired(),
     page: Yup.number().integer().min(1).notRequired(),

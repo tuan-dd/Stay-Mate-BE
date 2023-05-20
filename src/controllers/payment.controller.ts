@@ -87,18 +87,17 @@ class PaymentController {
     );
 
     // If have in cart , remove when  create booking successfully
-    await cartService.findOneUpdate(
-      { userId: newBooking.userId },
-      {
-        $pull: {
-          orders: {
-            hotelId: newBooking.hotelId,
-            startDate: req.body.startDate,
-            endDate: req.body.endDate,
+    if (req.body.createdAt)
+      await cartService.findOneUpdate(
+        { userId: newBooking.userId },
+        {
+          $pull: {
+            orders: {
+              createdAt: req.body.createdAt,
+            },
           },
         },
-      },
-    );
+      );
 
     new CreatedResponse({
       message: 'Create booking successfully',

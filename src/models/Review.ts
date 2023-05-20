@@ -39,7 +39,7 @@ const reviewSchema = new Schema<IReview>(
   {
     context: {
       type: String,
-      default: 'no',
+      default: '',
       required: true,
     },
     images: {
