@@ -24,8 +24,7 @@ export const createCartSchema = Yup.object().shape({
       .test('check', 'Start Date not less than now date', (startDate) => {
         const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
         const numberDayNow = dayjs().unix(); // get number
-        if (numberDayNow - numberStartDate > 1000 * 60 * 60 * 24) return false;
-        return true;
+        return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),
     endDate: Yup.date()
