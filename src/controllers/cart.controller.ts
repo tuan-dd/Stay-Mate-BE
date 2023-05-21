@@ -20,8 +20,8 @@ class CartController {
 
     const newOrder: Order = {
       hotelId: new Types.ObjectId(req.body.hotelId),
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
+      startDate: dayjs(req.body.startDate).set('hour', 12).set('minute', 0).toDate(),
+      endDate: dayjs(req.body.endDate).set('hour', 12).set('minute', 0).toDate(),
       rooms: req.body.rooms?.map((room) => ({
         roomTypeId: new Types.ObjectId(room.roomTypeId),
         quantity: room.quantity,
