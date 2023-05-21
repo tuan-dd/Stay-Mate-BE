@@ -1,5 +1,11 @@
 import paymentController from '@/controllers/payment.controller';
-import { catchError, checkRole, checkUser, validateRequest } from '@/middleware/validate';
+import {
+  catchError,
+  checkParamsId,
+  checkRole,
+  checkUser,
+  validateRequest,
+} from '@/middleware/validate';
 import { Role } from '@/models/User';
 import {
   cancelBookingSchema,
@@ -63,6 +69,8 @@ router.get(
   validateRequest(getBookingSchema),
   catchError(paymentController.getBookings),
 );
+
+router.get('/detail/:id', checkParamsId, catchError(paymentController.getDetailBooking));
 
 router.get(
   '/hotelier/booking',

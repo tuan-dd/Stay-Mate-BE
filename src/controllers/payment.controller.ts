@@ -535,6 +535,20 @@ class PaymentController {
       data: bookings,
     }).send(res);
   };
+
+  getDetailBooking = async (req: Request, res: Response) => {
+    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const bookingId = new Types.ObjectId(req.params.id);
+
+    const booking = await bookingService.findOne({ _id: bookingId, userId });
+
+    if (!booking) throw new NotFoundError('Not found booking');
+
+    new CreatedResponse({
+      message: 'Get data`s Bookings successfully',
+      data: booking,
+    }).send(res);
+  };
 }
 
 const paymentController = new PaymentController();
