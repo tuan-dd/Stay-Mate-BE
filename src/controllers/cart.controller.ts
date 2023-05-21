@@ -136,6 +136,7 @@ class CartController {
       hotelId: new Types.ObjectId(req.body.hotelId),
       startDate: req.body.startDate,
       endDate: req.body.endDate,
+      createdAt: req.body.createdAt,
       rooms: req.body.rooms?.map((room) => ({
         roomTypeId: new Types.ObjectId(room.roomTypeId),
         quantity: room.quantity,

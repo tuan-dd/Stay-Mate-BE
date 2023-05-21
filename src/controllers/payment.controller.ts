@@ -28,6 +28,7 @@ import { bookingService, memberShipService } from '@/services/payment.service';
 import userService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
 import { getConvertCreatedAt, getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
+import dayjs from 'dayjs';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
 
@@ -39,6 +40,7 @@ class PaymentController {
      * @create tao booking lưu booking id và bullmq
      * @remove order
      */
+
     const newBooking: IBooking = {
       rooms: req.body.rooms.map((room) => ({
         quantity: room.quantity,
@@ -46,8 +48,8 @@ class PaymentController {
       })),
       userId: new mongoose.Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
+      startDate: dayjs(req.body.startDate).set('hour', 12).set('minute', 0).toDate(),
+      endDate: dayjs(req.body.endDate).set('hour', 12).set('minute', 0).toDate(),
       duration: 1000 * 60 * 10,
     };
 
@@ -166,13 +168,16 @@ class PaymentController {
 
       await bookingDb.save({ session });
 
+      const nowDate = dayjs().unix();
+      const startDate = dayjs(bookingDb.startDate).unix();
+
       const createJob = await addJobToQueue(
         {
           type: EJob.BOOKING_STAY,
           job: { id: bookingDb._id.toHexString() },
         },
         {
-          delay: bookingDb.startDate.getTime(),
+          delay: startDate - nowDate,
           removeOnComplete: true,
         },
       );

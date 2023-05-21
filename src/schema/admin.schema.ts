@@ -6,8 +6,8 @@ export const queryUserSchema = Yup.object().shape({
     email: Yup.string().email().notRequired(),
     name: Yup.string().notRequired(),
     role: Yup.string().oneOf(Object.values(Role)).notRequired(),
-    createdAt_gte: Yup.date().max(new Date()).notRequired(),
-    createdAt_lte: Yup.date().min('2023-04-06').notRequired(),
+    createdAt_gte: Yup.date().notRequired(),
+    createdAt_lte: Yup.date().notRequired(),
     createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {
       is: (createdAt_gte, createdAt_lte) => createdAt_gte || createdAt_lte,
       then: (field) =>
