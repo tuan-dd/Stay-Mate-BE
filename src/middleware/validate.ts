@@ -69,7 +69,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
 
     const tokenStore = await SecretKeyStoreService.findOne({
       userId,
-      // deviceId: ipSave[0],
+      deviceId: ipSave[0],
     });
 
     if (!tokenStore) {
