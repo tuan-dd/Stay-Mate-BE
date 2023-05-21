@@ -46,6 +46,21 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       .exec();
   };
 
+  findOneByPopulate = async (
+    query: FilterQuery<BookingDocument>,
+    option?: QueryOptions,
+    options1?: PopulateOptions,
+    options2?: PopulateOptions,
+  ) => {
+    return Booking.findOne(query, null, { lean: true, ...option })
+      .populate({
+        path: 'hotelId',
+        ...options1,
+      })
+      .populate({ path: 'rooms.roomTypeId', ...options2 })
+      .exec();
+  };
+
   findManyAndPopulateByQuery = (
     query: QueryWithPagination<BookingDocument>,
     options1?: PopulateOptions,
