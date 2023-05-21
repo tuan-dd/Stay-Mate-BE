@@ -540,7 +540,12 @@ class PaymentController {
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
     const bookingId = new Types.ObjectId(req.params.id);
 
-    const booking = await bookingService.findOne({ _id: bookingId, userId });
+    const booking = await bookingService.findOneByPopulate(
+      { _id: bookingId, userId },
+      null,
+      { path: 'hotelId', select: 'hotelName country city star starRating' },
+      { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
+    );
 
     if (!booking) throw new NotFoundError('Not found booking');
 
