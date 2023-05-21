@@ -149,7 +149,7 @@ export const getHotelSchema = Yup.object().shape({
     roomAmenities: Yup.array(
       Yup.string().oneOf(Object.values(RoomAmenities)),
     ).notRequired(),
-    createdAt_gte: Yup.date().max(new Date()).notRequired(),
+    createdAt_gte: Yup.date().notRequired(),
     createdAt_lte: Yup.date().min('2023-04-06').notRequired(),
     createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {
       is: (createdAt_gte, createdAt_lte) => createdAt_gte || createdAt_lte,
@@ -167,7 +167,14 @@ export const getHotelSchema = Yup.object().shape({
 
 export const getDetailSchema = Yup.object().shape({
   query: Yup.object().shape({
-    startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
+    startDate: Yup.date()
+      .test('check', 'Start Date not less than now date', (startDate) => {
+        const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
+        const numberDayNow = dayjs().unix(); // get number
+        if (numberDayNow - numberStartDate > 1000 * 60 * 60 * 24) return false;
+        return true;
+      })
+      .required(),
     endDate: Yup.date()
       .test(
         'compareStartDate',
@@ -182,7 +189,14 @@ export const getDetailSchema = Yup.object().shape({
 export const checkHotelSchema = Yup.object().shape({
   query: Yup.object().shape({
     hotelId: Yup.string().objectIdValid().required(),
-    startDate: Yup.date().min(dayjs(new Date()).format('YYYY-MM-DD')).required(),
+    startDate: Yup.date()
+      .test('check', 'Start Date not less than now date', (startDate) => {
+        const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
+        const numberDayNow = dayjs().unix(); // get number
+        if (numberDayNow - numberStartDate > 1000 * 60 * 60 * 24) return false;
+        return true;
+      })
+      .required(),
     endDate: Yup.date()
       .test('compareStartDate', 'Not less or equal than start date', (endDate, context) =>
         dayjs(endDate, 'YYYY-MM-DD').isAfter(context.parent.startDate, 'day'),
