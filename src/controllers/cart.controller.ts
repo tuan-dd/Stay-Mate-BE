@@ -110,7 +110,10 @@ class CartController {
       cartDb.orders[orderIndex] = updateOrder;
     }
 
-    if (orderIndex < 0) cartDb.orders.push(newOrder);
+    if (orderIndex < 0) {
+      newOrder.createdAt = new Date();
+      cartDb.orders.push(newOrder);
+    }
 
     await cartDb.save();
 
