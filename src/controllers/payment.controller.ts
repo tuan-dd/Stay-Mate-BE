@@ -31,7 +31,10 @@ import { getConvertCreatedAt, getDeleteFilter, getFilterData } from '@/utils/lod
 import dayjs from 'dayjs';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
-
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 class PaymentController {
   createBooking = async (req: Request<any, any, CreateBookingSchema>, res: Response) => {
     /**
@@ -168,8 +171,8 @@ class PaymentController {
 
       await bookingDb.save({ session });
 
-      const nowDate = dayjs().unix();
-      const startDate = dayjs(bookingDb.startDate).unix();
+      const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
+      const startDate = dayjs(bookingDb.startDate).valueOf();
 
       const createJob = await addJobToQueue(
         {
@@ -217,7 +220,7 @@ class PaymentController {
       if (bookingDb.status !== Status.SUCCESS)
         throw new NotFoundError('User cant refund');
 
-      const dataNow = new Date().getTime();
+      const dataNow = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
 
       if (bookingDb.startDate.getTime() - 1000 * 60 * 60 * 12 < dataNow)
         throw new BadRequestError('Overdue to cancel, you only cant cancel before 12h');

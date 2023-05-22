@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Status } from '@/models/Booking';
 import { Package } from '@/models/Hotel';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import dayjs from 'dayjs';
-
 import * as Yup from 'yup';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const chargeSchema = Yup.object().shape({
   body: Yup.object().shape({
@@ -37,9 +41,12 @@ export const createBookingSchema = Yup.object().shape({
       .notRequired(),
     startDate: Yup.date()
       .test('checkBooking', 'Start Date not less than now date', (startDate) => {
-        const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
-        const numberDayNow = dayjs().unix();
-        console.log(numberDayNow - numberStartDate < 60 * 60 * 24); // get number
+        const numberStartDate = dayjs(startDate)
+          .tz('Asia/Ho_Chi_Minh')
+          .set('hour', 10)
+          .set('minute', 0)
+          .unix(); // get number
+        const numberDayNow = dayjs().tz('Asia/Ho_Chi_Minh').unix(); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),
