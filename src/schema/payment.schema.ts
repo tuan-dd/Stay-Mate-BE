@@ -27,6 +27,7 @@ export const createBookingSchema = Yup.object().shape({
         quantity: Yup.number().min(1).integer().required(),
       }),
     ),
+    hotelId: Yup.string().objectIdValid().required(),
     createdAt: Yup.date()
       .test(
         'check createdAt',
@@ -34,9 +35,8 @@ export const createBookingSchema = Yup.object().shape({
         (createdAt) => !dayjs(createdAt, 'YYYY-MM-DD').isAfter(dayjs(), 'day'),
       )
       .notRequired(),
-    hotelId: Yup.string().objectIdValid().required(),
     startDate: Yup.date()
-      .test('check', 'Start Date not less than now date', (startDate) => {
+      .test('checkBooking', 'Start Date not less than now date', (startDate) => {
         const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
         const numberDayNow = dayjs().unix(); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;

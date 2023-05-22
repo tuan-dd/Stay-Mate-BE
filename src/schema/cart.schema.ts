@@ -15,13 +15,13 @@ export const createCartSchema = Yup.object().shape({
     hotelId: Yup.string().objectIdValid().required(),
     createdAt: Yup.date()
       .test(
-        'check Start',
+        'check createdAt',
         'createdAt not greater than now date',
         (createdAt) => !dayjs(createdAt, 'YYYY-MM-DD').isAfter(dayjs(), 'day'),
       )
       .notRequired(),
     startDate: Yup.date()
-      .test('check', 'Start Date not less than now date', (startDate) => {
+      .test('check startDate', 'Start Date not less than now date', (startDate) => {
         const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
         const numberDayNow = dayjs().unix(); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
