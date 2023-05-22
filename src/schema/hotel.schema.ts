@@ -5,6 +5,10 @@ import regexUtil from '@/utils/regexUtil';
 import dayjs from 'dayjs';
 import { Types } from 'mongoose';
 import * as Yup from 'yup';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
   return this.test('objectIdValid', message || 'Wrong Id', (value) => {
@@ -169,8 +173,12 @@ export const getDetailSchema = Yup.object().shape({
   query: Yup.object().shape({
     startDate: Yup.date()
       .test('check', 'Start Date not less than now date', (startDate) => {
-        const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
-        const numberDayNow = dayjs().unix(); // get number
+        const numberStartDate = dayjs(startDate)
+          .tz('Asia/Ho_Chi_Minh')
+          .set('hour', 10)
+          .set('minute', 0)
+          .unix(); // get number
+        const numberDayNow = dayjs().tz('Asia/Ho_Chi_Minh').unix(); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),
@@ -190,8 +198,12 @@ export const checkHotelSchema = Yup.object().shape({
     hotelId: Yup.string().objectIdValid().required(),
     startDate: Yup.date()
       .test('check', 'Start Date not less than now date', (startDate) => {
-        const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
-        const numberDayNow = dayjs().unix(); // get number
+        const numberStartDate = dayjs(startDate)
+          .tz('Asia/Ho_Chi_Minh')
+          .set('hour', 10)
+          .set('minute', 0)
+          .unix(); // get number
+        const numberDayNow = dayjs().tz('Asia/Ho_Chi_Minh').unix(); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),
