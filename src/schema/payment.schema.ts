@@ -38,15 +38,14 @@ export const createBookingSchema = Yup.object().shape({
     startDate: Yup.date()
       .test('checkBooking', 'Start Date not less than now date', (startDate) => {
         const numberStartDate = dayjs(startDate).set('hour', 10).set('minute', 0).unix(); // get number
-        const numberDayNow = dayjs().unix(); // get number
+        const numberDayNow = dayjs().unix();
+        console.log(numberDayNow - numberStartDate < 60 * 60 * 24); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),
     endDate: Yup.date()
-      .test(
-        'compareStartDate',
-        'Not less or equal than start date',
-        (endDate: Date, context) => (endDate <= context.parent.startDate ? false : true),
+      .test('compareStartDate', 'Not less or equal than start date', (endDate, context) =>
+        endDate <= context.parent.startDate ? false : true,
       )
       .required(),
   }),
