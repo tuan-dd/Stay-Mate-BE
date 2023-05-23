@@ -24,8 +24,8 @@ export const updateReviewSchema = Yup.object().shape({
 
 export const getReviewsByUserSchema = Yup.object().shape({
   query: Yup.object().shape({
-    isReview: Yup.boolean().notRequired(),
-    parent_slug: Yup.boolean().notRequired(),
+    isReview: Yup.string().oneOf(['true', 'false']).notRequired(),
+    isParent_slug: Yup.string().oneOf(['true', 'false']).notRequired(),
     page: Yup.number().integer().min(1).notRequired(),
     limit: Yup.number().integer().min(3).max(45).notRequired(),
     hotelId: Yup.string().objectIdValid().notRequired(),

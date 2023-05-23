@@ -27,7 +27,7 @@ import hotelsService from '@/services/hotels.service';
 import { bookingService, memberShipService } from '@/services/payment.service';
 import userService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
-import { getConvertCreatedAt, getDeleteFilter, getFilterData } from '@/utils/lodashUtil';
+import { getConvertCreatedAt, getDeleteFilter } from '@/utils/lodashUtil';
 import dayjs from 'dayjs';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
@@ -82,13 +82,12 @@ class PaymentController {
     newBooking.total = total;
 
     const createBooking = await bookingService.createOne(newBooking);
-
     await addJobToQueue(
       {
         type: EJob.BOOKING_DECLINE,
         job: { id: createBooking._id.toHexString() },
       },
-      { removeOnComplete: true, delay: 1000 * 60 * 5, removeOnFail: true },
+      { removeOnComplete: true, delay: 1000 * 60 * 10, removeOnFail: true },
     );
 
     // If have in cart , remove when  create booking successfully
@@ -103,14 +102,9 @@ class PaymentController {
           },
         },
       );
-
     new CreatedResponse({
       message: 'Create booking successfully',
-      data: {
-        ...getFilterData(['total', 'startDate', 'endDate', '_id'], createBooking),
-        rooms: roomsResults,
-        hotel: NumberOfRoomAfterCheck.hotelName,
-      },
+      data: createBooking,
     }).send(res);
   };
 
@@ -172,7 +166,7 @@ class PaymentController {
       await bookingDb.save({ session });
 
       const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
-      const startDate = dayjs(bookingDb.startDate).valueOf();
+      const endDate = dayjs(bookingDb.endDate).valueOf();
 
       const createJob = await addJobToQueue(
         {
@@ -180,7 +174,7 @@ class PaymentController {
           job: { id: bookingDb._id.toHexString() },
         },
         {
-          delay: startDate - nowDate,
+          delay: endDate - nowDate,
           removeOnComplete: true,
         },
       );
