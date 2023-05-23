@@ -150,7 +150,7 @@ class ReviewController {
      * @case_1 nếu k hotelId parent_slug thì lấy reviews theo 2 điều kiện đã review hoặc chưa review
      * @case_2 hotelId parent_slug
      */
-    const { hotelId, parent_slug, isReview } = req.query;
+    const { hotelId, isParent_slug, isReview } = req.query;
 
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
@@ -161,7 +161,7 @@ class ReviewController {
       throw new BadRequestError('Request must have one value');
 
     if (!hotelId) {
-      if (isReview) {
+      if (isReview === 'true') {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
@@ -174,7 +174,7 @@ class ReviewController {
         return oke();
       }
 
-      if (!isReview) {
+      if (isReview === 'false') {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
@@ -184,6 +184,7 @@ class ReviewController {
           page: page,
           limit: limit,
         });
+
         return oke();
       }
     }
@@ -194,17 +195,17 @@ class ReviewController {
       if (!hotelDb.userId.equals(userId))
         throw new NotAuthorizedError('Only hotelier can get hotel`s review');
 
-      if (!parent_slug) {
+      if (isParent_slug === 'true') {
         reviews = await reviewService.findMany({
           query: {
             'hotel.hotelId': hotelId,
-            parent_slug,
+            isParent_slug,
           },
           page: page,
           limit: limit,
         });
       }
-      if (parent_slug) {
+      if (isParent_slug === 'false') {
         reviews = await reviewService.findMany({
           query: {
             'hotel.hotelId': hotelId,
