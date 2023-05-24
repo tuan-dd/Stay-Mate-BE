@@ -85,29 +85,26 @@ class AuthController {
     if (email !== userDb.email) throw new ForbiddenError('Wrong users');
 
     const userRedis = await redisUtil.hGetAll(userDb._id.toHexString());
+
     if (!Object.keys(userRedis).length) throw new BadRequestError('Otp expires');
+
+    const number = parseInt(userRedis.number, 10);
 
     if (!ip.includes(userRedis.ip)) {
       await redisUtil.deleteKey(userDb._id.toHexString());
       throw new ForbiddenError('You are not in current device');
     }
 
-    if (parseInt(userRedis.sixCode, 10) === 0) {
-      await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForbiddenError('no guess, try sign in again');
-    }
     const isValid = await pwdUtil.getCompare(sixCode.toString(), userRedis.sixCode);
 
-    if (parseInt(userRedis.sixCode, 10) === 1) {
-      await redisUtil.deleteKey(userDb._id.toHexString());
-      throw new ForbiddenError('wrong otp and no guess, try sign in again');
-    }
-
     if (!isValid) {
+      if (number === 1) {
+        await redisUtil.deleteKey(userDb._id.toHexString());
+        throw new ForbiddenError('No guess, try sign in again');
+      }
+
       await redisUtil.hIncrBy(userDb._id.toHexString(), 'number', -1);
-      throw new ForbiddenError(
-        `wrong Code, you have ${parseInt(userRedis.number, 10) - 1}`,
-      );
+      throw new ForbiddenError(`wrong Code, you have ${number - 1}`);
     }
 
     await redisUtil.deleteKey(userDb._id.toHexString());
