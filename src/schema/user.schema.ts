@@ -26,10 +26,10 @@ export const updateUserSchema = Yup.object().shape({
       password[0]
         ? field
             .matches(
-              regexUtil.URL_REGEX,
+              regexUtil.PASSWORD_REGEX,
               'New Password contain at least one numeric digit, one uppercase and one lowercase letter, min 6 max 20',
             )
-            .notOneOf([Yup.ref('password'), null], 'New password must same password')
+            .notOneOf([Yup.ref('password'), null], 'New password must not same password')
             .required()
         : field.max(0, 'Not input value because you don`t input current password'),
     ),
