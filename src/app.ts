@@ -12,7 +12,11 @@ import { HttpCode } from './utils/httpCode';
 class App {
   public app: express.Application;
 
-  private allowlist = ['http://localhost:5000', 'http://localhost:3000'];
+  private allowlist = [
+    'http://localhost:5000',
+    'http://localhost:3000',
+    'https://staymate-tuan.netlify.app/',
+  ];
 
   constructor() {
     this.app = express();
