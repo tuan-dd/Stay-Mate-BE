@@ -13,15 +13,26 @@ import hotelsService from '@/services/hotels.service';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
-
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 class CartController {
   createOrAddToCart = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
     const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
 
     const newOrder: Order = {
       hotelId: new Types.ObjectId(req.body.hotelId),
-      startDate: dayjs(req.body.startDate).set('hour', 12).set('minute', 0).toDate(),
-      endDate: dayjs(req.body.endDate).set('hour', 12).set('minute', 0).toDate(),
+      startDate: dayjs(req.body.startDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
+      endDate: dayjs(req.body.endDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
       rooms: req.body.rooms?.map((room) => ({
         roomTypeId: new Types.ObjectId(room.roomTypeId),
         quantity: room.quantity,
@@ -134,8 +145,16 @@ class CartController {
 
     const newOrder: Order = {
       hotelId: new Types.ObjectId(req.body.hotelId),
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
+      startDate: dayjs(req.body.startDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
+      endDate: dayjs(req.body.endDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
       createdAt: req.body.createdAt,
       rooms: req.body.rooms?.map((room) => ({
         roomTypeId: new Types.ObjectId(room.roomTypeId),
