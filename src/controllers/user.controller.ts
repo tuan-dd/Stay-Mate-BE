@@ -6,6 +6,7 @@ import {
   SuccessResponse,
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
+import { UserDocument } from '@/models/User';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
@@ -34,19 +35,24 @@ class UserController {
   updateUser = async (req: Request<any, any, UpdateUserSchema>, res: Response) => {
     const body = req.body;
     const userId = req.headers[KeyHeader.USER_ID] as string;
+    let userDb: UserDocument | boolean;
+    if (body.password) {
+      userDb = await UserService.findByIdAndCheckPass(userId, body.password, {
+        lean: false,
+      });
 
-    const userDb = await UserService.findByIdAndCheckPass(userId, body.password, {
-      lean: false,
-    });
+      if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
 
-    if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
-
-    if (body.newPassword) {
-      body.password = await pwdUtil.getHash(body.newPassword, 10);
+      if (body.newPassword) {
+        body.password = await pwdUtil.getHash(body.newPassword, 10);
+      }
     }
+    userDb = (await UserService.findById(userId, null, { lean: false })) as UserDocument;
 
     Object.keys(body).forEach((key) => {
-      userDb[key] = body[key];
+      if (userDb[key]) {
+        userDb[key] = body[key];
+      }
     });
 
     await userDb.save();
