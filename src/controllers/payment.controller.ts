@@ -51,8 +51,16 @@ class PaymentController {
       })),
       userId: new mongoose.Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
-      startDate: dayjs(req.body.startDate).set('hour', 12).set('minute', 0).toDate(),
-      endDate: dayjs(req.body.endDate).set('hour', 12).set('minute', 0).toDate(),
+      startDate: dayjs(req.body.startDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
+      endDate: dayjs(req.body.endDate)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 12)
+        .set('minute', 0)
+        .toDate(),
       duration: 1000 * 60 * 10,
     };
 
