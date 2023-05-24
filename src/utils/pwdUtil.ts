@@ -1,9 +1,6 @@
 import bcrypt from 'bcrypt';
 
-function getHash(
-  password: string,
-  SALT_ROUNDS: string | number,
-): Promise<string> {
+function getHash(password: string, SALT_ROUNDS: string | number): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
 function getSalt(SALT_ROUNDS = 10): Promise<string> {

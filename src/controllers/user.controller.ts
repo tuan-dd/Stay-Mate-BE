@@ -11,7 +11,6 @@ import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
 import { getDeleteFilter } from '@/utils/lodashUtil';
-import pwdUtil from '@/utils/pwdUtil';
 
 import { Response, Request } from 'express';
 
@@ -21,8 +20,6 @@ class UserController {
     const userDb = await UserService.findOne({ email });
 
     if (userDb) throw new BadRequestError('User exit');
-
-    req.body.password = await pwdUtil.getHash(req.body.password, 10);
 
     const newUser = await UserService.createOne(req.body);
 
@@ -41,13 +38,14 @@ class UserController {
         lean: false,
       });
 
-      if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
-
-      if (body.newPassword) {
-        body.password = await pwdUtil.getHash(body.newPassword, 10);
-      }
+      body.password = body.newPassword;
+    } else {
+      userDb = (await UserService.findById(userId, null, {
+        lean: false,
+      })) as UserDocument;
     }
-    userDb = (await UserService.findById(userId, null, { lean: false })) as UserDocument;
+
+    if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
 
     Object.keys(body).forEach((key) => {
       if (userDb[key]) {
