@@ -96,7 +96,7 @@ class ReviewController {
 
     const starAverage =
       (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
-        newReview.starRating) /
+        Number(newReview.starRating)) /
       countReview;
 
     hotelDb.starRating = {
@@ -174,7 +174,7 @@ class ReviewController {
       const newStarAverage =
         (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
           newUpdate.starRating +
-          starRating) /
+          Number(starRating)) /
         hotelDb.starRating.countReview;
 
       hotelDb.starRating = {
