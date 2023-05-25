@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { PropertyType } from '@/models/Hotel';
 import { RoomAmenities } from '@/models/Room-type';
 import regexUtil from '@/utils/regexUtil';
 import dayjs from 'dayjs';
@@ -75,7 +74,7 @@ export const updateHotelSchema = Yup.object().shape({
     city: Yup.string().notRequired(),
     country: Yup.string().notRequired(),
     zipCode: Yup.number().integer().min(999).notRequired(),
-    propertyType: Yup.string().oneOf(Object.values(PropertyType)).notRequired(),
+    propertyType: Yup.string().notRequired(),
     star: Yup.number().min(0.5).max(5).notRequired(),
     images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     isDelete: Yup.boolean().notRequired(),
@@ -134,7 +133,7 @@ export const getHotelSchema = Yup.object().shape({
       city.length > 0 ? field.notRequired() : field.required(),
     ),
     zipCode: Yup.number().integer().min(999).notRequired(),
-    propertyType: Yup.string().oneOf(Object.values(PropertyType)).notRequired(),
+    propertyType: Yup.string().notRequired(),
     star: Yup.number().min(0.5).max(5).notRequired(),
     price_gte: Yup.number().min(0).max(20000).notRequired(),
     price_lte: Yup.number()
