@@ -130,7 +130,9 @@ class ReviewController {
         { new: false },
       );
 
-      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId);
+      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId, null, {
+        lean: false,
+      });
 
       const countReview = hotelDb.starRating.countReview - 1;
 
@@ -165,7 +167,9 @@ class ReviewController {
     );
 
     if (starRating !== newUpdate.starRating) {
-      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId);
+      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId, null, {
+        lean: false,
+      });
 
       const newStarAverage =
         (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
