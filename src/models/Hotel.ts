@@ -1,10 +1,5 @@
 import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
 
-export enum PropertyType {
-  HOTEL = 'hotel',
-  HOLIDAY_PARKS = 'holiday_parks',
-}
-
 export enum Package {
   FREE = 'FREE',
   WEEK = 'WEEK',
@@ -30,7 +25,7 @@ export interface IHotel {
   city: string;
   country: string;
   zipCode?: number;
-  propertyType: PropertyType;
+  propertyType: string;
   star: number;
   starRating?: StarRating;
   latitude: number;
@@ -76,7 +71,6 @@ const hotelSchema = new Schema<IHotel>(
     propertyType: {
       type: String,
       required: true,
-      enum: Object.values(PropertyType),
     },
     star: {
       type: Number,
