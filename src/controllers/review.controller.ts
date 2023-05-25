@@ -95,9 +95,8 @@ class ReviewController {
     hotelDb.starRating = {
       countReview: hotelDb.starRating.countReview + 1,
       starAverage:
-        (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
-          newReview.starRating) /
-        (1 + hotelDb.starRating.countReview),
+        hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
+        newReview.starRating / (1 + hotelDb.starRating.countReview),
     };
 
     await hotelDb.save();
