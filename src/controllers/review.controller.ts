@@ -91,12 +91,15 @@ class ReviewController {
     }
 
     await reviewDb.save();
+    const countReview = hotelDb.starRating.countReview + 1;
+    const starAverage =
+      (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
+        newReview.starRating) /
+      countReview;
 
     hotelDb.starRating = {
-      countReview: hotelDb.starRating.countReview + 1,
-      starAverage:
-        hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
-        newReview.starRating / (1 + hotelDb.starRating.countReview),
+      countReview,
+      starAverage,
     };
 
     await hotelDb.save();
