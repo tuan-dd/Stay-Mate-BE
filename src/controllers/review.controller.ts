@@ -115,9 +115,9 @@ class ReviewController {
      * @check 'author.authorId' thì mới được sửa
      * @check có review
      */
-    const { context, images, starRating, isDelete } = req.body;
+    const { context, images, starRating } = req.body;
 
-    if (isDelete) {
+    if (req.body.isDelete) {
       const newUpdate = await reviewService.findOneUpdate(
         {
           _id: new Types.ObjectId(req.params.id),
@@ -125,7 +125,24 @@ class ReviewController {
           starRating: { $ne: 0 },
         },
         { $set: { isDelete: true } },
+        { new: false },
       );
+
+      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId);
+
+      const countReview = hotelDb.starRating.countReview - 1;
+
+      const newStarAverage =
+        (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
+          newUpdate.starRating) /
+        countReview;
+
+      hotelDb.starRating = {
+        countReview,
+        starAverage: newStarAverage,
+      };
+
+      await hotelDb.save();
       return oke(newUpdate);
     }
 
@@ -135,8 +152,26 @@ class ReviewController {
         'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
         starRating: { $ne: 0 },
       },
-      { $set: { context, images, starRating, isDelete } },
+      { $set: { context, images, starRating } },
+      { new: false },
     );
+
+    if (starRating !== newUpdate.starRating) {
+      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId);
+
+      const newStarAverage =
+        (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
+          newUpdate.starRating +
+          starRating) /
+        hotelDb.starRating.countReview;
+
+      hotelDb.starRating = {
+        ...hotelDb.starRating,
+        starAverage: newStarAverage,
+      };
+
+      await hotelDb.save();
+    }
 
     return oke(newUpdate);
 
