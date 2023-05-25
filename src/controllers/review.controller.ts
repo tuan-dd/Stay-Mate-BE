@@ -91,7 +91,9 @@ class ReviewController {
     }
 
     await reviewDb.save();
+
     const countReview = hotelDb.starRating.countReview + 1;
+
     const starAverage =
       (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
         newReview.starRating) /
@@ -132,10 +134,16 @@ class ReviewController {
 
       const countReview = hotelDb.starRating.countReview - 1;
 
-      const newStarAverage =
-        (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
-          newUpdate.starRating) /
-        countReview;
+      let newStarAverage: number;
+
+      if (countReview === 0) {
+        newStarAverage = 5;
+      } else {
+        newStarAverage =
+          (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
+            newUpdate.starRating) /
+          countReview;
+      }
 
       hotelDb.starRating = {
         countReview,
