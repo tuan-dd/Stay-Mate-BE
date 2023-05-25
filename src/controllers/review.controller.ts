@@ -120,6 +120,7 @@ class ReviewController {
         {
           _id: new Types.ObjectId(req.params.id),
           'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
+          starRating: { $ne: 0 },
         },
         { $set: { isDelete: true } },
       );
@@ -130,6 +131,7 @@ class ReviewController {
       {
         _id: new Types.ObjectId(req.params.id),
         'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
+        starRating: { $ne: 0 },
       },
       { $set: { context, images, starRating, isDelete } },
     );
