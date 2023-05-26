@@ -18,7 +18,7 @@ bootstrapLogger();
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.DEV_APP_HOST || '5000');
+const port = normalizePort(process.env.DEV_APP_HOST || '9000');
 app.set('port', port);
 
 /**

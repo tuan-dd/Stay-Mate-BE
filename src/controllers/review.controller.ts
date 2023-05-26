@@ -212,7 +212,7 @@ class ReviewController {
       throw new BadRequestError('Request must have one value');
 
     if (!hotelId) {
-      if (isReview === 'true') {
+      if (isReview) {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
@@ -225,7 +225,7 @@ class ReviewController {
         return oke();
       }
 
-      if (isReview === 'false') {
+      if (!isReview) {
         reviews = await reviewService.findMany({
           query: {
             'author.authorId': userId,
@@ -246,7 +246,7 @@ class ReviewController {
       if (!hotelDb.userId.equals(userId))
         throw new NotAuthorizedError('Only hotelier can get hotel`s review');
 
-      if (isParent_slug === 'true') {
+      if (isParent_slug) {
         reviews = await reviewService.findMany({
           query: {
             'hotel.hotelId': hotelId,
@@ -256,7 +256,7 @@ class ReviewController {
           limit: limit,
         });
       }
-      if (isParent_slug === 'false') {
+      if (!isParent_slug) {
         reviews = await reviewService.findMany({
           query: {
             'hotel.hotelId': hotelId,
