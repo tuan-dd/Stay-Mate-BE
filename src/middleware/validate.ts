@@ -36,11 +36,22 @@ export const catchError = (fun: any) => {
 export const validateRequest =
   (schema: AnyObject) => async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate({
+      const result = await schema.validate({
         body: req.body,
         params: req.params,
         query: req.query,
       });
+
+      if (Object.keys(result.query).length) {
+        req.query = result.query;
+      }
+      if (Object.keys(result.body).length) {
+        req.body = result.body;
+      }
+      if (Object.keys(result.params).length) {
+        req.params = result.params;
+      }
+
       next();
     } catch (error: any) {
       error.httpCode = HttpCode.BAD_REQUEST;
@@ -71,7 +82,6 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
       userId,
       deviceId: ipSave[0],
     });
-
     if (!tokenStore) {
       // userDb.isActive = false;
       // await userDb.save();
@@ -89,7 +99,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
     req.user = data;
     req.user.name = userDb.name;
 
-    req.next();
+    next();
   } catch (error) {
     next(error);
   }
