@@ -68,9 +68,10 @@ class PaymentController {
 
     const NumberOfRoomAfterCheck = await bookingService.isEnoughRoom(
       newBooking,
-      roomsOrders.map((room) => room.roomTypeId),
+      newBooking.rooms,
     );
 
+    if (!NumberOfRoomAfterCheck) throw new BadRequestError('Out of room');
     // tại đây loop qua để tính tổng tiền
     let total = 0;
     const roomsResults = [];
