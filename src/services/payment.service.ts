@@ -9,11 +9,20 @@ import {
   SaveOptions,
   Types,
 } from 'mongoose';
-import { BadRequestError, NotFoundError } from '@/helpers/utils';
+import { NotFoundError } from '@/helpers/utils';
 import hotelsService from './hotels.service';
 import { Package } from '@/models/Hotel';
 import { GetDetailSchema } from '@/schema/hotel.schema';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import dayjs from 'dayjs';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
+interface IRoomRes {
+  quantity: number;
+  roomTypeId: Types.ObjectId;
+}
 class BookingService extends BaseService<IBooking, BookingDocument> {
   constructor() {
     super(Booking);
@@ -78,18 +87,18 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       .exec();
   };
 
-  isEnoughRoom = async (newBooking: IBooking, rooms: Types.ObjectId[]) => {
+  isEnoughRoom = async (newBooking: IBooking, rooms: IRoomRes[]) => {
     const hotelDb = await hotelsService.findOneAndPopulateByQuery(
       {
         _id: newBooking.hotelId,
         roomTypeIds: {
           // kiểm các loại phòng đặt có phải trong hotelDb k
-          $all: rooms,
+          $all: rooms.map((room) => room.roomTypeId),
         },
       },
       {
         path: 'roomTypeIds',
-        match: { _id: { $in: rooms } }, // chỉ lấy ra những phòng user đặt
+        match: { _id: { $in: rooms.map((room) => room.roomTypeId) } }, // chỉ lấy ra những phòng user đặt
         select: 'price numberOfRoom nameOfRoom',
       },
     );
@@ -99,31 +108,47 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
 
     // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
     const bookingsDb = await Booking.find({
-      query: {
-        hotelId: newBooking.hotelId,
-        status: Status.SUCCESS,
-        startDate: { $gte: newBooking.startDate },
-        endDate: { $lte: newBooking.endDate },
-        'rooms.roomTypeId': { $in: rooms },
+      hotelId: newBooking.hotelId,
+      status: { $in: [Status.SUCCESS, Status.PENDING] },
+      startDate: {
+        $gte: dayjs(newBooking.startDate).set('hour', 11).set('minute', 0).toISOString(),
       },
-      page: null,
-      limit: null,
+      endDate: {
+        $lte: dayjs(newBooking.endDate).set('hour', 13).set('minute', 0).toISOString(),
+      },
+      'rooms.roomTypeId': {
+        $in: rooms.map((room) => room.roomTypeId),
+      },
     });
 
     if (!bookingsDb.length) return hotelDb;
 
-    // kiểm tra trùng room in booking trừ ra số phòng đăt ra
+    // kiểm tra trùng room đã được order pending in booking trừ ra số phòng đăt ra
     hotelDb.roomTypeIds.forEach((hotelDbRoom, i) => {
       bookingsDb.forEach((booking) => {
         booking.rooms.forEach((roomOrder) => {
           if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
-            if (hotelDb.roomTypeIds[i].numberOfRoom < roomOrder.quantity)
-              throw new BadRequestError('Exceed the number of rooms');
             hotelDb.roomTypeIds[i].numberOfRoom -= roomOrder.quantity;
           }
         });
       });
     });
+
+    const isEnough = hotelDb.roomTypeIds.every((hotelDbRoom) => {
+      let boolean = true;
+      rooms.forEach((roomOrder) => {
+        if (
+          roomOrder.roomTypeId.equals(hotelDbRoom._id) &&
+          hotelDbRoom.numberOfRoom < roomOrder.quantity
+        ) {
+          boolean = false;
+        }
+      });
+      return boolean;
+    });
+
+    if (!isEnough) return false;
+
     return hotelDb;
   };
 
@@ -134,32 +159,41 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       throw new NotFoundError('Not found hotel');
 
     const bookingsDb = await Booking.find({
-      query: {
-        hotelId: hotelId,
-        status: Status.SUCCESS,
-        startDate: { $gte: props.startDate },
-        endDate: { $lte: props.endDate },
+      hotelId: hotelDb._id,
+      status: { $in: [Status.SUCCESS, Status.PENDING] },
+      startDate: {
+        $gte: dayjs(props.startDate, 'YYYY-MM-DD')
+          .set('hour', 11)
+          .set('minute', 0)
+          .toISOString(),
       },
-      page: null,
-      limit: null,
+      endDate: {
+        $lte: dayjs(props.endDate, 'YYYY-MM-DD')
+          .set('hour', 13)
+          .set('minute', 1)
+          .toISOString(),
+      },
     });
 
     if (!bookingsDb.length) return hotelDb;
 
-    hotelDb.roomTypeIds.forEach((hotelDbRoom, i) => {
+    // trừ các phòng order trong khoảng ngày đó
+    hotelDb.roomTypeIds.forEach((hotelDbRoom) => {
       bookingsDb.forEach((booking) => {
         booking.rooms.forEach((roomOrder) => {
           if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
-            if (hotelDb.roomTypeIds[i].numberOfRoom < roomOrder.quantity)
-              delete hotelDb.roomTypeIds[i];
-            hotelDb.roomTypeIds[i].numberOfRoom -= roomOrder.quantity;
+            hotelDbRoom.numberOfRoom -= roomOrder.quantity;
           }
         });
       });
     });
 
-    if (!hotelDb.roomTypeIds.length)
-      throw new BadRequestError(' Sorry, we are fully booked.');
+    // lọc ra phòng nhỏ hơn 0
+    const resultRoomTypeIds = hotelDb.roomTypeIds.filter(
+      (hotelDbRoom) => hotelDbRoom.numberOfRoom > 0,
+    );
+
+    hotelDb.roomTypeIds = resultRoomTypeIds;
 
     return hotelDb;
   };

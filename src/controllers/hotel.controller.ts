@@ -284,11 +284,10 @@ class HotelController {
     }).send(res);
   };
 
-  detailHotel = async (req: Request<any, any, GetDetailSchema>, res: Response) => {
+  detailHotel = async (req: Request<any, any, any, GetDetailSchema>, res: Response) => {
     const hotelId = new Types.ObjectId(req.params.id);
 
-    const body = req.body;
-    const hotel = await bookingService.checkHotel(body, hotelId);
+    const hotel = await bookingService.checkHotel(req.query, hotelId);
 
     new SuccessResponse({
       message: 'Get detail hotel successfully',
