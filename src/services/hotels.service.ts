@@ -47,5 +47,9 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
       .limit(query.limit)
       .exec();
   };
+
+  countQuery = (query: FilterQuery<HotelDocument>) => {
+    return Hotel.count(query);
+  };
 }
 export default new HotelService();

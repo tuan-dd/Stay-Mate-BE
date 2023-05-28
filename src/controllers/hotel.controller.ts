@@ -274,13 +274,15 @@ class HotelController {
         select: 'price rateDescription mealType -_id roomAmenities',
       },
     );
-    const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length);
+
+    const count = await HotelService.countQuery(query);
+    const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length !== 0);
 
     if (!checkHotel.length) throw new NotFoundError('Not found hotel');
 
     new SuccessResponse({
       message: 'get hotel`s data successfully',
-      data: checkHotel,
+      data: { result: checkHotel, count },
     }).send(res);
   };
 
