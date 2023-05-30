@@ -160,7 +160,7 @@ class HotelController {
       {
         $set: {
           ...req.body,
-          roomTypeIds: req.body?.roomTypes.map((id) => new Types.ObjectId(id)),
+          roomTypeIds: req.body?.roomTypeIds.map((id) => new Types.ObjectId(id)),
         },
       },
       { new: true },
