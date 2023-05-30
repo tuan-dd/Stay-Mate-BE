@@ -7,6 +7,7 @@ import {
 } from '@/helpers/utils';
 import { KeyHeader } from '@/middleware/validate';
 import { Package, IHotel } from '@/models/Hotel';
+import { RoomDocument } from '@/models/Room-type';
 import { Role } from '@/models/User';
 import addJobToQueue from '@/queue/queue';
 import {
@@ -99,6 +100,8 @@ class HotelController {
 
     const createHotelSuccess = await HotelService.createOne(newHotel);
 
+    await createHotelSuccess.populate<{ roomTypeIds: RoomDocument[] }>('roomTypeIds');
+
     if (role === Role.USER) {
       const secretKey = crypto.randomBytes(32).toString('hex');
       const { accessToken, refreshToken } = tokenUtil.createTokenPair(
@@ -124,7 +127,7 @@ class HotelController {
       return new CreatedResponse({
         message: 'Create hotel successfully',
         data: {
-          ...getDeleteFilter(['isDelete'], createHotelSuccess),
+          ...createHotelSuccess,
           accessToken,
           refreshToken,
         },
@@ -133,7 +136,7 @@ class HotelController {
 
     new CreatedResponse({
       message: 'Create hotel successfully',
-      data: getDeleteFilter(['isDelete'], createHotelSuccess),
+      data: createHotelSuccess,
     }).send(res);
   };
 
@@ -161,7 +164,6 @@ class HotelController {
       {
         userId,
         _id: new Types.ObjectId(req.params.id),
-        isDelete: false,
       },
       {
         $set: newUpdate,
