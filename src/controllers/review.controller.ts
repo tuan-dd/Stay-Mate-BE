@@ -15,7 +15,7 @@ import {
 } from '@/schema/review.schema';
 import hotelsService from '@/services/hotels.service';
 import reviewService from '@/services/review.service';
-import { Pros, getDeleteFilter } from '@/utils/lodashUtil';
+import { Pros, deleteKeyUndefined, getDeleteFilter } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
 import { Types } from 'mongoose';
 
@@ -117,10 +117,11 @@ class ReviewController {
      * @check 'author.authorId' thì mới được sửa
      * @check có review
      */
-    const { context, images, starRating } = req.body;
+
+    const newUpdate: Pros<UpdateReviewSchema> = deleteKeyUndefined(req.body);
 
     if (req.body.isDelete) {
-      const newUpdate = await reviewService.findOneUpdate(
+      const result = await reviewService.findOneUpdate(
         {
           _id: new Types.ObjectId(req.params.id),
           'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
@@ -130,7 +131,7 @@ class ReviewController {
         { new: false },
       );
 
-      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId, null, {
+      const hotelDb = await hotelsService.findById(result.hotel.hotelId, null, {
         lean: false,
       });
 
@@ -143,7 +144,7 @@ class ReviewController {
       } else {
         newStarAverage =
           (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
-            newUpdate.starRating) /
+            result.starRating) /
           countReview;
       }
 
@@ -153,28 +154,28 @@ class ReviewController {
       };
 
       await hotelDb.save();
-      return oke(newUpdate);
+      return oke(result);
     }
 
-    const newUpdate = await reviewService.findOneUpdate(
+    const result = await reviewService.findOneUpdate(
       {
         _id: new Types.ObjectId(req.params.id),
         'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
         starRating: { $ne: 0 },
       },
-      { $set: { context, images, starRating } },
+      { $set: { ...newUpdate } },
       { new: false },
     );
 
-    if (starRating !== newUpdate.starRating) {
-      const hotelDb = await hotelsService.findById(newUpdate.hotel.hotelId, null, {
+    if (newUpdate.starRating && newUpdate.starRating !== result.starRating) {
+      const hotelDb = await hotelsService.findById(result.hotel.hotelId, null, {
         lean: false,
       });
 
       const newStarAverage =
         (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
-          newUpdate.starRating +
-          Number(starRating)) /
+          result.starRating +
+          Number(newUpdate.starRating)) /
         hotelDb.starRating.countReview;
 
       hotelDb.starRating = {
@@ -185,7 +186,7 @@ class ReviewController {
       await hotelDb.save();
     }
 
-    return oke(newUpdate);
+    return oke(result);
 
     function oke(value) {
       if (!value) throw new NotFoundError('Not found review');
