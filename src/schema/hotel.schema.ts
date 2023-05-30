@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 import * as Yup from 'yup';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { min } from 'lodash';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -76,7 +77,9 @@ export const updateHotelSchema = Yup.object().shape({
     zipCode: Yup.number().integer().min(999).notRequired(),
     propertyType: Yup.string().notRequired(),
     star: Yup.number().min(0.5).max(5).notRequired(),
-    images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
+    images: Yup.array(Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').required())
+      .min(1)
+      .notRequired(),
     isDelete: Yup.boolean().notRequired(),
     roomTypes: Yup.array(Yup.string().objectIdValid().required()).notRequired(),
   }),
