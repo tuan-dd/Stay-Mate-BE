@@ -157,7 +157,12 @@ class HotelController {
         _id: new Types.ObjectId(req.params.id),
         isDelete: false,
       },
-      { $set: { ...req.body } },
+      {
+        $set: {
+          ...req.body,
+          roomTypeIds: req.body?.roomTypes.map((id) => new Types.ObjectId(id)),
+        },
+      },
       { new: true },
     );
 
