@@ -28,6 +28,7 @@ import { EJob } from '@/utils/jobs';
 import {
   Pros,
   convertRoom,
+  deleteKeyUndefined,
   getConvertCreatedAt,
   getDeleteFilter,
   getFilterData,
@@ -138,6 +139,11 @@ class HotelController {
 
   updateHotel = async (req: Request<any, any, UpdateHotelSchema>, res: Response) => {
     const userId = req.headers[KeyHeader.USER_ID];
+    const newUpdate: Pros<UpdateHotelSchema> = deleteKeyUndefined(req.body);
+
+    if (typeof newUpdate.roomTypeIds === 'object') {
+      newUpdate.roomTypeIds = req.body.roomTypeIds.map((id) => new Types.ObjectId(id));
+    }
 
     if (req.body.isDelete) {
       const result = await HotelService.findOneUpdate(
@@ -158,10 +164,7 @@ class HotelController {
         isDelete: false,
       },
       {
-        $set: {
-          ...req.body,
-          roomTypeIds: req.body?.roomTypeIds.map((id) => new Types.ObjectId(id)),
-        },
+        $set: newUpdate,
       },
       { new: true },
     );
@@ -220,7 +223,7 @@ class HotelController {
   updateRoomType = async (req: Request<any, any, UpdateRoomSchema>, res: Response) => {
     const roomId = req.params.id;
 
-    const newUpdate = req.body;
+    const newUpdate = deleteKeyUndefined(req.body);
 
     const result = await RoomTypeService.findByIdUpdate(
       roomId,

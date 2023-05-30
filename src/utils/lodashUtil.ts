@@ -13,11 +13,11 @@ export const getDeleteFilter = (filter: string[], object: ObjectLodash): Pros<an
   return _.omit(object, filter);
 };
 
-export const deleteKeyNull = (pros: Pros<any>) => {
+export const deleteKeyUndefined = (pros: Pros<any>): Pros<any> => {
   Object.keys(pros).forEach((key) => {
-    if (!pros[key]) delete pros[key];
+    if (pros[key] === undefined || pros[key] === null) delete pros[key];
   });
-  return pros;
+  return { ...pros };
 };
 
 export const getConvertCreatedAt = (pros: Pros<any>, includes: string[]): Pros<any> => {
