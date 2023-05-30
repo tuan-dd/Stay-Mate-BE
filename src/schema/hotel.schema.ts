@@ -81,7 +81,7 @@ export const updateHotelSchema = Yup.object().shape({
       .min(1)
       .notRequired(),
     isDelete: Yup.boolean().notRequired(),
-    roomTypes: Yup.array(Yup.string().objectIdValid().required()).notRequired(),
+    roomTypeIds: Yup.array(Yup.string().objectIdValid().required()).notRequired(),
   }),
 });
 
