@@ -78,6 +78,7 @@ export const updateHotelSchema = Yup.object().shape({
     star: Yup.number().min(0.5).max(5).notRequired(),
     images: Yup.string().matches(regexUtil.URL_REGEX, 'Must be url').notRequired(),
     isDelete: Yup.boolean().notRequired(),
+    roomTypes: Yup.array(Yup.string().objectIdValid().required()).notRequired(),
   }),
 });
 
