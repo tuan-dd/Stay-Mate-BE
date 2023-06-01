@@ -217,7 +217,7 @@ Go to **schemas/admin.schema.ts** to see schema
 
 ### Frontend 1 week
 
-### Using next.js
+### Using Reactjs
 
 - [ ] `Create a categorized product list and filter function for the Homepage.`
 
