@@ -44,7 +44,7 @@ export const getConvertCreatedAt = (pros: Pros<any>, includes: string[]): Pros<a
   };
 
   Object.keys(pros).forEach((key) => {
-    if (!pros[key]) delete pros[key];
+    if (pros[key] === undefined || pros[key] === null) delete pros[key];
 
     // RegExp like value.includes('abc')
     if (includes.includes(key) && pros[key]) {
