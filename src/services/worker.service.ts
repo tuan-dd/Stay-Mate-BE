@@ -132,12 +132,17 @@ class WorkerService {
       case EJob.MEMBERSHIP: {
         const membershipsDb = await memberShipService.findMany(
           {
-            query: new Types.ObjectId(job.data.job.userID),
+            query: {
+              userId: new Types.ObjectId(job.data.job.userID),
+              isExpire: false,
+              createdAt: -1,
+            },
             page: null,
             limit: null,
           },
           { lean: false },
         );
+
         const indexMembershipExpired = membershipsDb.findIndex((membership) =>
           membership._id.equals(new Types.ObjectId(job.data.job.id)),
         );
