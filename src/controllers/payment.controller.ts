@@ -296,19 +296,14 @@ class PaymentController {
         throw new ForbiddenError('Balance less than package');
 
       const membershipsOfUser = await memberShipService.findMany({
-        query: { userId: new Types.ObjectId(userId), isExpire: false },
+        query: { userId: new Types.ObjectId(userId), isExpire: false, createdAt: -1 },
         page: null,
         limit: null,
       });
 
-      if (membershipsOfUser.length) {
-        // lấy ngày kết thúc của các gói chưa hết hạn làm ngày bắt đầu của gói mới
-        newMemberShip.timeStart = new Date(
-          membershipsOfUser
-            .map((membership) => membership.timeEnd)
-            .sort((a, b) => a.getTime() - b.getTime())
-            .at(-1),
-        );
+      if (membershipsOfUser.length !== 0) {
+        // lấy ngày kết thúc của các gói chưa hết hạn mới nhất làm ngày bắt đầu của gói mới
+        newMemberShip.timeStart = new Date(membershipsOfUser[0].timeEnd);
       } else {
         // nếu chưa có thì bằng ngày hôm nay
         newMemberShip.timeStart = new Date();
@@ -355,6 +350,7 @@ class PaymentController {
         );
       }
 
+      // Cho giá tiền của gói bằng thời số ngày theo tuần tháng năm
       userDb.account.balance =
         userDb.account.balance - PricePackage[newMemberShip.package];
 
@@ -365,7 +361,7 @@ class PaymentController {
           type: EJob.MEMBERSHIP,
           job: { id: createMemberShip[0]._id, userID: userId },
         },
-        { delay: newMemberShip.timeEnd.getTime() },
+        { delay: newMemberShip.timeEnd.getTime() - new Date().getTime() },
       );
 
       if (!createJob) throw new BadRequestError('Can`t payment, try again ');
