@@ -92,7 +92,7 @@ class PaymentController {
     newBooking.total =
       total *
       (parseInt(dayjs(newBooking.endDate).format('day')) -
-        parseInt(dayjs(newBooking.endDate).format('day')));
+        parseInt(dayjs(newBooking.startDate).format('day')));
     // ngày đầu trừ ngày cuối để tính tổng số ngày ở nhân tổng tiền số lượng phòng
 
     const createBooking = await bookingService.createOne(newBooking);
