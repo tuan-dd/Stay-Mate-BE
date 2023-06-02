@@ -369,6 +369,7 @@ class PaymentController {
       await session.commitTransaction();
       new CreatedResponse({
         message: 'Payment membership successfully',
+        data: createMemberShip,
       }).send(res);
     } catch (error) {
       await session.abortTransaction();
