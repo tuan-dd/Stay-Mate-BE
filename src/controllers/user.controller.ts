@@ -48,9 +48,7 @@ class UserController {
     if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
 
     Object.keys(body).forEach((key) => {
-      if (userDb[key]) {
-        userDb[key] = body[key];
-      }
+      userDb[key] = body[key];
     });
 
     await userDb.save();

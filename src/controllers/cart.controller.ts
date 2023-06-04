@@ -66,6 +66,7 @@ class CartController {
     const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });
 
     if (!cartDb) {
+      newOrder.createdAt = new Date();
       const newCart: ICart = {
         userId,
         orders: [newOrder],
