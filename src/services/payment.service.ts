@@ -111,10 +111,18 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       hotelId: newBooking.hotelId,
       status: { $in: [Status.SUCCESS, Status.PENDING] },
       startDate: {
-        $gte: dayjs(newBooking.startDate).set('hour', 11).set('minute', 0).toISOString(),
+        $gte: dayjs(newBooking.startDate)
+          .tz('Asia/Ho_Chi_Minh')
+          .set('hour', 11)
+          .set('minute', 0)
+          .toISOString(),
       },
       endDate: {
-        $lte: dayjs(newBooking.endDate).set('hour', 13).set('minute', 0).toISOString(),
+        $lte: dayjs(newBooking.endDate)
+          .tz('Asia/Ho_Chi_Minh')
+          .set('hour', 13)
+          .set('minute', 0)
+          .toISOString(),
       },
       'rooms.roomTypeId': {
         $in: rooms.map((room) => room.roomTypeId),
@@ -163,12 +171,14 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       status: { $in: [Status.SUCCESS, Status.PENDING] },
       startDate: {
         $gte: dayjs(props.startDate, 'YYYY-MM-DD')
+          .tz('Asia/Ho_Chi_Minh')
           .set('hour', 11)
           .set('minute', 0)
           .toISOString(),
       },
       endDate: {
         $lte: dayjs(props.endDate, 'YYYY-MM-DD')
+          .tz('Asia/Ho_Chi_Minh')
           .set('hour', 13)
           .set('minute', 1)
           .toISOString(),
