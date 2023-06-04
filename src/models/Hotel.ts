@@ -119,4 +119,10 @@ const hotelSchema = new Schema<IHotel>(
 
 const Hotel = model<IHotel>('hotels', hotelSchema);
 
+hotelSchema.virtual('countNumber', {
+  ref: 'roomTypes',
+  localField: 'roomTypeIds',
+  foreignField: '_id',
+  count: true,
+});
 export default Hotel;

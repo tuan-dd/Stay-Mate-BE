@@ -86,6 +86,9 @@ class WorkerService {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const { _id, role } = userDb;
 
+        if (_id.equals(hotelDb.userId)) {
+          return;
+        }
         const createReview = await reviewService.createOne({
           images: [],
           starRating: 0,
@@ -125,7 +128,7 @@ class WorkerService {
         });
 
         if (!reviewDb.context || !reviewDb.starRating) {
-          await reviewDb.deleteOne();
+          return reviewDb.deleteOne();
         }
         return;
       }

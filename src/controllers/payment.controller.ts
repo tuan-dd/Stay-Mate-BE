@@ -64,6 +64,7 @@ class PaymentController {
       duration: 1000 * 60 * 10,
     };
 
+    const userDb = await userService.findById(newBooking.userId);
     const roomsOrders = newBooking.rooms;
 
     const NumberOfRoomAfterCheck = await bookingService.isEnoughRoom(
@@ -91,8 +92,14 @@ class PaymentController {
 
     newBooking.total =
       total *
-      (parseInt(dayjs(newBooking.endDate).format('day')) -
-        parseInt(dayjs(newBooking.startDate).format('day')));
+      Math.ceil(
+        (dayjs(newBooking.endDate).unix() - dayjs(newBooking.startDate).unix()) /
+          (60 * 60 * 24),
+      );
+
+    if (newBooking.total > userDb.account.balance)
+      throw new BadRequestError('You don`t enough money to booking');
+
     // ngày đầu trừ ngày cuối để tính tổng số ngày ở nhân tổng tiền số lượng phòng
 
     const createBooking = await bookingService.createOne(newBooking);

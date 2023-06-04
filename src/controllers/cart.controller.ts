@@ -62,18 +62,6 @@ class CartController {
         );
     });
 
-    // newOrder.rooms.forEach((roomOrder) => {
-    //   const isRoomOfHotelDB = hotelDb.roomTypeIds.some((e) => { // loop if each roomOrder in newOrder same room in hotel
-    //     if (e._id.equals(roomOrder.roomTypeId)) {
-    //       if (e.numberOfRoom < roomOrder.quantity) // check order exceed number Of Room
-    //         throw new BadRequestError(`order exceed quantity of Room : ${e.nameOfRoom}`);
-    //       return true;
-    //     }
-    //     return false;
-    //   });
-    //   if (!isRoomOfHotelDB) throw new NotFoundError('Not found room of hotel');
-    // });
-
     // if user dont have cart create cart
     const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });
 
@@ -125,7 +113,7 @@ class CartController {
       newOrder.createdAt = new Date();
       cartDb.orders.push(newOrder);
     }
-
+    cartDb.isActive = true;
     await cartDb.save();
 
     oke(cartDb);

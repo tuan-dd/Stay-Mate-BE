@@ -141,14 +141,13 @@ export const getHotelSchema = Yup.object().shape({
     star: Yup.number().min(0.5).max(5).notRequired(),
     price_gte: Yup.number().min(0).max(20000).notRequired(),
     price_lte: Yup.number()
-      .min(50)
-      .max(2000)
+      .max(20000)
       .test('comparePrice', 'Not less or equal than price_gte', (data, context) =>
         data < context.parent.price_gte ? false : true,
       )
       .notRequired(),
     rateDescription: Yup.string()
-      .oneOf(['single', 'double', 'queen', 'king'])
+      .oneOf(['single', 'double', 'queen', 'king bed'])
       .notRequired(),
     mealType: Yup.string()
       .oneOf(['breakfast', 'dinner', 'parking', 'lunch'])
