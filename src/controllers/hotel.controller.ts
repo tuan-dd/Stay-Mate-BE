@@ -266,8 +266,8 @@ class HotelController {
       query,
     );
 
-    const page = req.query.page | 1;
-    const limit = req.query.limit | 15;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 15;
 
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
@@ -285,14 +285,16 @@ class HotelController {
       },
     );
 
-    const count = await HotelService.countQuery(query);
-    const checkHotel = hotels.filter((hotel) => hotel.roomTypeIds.length !== 0);
+    const count = await HotelService.countQuery({
+      ...query,
+      isDelete,
+      package: { $ne: Package.FREE },
+    });
 
-    if (!checkHotel.length) throw new NotFoundError('Not found hotel');
-
+    const filterHotel = hotels.filter((hotel) => hotel.roomTypeIds.length !== 0);
     new SuccessResponse({
       message: 'get hotel`s data successfully',
-      data: { result: checkHotel, count },
+      data: { result: filterHotel, count },
     }).send(res);
   };
 

@@ -93,7 +93,7 @@ export const convertRoom = (pros: Pros<any>): Pros<any> => {
       pros[key] = regExp;
     }
     if (key === 'roomAmenities') {
-      pros[key] = { $in: pros[key] };
+      pros[key] = { $all: pros[key] };
     }
     if (prices.includes(key) && (pros[key] || pros[key] === 0)) {
       if (key === 'price_gte') {
