@@ -1,10 +1,10 @@
 import { Types, Schema, model, SchemaTypes, Document } from 'mongoose';
-import { Role } from './User';
+import { ERole } from './User';
 
 interface Author {
   name: string;
   authorId: Types.ObjectId;
-  role: Role;
+  role: ERole;
 }
 interface Hotel {
   name: string;
@@ -67,7 +67,7 @@ const reviewSchema = new Schema<IReview>(
     author: {
       name: { type: String, required: true },
       authorId: { type: SchemaTypes.ObjectId, required: true, ref: 'Users' },
-      role: { type: String, required: true, enum: Object.values(Role) },
+      role: { type: String, required: true, enum: Object.values(ERole) },
     },
     hotel: {
       name: {

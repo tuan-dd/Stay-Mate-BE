@@ -4,7 +4,7 @@ import {
   SuccessResponse,
   ServiceUnavailableError,
 } from '@/helpers/utils';
-import { KeyHeader } from '@/middleware/validate';
+import { EKeyHeader } from '@/middleware/validate';
 import { Order, ICart } from '@/models/Cart';
 import { Package } from '@/models/Hotel';
 import { CreateCartSchema } from '@/schema/cart.schema';
@@ -19,7 +19,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 class CartController {
   createOrAddToCart = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     const newOrder: Order = {
       hotelId: new Types.ObjectId(req.body.hotelId),
@@ -130,7 +130,7 @@ class CartController {
   };
 
   updateOrder = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     const newOrder: Order = {
       hotelId: new Types.ObjectId(req.body.hotelId),
@@ -188,7 +188,7 @@ class CartController {
   };
 
   getCarts = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     const cartDb = await cartService.findOneAndPopulateByQuery(
       {
@@ -209,7 +209,7 @@ class CartController {
   };
 
   deleteOrder = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     if (!req.query.createdAt) throw new BadRequestError('Query must have createdAt');
 

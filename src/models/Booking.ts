@@ -1,7 +1,7 @@
 import { Types, Schema, model, SchemaTypes, Document, PopulatedDoc } from 'mongoose';
 import { RoomDocument } from './Room-type';
 
-export enum Status {
+export enum EStatus {
   PENDING = 'PENDING',
   SUCCESS = 'SUCCESS',
   STAY = 'STAY',
@@ -16,7 +16,7 @@ export interface KeyRoomBooking {
 
 export interface IBooking {
   total?: number;
-  status?: Status;
+  status?: EStatus;
   rooms: KeyRoomBooking[];
   userId: Types.ObjectId;
   hotelId: Types.ObjectId;
@@ -39,8 +39,8 @@ const bookingSchema = new Schema<IBooking>(
     },
     status: {
       type: String,
-      default: Status.PENDING,
-      enum: Object.values(Status),
+      default: EStatus.PENDING,
+      enum: Object.values(EStatus),
       required: true,
     },
     rooms: {

@@ -5,10 +5,10 @@ import {
   NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
-import { KeyHeader } from '@/middleware/validate';
+import { EKeyHeader } from '@/middleware/validate';
 import { Package, IHotel } from '@/models/Hotel';
 import { RoomDocument } from '@/models/Room-type';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import addJobToQueue from '@/queue/queue';
 import {
   CheckHotelSchema,
@@ -54,7 +54,7 @@ class HotelController {
 
     const newHotel: Pros<IHotel> = getDeleteFilter(['roomTypes'], req.body);
 
-    newHotel.userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    newHotel.userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const roomTypes = req.body.roomTypes;
 
     const hotelsDb = await HotelService.findMany({
@@ -102,10 +102,10 @@ class HotelController {
 
     await createHotelSuccess.populate<{ roomTypeIds: RoomDocument[] }>('roomTypeIds');
 
-    if (role === Role.USER) {
+    if (role === ERole.USER) {
       const secretKey = crypto.randomBytes(32).toString('hex');
       const { accessToken, refreshToken } = tokenUtil.createTokenPair(
-        { role: Role.HOTELIER, email },
+        { role: ERole.HOTELIER, email },
         secretKey,
       );
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -121,7 +121,7 @@ class HotelController {
 
       await UserService.findOneUpdate(
         { _id: newHotel.userId },
-        { $set: { role: Role.HOTELIER } },
+        { $set: { role: ERole.HOTELIER } },
       );
 
       return new CreatedResponse({
@@ -141,7 +141,7 @@ class HotelController {
   };
 
   updateHotel = async (req: Request<any, any, UpdateHotelSchema>, res: Response) => {
-    const userId = req.headers[KeyHeader.USER_ID];
+    const userId = req.headers[EKeyHeader.USER_ID];
     const newUpdate: Pros<UpdateHotelSchema> = deleteKeyUndefined(req.body);
 
     if (typeof newUpdate.roomTypeIds === 'object') {
@@ -184,7 +184,7 @@ class HotelController {
 
   createRoom = async (req: Request<any, any, CreateRoomSchema>, res: Response) => {
     const newRooms = await RoomTypeService.createMany(req.body.roomTypes);
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const roomIds = newRooms.map((pros) => pros._id);
     const hotelId = new Types.ObjectId(req.params.id);
 
@@ -310,7 +310,7 @@ class HotelController {
   };
 
   getHotelsByHotelier = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     const hotel = await HotelService.findManyAndPopulateByQuery({
       query: { userId },

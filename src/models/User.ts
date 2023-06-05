@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 
 // const { Types, Schema } = mongoose;
-export enum Role {
+export enum ERole {
   HOTELIER = 'HOTELIER',
   USER = 'USER',
   ADMIN = 'ADMIN',
@@ -17,7 +17,7 @@ export interface IUser {
   account?: Account;
   verify?: boolean;
   avatar?: string;
-  role?: Role;
+  role?: ERole;
   isActive?: boolean;
 }
 
@@ -56,8 +56,8 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      default: Role.USER,
-      enum: Object.values(Role),
+      default: ERole.USER,
+      enum: Object.values(ERole),
       required: true,
     },
     isActive: { type: Boolean, default: true, required: true },

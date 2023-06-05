@@ -1,14 +1,14 @@
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import JWT from 'jsonwebtoken';
 
 export interface PayLoadInToken {
   email: string;
-  role: Role;
+  role: ERole;
 }
 
 export interface DataAfterEncode extends JWT.JwtPayload {
   email: string;
-  role: Role;
+  role: ERole;
   name?: string;
 }
 

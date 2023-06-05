@@ -1,4 +1,4 @@
-import Booking, { BookingDocument, IBooking, Status } from '@/models/Booking';
+import Booking, { BookingDocument, IBooking, EStatus } from '@/models/Booking';
 import BaseService, { QueryWithPagination } from './base.service';
 import Membership, { IMembership, MembershipDocument } from '@/models/Membership';
 import {
@@ -109,7 +109,7 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
     const bookingsDb = await Booking.find({
       hotelId: newBooking.hotelId,
-      status: { $in: [Status.SUCCESS, Status.PENDING] },
+      status: { $in: [EStatus.SUCCESS, EStatus.PENDING] },
       startDate: {
         $gte: dayjs(newBooking.startDate)
           .tz('Asia/Ho_Chi_Minh')
@@ -168,7 +168,7 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
 
     const bookingsDb = await Booking.find({
       hotelId: hotelDb._id,
-      status: { $in: [Status.SUCCESS, Status.PENDING] },
+      status: { $in: [EStatus.SUCCESS, EStatus.PENDING] },
       startDate: {
         $gte: dayjs(props.startDate, 'YYYY-MM-DD')
           .tz('Asia/Ho_Chi_Minh')

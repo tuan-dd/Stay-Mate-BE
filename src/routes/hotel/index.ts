@@ -6,7 +6,7 @@ import {
   checkUser,
   validateRequest,
 } from '@/middleware/validate';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import {
   createRoomSchema,
   createHotelSchema,
@@ -46,7 +46,7 @@ router.post(
 router.get(
   '/hotelier/me',
   checkUser,
-  checkRole(Role.HOTELIER),
+  checkRole(ERole.HOTELIER),
   catchError(hotelController.getHotelsByHotelier),
 );
 
@@ -55,7 +55,7 @@ router.put(
   checkParamsId,
   validateRequest(updateHotelSchema),
   checkUser,
-  checkRole(Role.HOTELIER),
+  checkRole(ERole.HOTELIER),
   catchError(hotelController.updateHotel),
 );
 
@@ -64,7 +64,7 @@ router.post(
   checkParamsId,
   validateRequest(createRoomSchema),
   checkUser,
-  checkRole(Role.HOTELIER),
+  checkRole(ERole.HOTELIER),
   catchError(hotelController.createRoom),
 );
 
@@ -73,7 +73,7 @@ router.put(
   checkParamsId,
   checkUser,
   validateRequest(updateRoomSchema),
-  checkRole(Role.HOTELIER),
+  checkRole(ERole.HOTELIER),
   catchError(hotelController.updateRoomType),
 );
 export default router;

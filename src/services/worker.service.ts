@@ -4,7 +4,7 @@ import { EJob, WorkerJob } from '@/utils/jobs';
 import { Worker, Job } from 'bullmq';
 import { getLogger } from 'log4js';
 import { memberShipService, bookingService } from './payment.service';
-import { Status } from '@/models/Booking';
+import { EStatus } from '@/models/Booking';
 import { Types } from 'mongoose';
 import userService from './user.service';
 import hotelsService from './hotels.service';
@@ -49,8 +49,8 @@ class WorkerService {
         if (!bookingDb) {
           return;
         }
-        if (bookingDb.status === Status.PENDING) {
-          bookingDb.status = Status.DECLINE;
+        if (bookingDb.status === EStatus.PENDING) {
+          bookingDb.status = EStatus.DECLINE;
 
           await bookingDb.save();
         }
@@ -80,7 +80,7 @@ class WorkerService {
 
         const userDb = await userService.findById(bookingDb.userId);
 
-        bookingDb.status = Status.STAY;
+        bookingDb.status = EStatus.STAY;
         await bookingDb.save();
 
         // eslint-disable-next-line @typescript-eslint/naming-convention

@@ -1,5 +1,5 @@
 import { NotAuthorizedError, NotFoundError, SuccessResponse } from '@/helpers/utils';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import {
   QueryUserSchema,
   UpdateHotelByAdminSchema,
@@ -45,14 +45,14 @@ class AdminController {
     const id = req.params.id;
     const userDb = await userService.findById(id);
 
-    if (userDb.role === Role.HOTELIER) {
+    if (userDb.role === ERole.HOTELIER) {
       const userDbByAggregate = await userService.findUserByAggregate(id, {
         password: 0,
       });
       oke(userDbByAggregate);
     }
 
-    if (userDb.role === Role.USER) {
+    if (userDb.role === ERole.USER) {
       const userDbByFindOne = await userService.findById(id, { password: 0 });
       oke(userDbByFindOne);
     }
