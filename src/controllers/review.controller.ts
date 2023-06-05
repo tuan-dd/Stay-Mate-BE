@@ -5,7 +5,7 @@ import {
   NotAuthorizedError,
   NotFoundError,
 } from '@/helpers/utils';
-import { KeyHeader } from '@/middleware/validate';
+import { EKeyHeader } from '@/middleware/validate';
 import { IReview } from '@/models/Review';
 import {
   CreateReviewSchema,
@@ -28,7 +28,7 @@ class ReviewController {
    */
 
   createReview = async (req: Request<any, any, CreateReviewSchema>, res: Response) => {
-    const authorId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const authorId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const newReview = {
       context: req.body.context,
       images: req.body.images,
@@ -124,7 +124,9 @@ class ReviewController {
       const result = await reviewService.findOneUpdate(
         {
           _id: new Types.ObjectId(req.params.id),
-          'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
+          'author.authorId': new Types.ObjectId(
+            req.headers[EKeyHeader.USER_ID] as string,
+          ),
           starRating: { $ne: 0 },
         },
         { $set: { isDelete: true } },
@@ -160,7 +162,7 @@ class ReviewController {
     const result = await reviewService.findOneUpdate(
       {
         _id: new Types.ObjectId(req.params.id),
-        'author.authorId': new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
+        'author.authorId': new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string),
         starRating: { $ne: 0 },
       },
       { $set: { ...newUpdate } },
@@ -206,7 +208,7 @@ class ReviewController {
 
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     let reviews = [];
 
     if (Object.keys(req.query).every((key) => !req.query[key]))

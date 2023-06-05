@@ -12,7 +12,7 @@ import {
 import SecretKeyStoreService from '@/services/keyStore.service';
 import UserService from '@/services/user.service';
 import tokenUtil, { DataAfterEncode } from '@/utils/tokenUtil';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -20,7 +20,7 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export enum KeyHeader {
+export enum EKeyHeader {
   USER_ID = 'x-client-id',
   REFRESH_TOKEN = 'x-rtoken-id',
   ACCESS_TOKEN = 'x-atoken-id',
@@ -62,8 +62,8 @@ export const validateRequest =
 
 // check header have info need to use some router
 export const checkUser = async (req: Request, _res: Response, next: NextFunction) => {
-  const userId = req.headers[KeyHeader.USER_ID] as string;
-  const accessToken = req.headers[KeyHeader.ACCESS_TOKEN] as string;
+  const userId = req.headers[EKeyHeader.USER_ID] as string;
+  const accessToken = req.headers[EKeyHeader.ACCESS_TOKEN] as string;
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const ipSave = (ip as string).split(', ');
   try {
@@ -117,7 +117,12 @@ export const checkParamsId = (req: Request, _res: Response, next: NextFunction) 
 };
 
 export const checkRole =
-  (role: Role) => (req: Request, _res: Response, next: NextFunction) => {
-    if (req.user.role !== role) throw new NotAuthorizedError('you are not authorized');
+  (role: ERole) => (req: Request, _res: Response, next: NextFunction) => {
+    if (req.user.role !== role && role === ERole.HOTELIER)
+      throw new NotAuthorizedError(
+        `You are not ${role}, create hotel to use this feature`,
+      );
+
+    if (req.user.role !== role) throw new NotAuthorizedError('You are not authorized');
     next();
   };

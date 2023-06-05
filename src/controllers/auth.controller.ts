@@ -13,7 +13,7 @@ import userService from '@/services/user.service';
 import pwdUtil from '@/utils/pwdUtil';
 import KeyStoresService from '@/services/keyStore.service';
 import tokenUtil from '@/utils/tokenUtil';
-import { KeyHeader } from '@/middleware/validate';
+import { EKeyHeader } from '@/middleware/validate';
 import SecretKeyStoreService from '@/services/keyStore.service';
 import { Types } from 'mongoose';
 import { getLogger } from 'log4js';
@@ -154,7 +154,7 @@ class AuthController {
   signOut = async (req: Request, res: Response) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const ipSave = (ip as string).split(', ');
-    const userId = req.headers[KeyHeader.USER_ID];
+    const userId = req.headers[EKeyHeader.USER_ID];
 
     const objectId = new Types.ObjectId(userId as string);
 
@@ -177,8 +177,8 @@ class AuthController {
   };
 
   getNewAccessToken = async (req: Request, res: Response) => {
-    const userId = req.headers[KeyHeader.USER_ID] as string;
-    const refreshToken = req.headers[KeyHeader.REFRESH_TOKEN] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
+    const refreshToken = req.headers[EKeyHeader.REFRESH_TOKEN] as string;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const ipSave = (ip as string).split(', ');
 

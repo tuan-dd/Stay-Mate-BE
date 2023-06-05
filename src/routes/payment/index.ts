@@ -6,7 +6,7 @@ import {
   checkUser,
   validateRequest,
 } from '@/middleware/validate';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import {
   cancelBookingSchema,
   chargeSchema,
@@ -60,6 +60,7 @@ router.put(
 
 router.put(
   '/payment-membership',
+  checkRole(ERole.HOTELIER),
   validateRequest(paymentMembershipSchema),
   catchError(paymentController.paymentMembership),
 );
@@ -74,13 +75,14 @@ router.get('/detail/:id', checkParamsId, catchError(paymentController.getDetailB
 
 router.get(
   '/hotelier/booking',
-  checkRole(Role.HOTELIER),
+  checkRole(ERole.HOTELIER),
   validateRequest(getBookingByHotelierSchema),
   catchError(paymentController.getBookingsByHotelier),
 );
 
 router.get(
   '/membership',
+  checkRole(ERole.HOTELIER),
   validateRequest(getMembershipSchema),
   catchError(paymentController.getMemberShips),
 );

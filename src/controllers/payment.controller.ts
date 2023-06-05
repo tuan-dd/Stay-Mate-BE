@@ -5,8 +5,8 @@ import {
   NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
-import { KeyHeader } from '@/middleware/validate';
-import { IBooking, Status } from '@/models/Booking';
+import { EKeyHeader } from '@/middleware/validate';
+import { IBooking, EStatus } from '@/models/Booking';
 import { Package, PricePackage } from '@/models/Hotel';
 import { IMembership } from '@/models/Membership';
 import addJobToQueue from '@/queue/queue';
@@ -49,7 +49,7 @@ class PaymentController {
         quantity: room.quantity,
         roomTypeId: new mongoose.Types.ObjectId(room.roomTypeId),
       })),
-      userId: new mongoose.Types.ObjectId(req.headers[KeyHeader.USER_ID] as string),
+      userId: new mongoose.Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string),
       hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
       startDate: dayjs(req.body.startDate)
         .tz('Asia/Ho_Chi_Minh')
@@ -138,7 +138,7 @@ class PaymentController {
       password: req.body.password,
       hotelId: new Types.ObjectId(req.body.hotelId),
     };
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
 
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
@@ -155,7 +155,7 @@ class PaymentController {
 
       if (!bookingDb) throw new NotFoundError('Not found payment');
 
-      if (bookingDb.status !== Status.PENDING)
+      if (bookingDb.status !== EStatus.PENDING)
         throw new BadRequestError('Payment expired');
 
       const userDb = await userService.findByIdAndCheckPass(userId, newPayment.password);
@@ -182,7 +182,7 @@ class PaymentController {
 
       await userDb.save({ session });
 
-      bookingDb.status = Status.SUCCESS;
+      bookingDb.status = EStatus.SUCCESS;
 
       await bookingDb.save({ session });
 
@@ -221,7 +221,7 @@ class PaymentController {
       bookingId: new Types.ObjectId(req.body.bookingId),
       hotelId: new Types.ObjectId(req.body.hotelId),
     };
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
 
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
@@ -232,7 +232,7 @@ class PaymentController {
 
       if (!bookingDb) throw new NotFoundError('Not found payment');
 
-      if (bookingDb.status !== Status.SUCCESS)
+      if (bookingDb.status !== EStatus.SUCCESS)
         throw new NotFoundError('User cant refund');
 
       const dataNow = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
@@ -263,7 +263,7 @@ class PaymentController {
         { session },
       );
 
-      bookingDb.status = Status.CANCEL;
+      bookingDb.status = EStatus.CANCEL;
 
       await bookingDb.save({ session });
 
@@ -285,7 +285,7 @@ class PaymentController {
     req: Request<any, any, PaymentMembershipSchema>,
     res: Response,
   ) => {
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
     const newMemberShip: IMembership = {
       userId: new Types.ObjectId(userId),
       package: req.body.package,
@@ -389,7 +389,7 @@ class PaymentController {
 
   chargeMoney = async (req: Request<any, any, ChargeSchema>, res: Response) => {
     const balance = req.body.balance;
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
 
     const updateBalance = await userService.findByIdUpdate(
       userId,
@@ -408,7 +408,7 @@ class PaymentController {
   };
 
   withdrawMoney = async (req: Request<any, any, WithdrawSchema>, res: Response) => {
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
     const newUpdate = req.body;
 
     const session: ClientSession = await mongoose.startSession();
@@ -446,7 +446,7 @@ class PaymentController {
     let query = getMembershipSchema.cast(req, {
       stripUnknown: true,
     }).query;
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     query = getDeleteFilter(['page'], req.query);
 
@@ -467,7 +467,7 @@ class PaymentController {
   };
 
   getBookings = async (req: Request<any, any, any, GetBookingSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const page = req.query.page || 1;
 
     const bookings = await bookingService.findManyAndPopulateByQuery(
@@ -493,11 +493,11 @@ class PaymentController {
     res: Response,
   ) => {
     const query = req.query;
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const hotelId = new Types.ObjectId(query.hotelId);
     const page = req.query.page || 1;
 
-    if (query.status === Status.PENDING)
+    if (query.status === EStatus.PENDING)
       throw new BadRequestError('Hotelier can not get pending booking');
 
     if (query.allHotel) {
@@ -557,7 +557,7 @@ class PaymentController {
   };
 
   getDetailBooking = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[KeyHeader.USER_ID] as string);
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     const bookingId = new Types.ObjectId(req.params.id);
 
     const booking = await bookingService.findOneByPopulate(

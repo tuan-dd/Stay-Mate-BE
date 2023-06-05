@@ -5,7 +5,7 @@ import {
   NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
-import { KeyHeader } from '@/middleware/validate';
+import { EKeyHeader } from '@/middleware/validate';
 import { UserDocument } from '@/models/User';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
@@ -31,7 +31,7 @@ class UserController {
 
   updateUser = async (req: Request<any, any, UpdateUserSchema>, res: Response) => {
     const body = req.body;
-    const userId = req.headers[KeyHeader.USER_ID] as string;
+    const userId = req.headers[EKeyHeader.USER_ID] as string;
     let userDb: UserDocument | boolean;
     if (body.password) {
       userDb = await UserService.findByIdAndCheckPass(userId, body.password, {

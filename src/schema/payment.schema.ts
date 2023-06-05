@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Status } from '@/models/Booking';
+import { EStatus } from '@/models/Booking';
 import { Package } from '@/models/Hotel';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -85,7 +85,7 @@ export const paymentMembershipSchema = Yup.object().shape({
 export const getBookingSchema = Yup.object().shape({
   query: Yup.object().shape({
     page: Yup.number().integer().min(1).notRequired(),
-    status: Yup.string().oneOf(Object.values(Status)).notRequired(),
+    status: Yup.string().oneOf(Object.values(EStatus)).notRequired(),
   }),
 });
 
@@ -98,7 +98,7 @@ export const getBookingByHotelierSchema = Yup.object().shape({
         allHotel[0] ? field.notRequired() : field.required(),
       ),
     page: Yup.number().integer().min(1).notRequired(),
-    status: Yup.string().oneOf(Object.values(Status)).notRequired(),
+    status: Yup.string().oneOf(Object.values(EStatus)).notRequired(),
   }),
 });
 

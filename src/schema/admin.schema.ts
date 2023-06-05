@@ -1,11 +1,11 @@
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import * as Yup from 'yup';
 
 export const queryUserSchema = Yup.object().shape({
   query: Yup.object().shape({
     email: Yup.string().email().notRequired(),
     name: Yup.string().notRequired(),
-    role: Yup.string().oneOf(Object.values(Role)).notRequired(),
+    role: Yup.string().oneOf(Object.values(ERole)).notRequired(),
     createdAt_gte: Yup.date().notRequired(),
     createdAt_lte: Yup.date().notRequired(),
     createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {

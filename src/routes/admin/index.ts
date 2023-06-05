@@ -5,7 +5,7 @@ import {
   checkUser,
   validateRequest,
 } from '@/middleware/validate';
-import { Role } from '@/models/User';
+import { ERole } from '@/models/User';
 import {} from '@/schema/hotel.schema';
 import {
   queryUserSchema,
@@ -18,13 +18,9 @@ import adminController from '@/controllers/admin.controller';
 const router = express.Router();
 
 router.use(checkUser);
-router.use(checkRole(Role.ADMIN));
+router.use(checkRole(ERole.ADMIN));
 
-router.get(
-  '/',
-  validateRequest(queryUserSchema),
-  catchError(adminController.queryUsers),
-);
+router.get('/', validateRequest(queryUserSchema), catchError(adminController.queryUsers));
 
 router.get('/:id', checkParamsId, catchError(adminController.detailUser));
 
