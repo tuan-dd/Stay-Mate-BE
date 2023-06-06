@@ -16,6 +16,7 @@ class App {
     'http://localhost:5000',
     'http://localhost:3000',
     'https://staymate-tuan.netlify.app',
+    'https://staymate-admin.netlify.app',
   ];
 
   constructor() {
