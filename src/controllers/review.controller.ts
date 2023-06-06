@@ -9,12 +9,14 @@ import { EKeyHeader } from '@/middleware/validate';
 import { IReview } from '@/models/Review';
 import {
   CreateReviewSchema,
+  GetReviewsByHotelierSchema,
   GetReviewsByUserSchema,
   GetReviewsSchema,
   UpdateReviewSchema,
 } from '@/schema/review.schema';
 import hotelsService from '@/services/hotels.service';
 import reviewService from '@/services/review.service';
+import userService from '@/services/user.service';
 import { Pros, deleteKeyUndefined, getDeleteFilter } from '@/utils/lodashUtil';
 import { Response, Request } from 'express';
 import { Types } from 'mongoose';
@@ -55,11 +57,13 @@ class ReviewController {
 
       if (isOwnerHotel)
         throw new NotAuthorizedError('Hotelier cant not reviewDb their hotel');
-    }
 
-    Object.keys(newReview).forEach((key) => {
-      reviewDb[key] = newReview[key];
-    });
+      Object.keys(newReview).forEach((key) => {
+        if (newReview[key]) {
+          reviewDb[key] = newReview[key];
+        }
+      });
+    }
 
     if (parent_slug) {
       const replyReview: Pros<IReview> = getDeleteFilter(
@@ -74,18 +78,25 @@ class ReviewController {
       //mỗi review chỉ tạo 1 reply
       if (reviewDb.isReply) throw new BadRequestError('Review has already reply');
 
+      const hotelier = await userService.findById(authorId);
       replyReview.parent_slug = parent_slug;
+
+      replyReview.author = {
+        authorId: authorId,
+        name: hotelier.name,
+        role: hotelier.role,
+      };
 
       replyReview.slug = `${reviewDb.slug}/${new Date().getTime().toString()}`;
 
+      replyReview.isReply = true;
       const createReview = await reviewService.createOne(replyReview);
 
       reviewDb.isReply = true;
-
       await reviewDb.save();
 
       return new CreatedResponse({
-        message: ' Create reply successfully',
+        message: 'Create reply successfully',
         data: createReview,
       }).send(res);
     }
@@ -132,30 +143,31 @@ class ReviewController {
         { $set: { isDelete: true } },
         { new: false },
       );
+      if (!result.parent_slug) {
+        const hotelDb = await hotelsService.findById(result.hotel.hotelId, null, {
+          lean: false,
+        });
 
-      const hotelDb = await hotelsService.findById(result.hotel.hotelId, null, {
-        lean: false,
-      });
+        const countReview = hotelDb.starRating.countReview - 1;
 
-      const countReview = hotelDb.starRating.countReview - 1;
+        let newStarAverage: number;
 
-      let newStarAverage: number;
+        if (countReview === 0) {
+          newStarAverage = 5;
+        } else {
+          newStarAverage =
+            (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
+              result.starRating) /
+            countReview;
+        }
 
-      if (countReview === 0) {
-        newStarAverage = 5;
-      } else {
-        newStarAverage =
-          (hotelDb.starRating.starAverage * hotelDb.starRating.countReview -
-            result.starRating) /
-          countReview;
+        hotelDb.starRating = {
+          countReview,
+          starAverage: newStarAverage,
+        };
+
+        await hotelDb.save();
       }
-
-      hotelDb.starRating = {
-        countReview,
-        starAverage: newStarAverage,
-      };
-
-      await hotelDb.save();
       return oke(result);
     }
 
@@ -165,11 +177,11 @@ class ReviewController {
         'author.authorId': new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string),
         starRating: { $ne: 0 },
       },
-      { $set: { ...newUpdate } },
+      { $set: newUpdate },
       { new: false },
     );
 
-    if (newUpdate.starRating && newUpdate.starRating !== result.starRating) {
+    if (!result.parent_slug && newUpdate.starRating !== result.starRating) {
       const hotelDb = await hotelsService.findById(result.hotel.hotelId, null, {
         lean: false,
       });
@@ -204,7 +216,7 @@ class ReviewController {
      * @case_1 nếu k hotelId parent_slug thì lấy reviews theo 2 điều kiện đã review hoặc chưa review
      * @case_2 hotelId parent_slug
      */
-    const { hotelId, isParent_slug, isReview } = req.query;
+    const { isReview } = req.query;
 
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
@@ -214,65 +226,99 @@ class ReviewController {
     if (Object.keys(req.query).every((key) => !req.query[key]))
       throw new BadRequestError('Request must have one value');
 
-    if (!hotelId) {
-      if (isReview) {
-        reviews = await reviewService.findMany({
-          query: {
-            'author.authorId': userId,
-            starRating: { $gte: 0.5 },
-            parent_slug: '',
-          },
-          page: page,
-          limit: limit,
-        });
-        return oke();
-      }
-
-      if (!isReview) {
-        reviews = await reviewService.findMany({
-          query: {
-            'author.authorId': userId,
-            parent_slug: '',
-            starRating: 0,
-          },
-          page: page,
-          limit: limit,
-        });
-
-        return oke();
-      }
+    if (isReview) {
+      reviews = await reviewService.findMany({
+        query: {
+          'author.authorId': userId,
+          starRating: { $gte: 0.5 },
+          parent_slug: '',
+        },
+        page: page,
+        limit: limit,
+      });
+      return oke();
     }
 
-    if (hotelId) {
-      const hotelDb = await hotelsService.findById(hotelId);
+    if (!isReview) {
+      reviews = await reviewService.findMany({
+        query: {
+          'author.authorId': userId,
+          parent_slug: '',
+          starRating: 0,
+        },
+        page: page,
+        limit: limit,
+      });
 
-      if (!hotelDb.userId.equals(userId))
-        throw new NotAuthorizedError('Only hotelier can get hotel`s review');
-
-      if (isParent_slug) {
-        reviews = await reviewService.findMany({
-          query: {
-            'hotel.hotelId': hotelId,
-            isParent_slug,
-          },
-          page: page,
-          limit: limit,
-        });
-      }
-      if (!isParent_slug) {
-        reviews = await reviewService.findMany({
-          query: {
-            'hotel.hotelId': hotelId,
-            parent_slug: { $ne: '' },
-          },
-          page: page,
-          limit: limit,
-        });
-      }
       return oke();
     }
 
     function oke() {
+      if (!reviews.length) throw new NotFoundError('Not found reviews');
+      new CreatedResponse({
+        message: ' get Data`review successfully',
+        data: reviews,
+      }).send(res);
+    }
+  };
+
+  getReviewsByHolier = async (
+    req: Request<any, any, any, GetReviewsByHotelierSchema>,
+    res: Response,
+  ) => {
+    const { typeReview, hotelId } = req.query;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+
+    const hotelDb = await hotelsService.findById(hotelId);
+
+    if (!hotelDb) throw new NotFoundError('Not found hotel');
+
+    if (!hotelDb.userId.equals(userId))
+      throw new NotAuthorizedError('Only hotelier can get hotel`s review');
+
+    if (typeReview === 'reply') {
+      const reviewDb = await reviewService.findMany({
+        query: {
+          'hotel.hotelId': hotelDb._id,
+          parent_slug: { $ne: '' },
+        },
+        page: page,
+        limit: limit,
+      });
+
+      oke(reviewDb);
+    }
+
+    if (typeReview === 'reviewHadReply') {
+      const reviewDb = await reviewService.findMany({
+        query: {
+          'hotel.hotelId': hotelDb._id,
+          isReply: true,
+        },
+        page: page,
+        limit: limit,
+      });
+      oke(reviewDb);
+    }
+
+    if (typeReview === 'reviewNoReply') {
+      const reviewDb = await reviewService.findMany({
+        query: {
+          'hotel.hotelId': hotelDb._id,
+          starRating: { $ne: 0 },
+          parent_slug: '',
+          isReply: false,
+        },
+        page: page,
+        limit: limit,
+      });
+
+      oke(reviewDb);
+    }
+
+    function oke(reviews: IReview[]) {
       if (!reviews.length) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
         message: ' get Data`review successfully',

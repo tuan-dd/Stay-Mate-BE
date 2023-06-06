@@ -87,6 +87,26 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       .exec();
   };
 
+  findManyAndPopulateByHotelier = (
+    query: QueryWithPagination<BookingDocument>,
+    options1?: PopulateOptions,
+    options2?: PopulateOptions,
+  ) => {
+    return Booking.find(query.query)
+      .populate([
+        {
+          path: 'hotelId',
+          ...options1,
+        },
+        { path: 'rooms.roomTypeId', ...options2 },
+        { path: 'userId', select: '-_id name email' },
+      ])
+      .skip(query.limit * (query.page - 1))
+      .limit(query.limit)
+      .sort('-createdAt')
+      .exec();
+  };
+
   isEnoughRoom = async (newBooking: IBooking, rooms: IRoomRes[]) => {
     const hotelDb = await hotelsService.findOneAndPopulateByQuery(
       {

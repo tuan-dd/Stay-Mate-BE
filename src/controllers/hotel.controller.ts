@@ -90,7 +90,7 @@ class HotelController {
         { delay: week.getTime() },
       );
       if (!createJob) {
-        throw new BadRequestError('can`t payment, try again ');
+        throw new BadRequestError('Can`t payment, try again ');
       }
 
       newHotel.package = Package.WEEK;
@@ -127,7 +127,7 @@ class HotelController {
       return new CreatedResponse({
         message: 'Create hotel successfully',
         data: {
-          ...createHotelSuccess,
+          result: createHotelSuccess,
           accessToken,
           refreshToken,
         },
@@ -136,7 +136,9 @@ class HotelController {
 
     new CreatedResponse({
       message: 'Create hotel successfully',
-      data: createHotelSuccess,
+      data: {
+        result: createHotelSuccess,
+      },
     }).send(res);
   };
 

@@ -152,9 +152,9 @@ export const getHotelSchema = Yup.object().shape({
     mealType: Yup.string()
       .oneOf(['breakfast', 'dinner', 'parking', 'lunch'])
       .notRequired(),
-    roomAmenities: Yup.array(
-      Yup.string().oneOf(Object.values(RoomAmenities)),
-    ).notRequired(),
+    roomAmenities: Yup.array(Yup.string().oneOf(Object.values(RoomAmenities)))
+      .min(1)
+      .notRequired(),
     createdAt_gte: Yup.date().notRequired(),
     createdAt_lte: Yup.date().min('2023-04-06').notRequired(),
     createdAt: Yup.date().when(['createdAt_gte', 'createdAt_lte'], {
