@@ -27,7 +27,7 @@ import hotelsService from '@/services/hotels.service';
 import { bookingService, memberShipService } from '@/services/payment.service';
 import userService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
-import { getConvertCreatedAt, getDeleteFilter } from '@/utils/lodashUtil';
+import { deleteKeyUndefined, getDeleteFilter } from '@/utils/lodashUtil';
 import dayjs from 'dayjs';
 import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
@@ -138,7 +138,7 @@ class PaymentController {
       password: req.body.password,
       hotelId: new Types.ObjectId(req.body.hotelId),
     };
-    const userId = req.headers[EKeyHeader.USER_ID] as string;
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
 
     const session: ClientSession = await mongoose.startSession();
     session.startTransaction();
@@ -147,6 +147,7 @@ class PaymentController {
       const bookingDb = await bookingService.findOne(
         {
           _id: newPayment.bookingId,
+          userId,
           hotelId: newPayment.hotelId,
         },
         null,
@@ -164,7 +165,7 @@ class PaymentController {
         throw new ForbiddenError('can`t payment, try again');
 
       if (userDb.account.balance < bookingDb.total)
-        throw new ForbiddenError('balance less than booking');
+        throw new ForbiddenError('Balance less than booking');
 
       const hotel = await hotelsService.findById(newPayment.hotelId);
 
@@ -200,7 +201,7 @@ class PaymentController {
         },
       );
 
-      if (!createJob) throw new BadRequestError('can`t payment, try again ');
+      if (!createJob) throw new BadRequestError('Can`t payment, try again ');
 
       await session.commitTransaction();
 
@@ -303,29 +304,30 @@ class PaymentController {
         throw new ForbiddenError('Balance less than package');
 
       const membershipsOfUser = await memberShipService.findMany({
-        query: { userId: new Types.ObjectId(userId), isExpire: false, createdAt: -1 },
+        query: { userId: new Types.ObjectId(userId), isExpire: false },
         page: null,
         limit: null,
       });
 
       if (membershipsOfUser.length !== 0) {
         // lấy ngày kết thúc của các gói chưa hết hạn mới nhất làm ngày bắt đầu của gói mới
-        newMemberShip.timeStart = new Date(membershipsOfUser[0].timeEnd);
+        newMemberShip.timeStart = dayjs(membershipsOfUser[0].timeEnd)
+          .tz('Asia/Ho_Chi_Minh')
+          .toDate();
       } else {
         // nếu chưa có thì bằng ngày hôm nay
-        newMemberShip.timeStart = new Date();
+        newMemberShip.timeStart = dayjs().tz('Asia/Ho_Chi_Minh').toDate();
       }
 
       // Cho giá tiền của gói bằng thời số ngày theo tuần tháng năm
       newMemberShip.timeEnd = new Date(
-        newMemberShip.timeStart.getTime() +
+        dayjs(newMemberShip.timeStart).tz('Asia/Ho_Chi_Minh').valueOf() +
           1000 * 60 * 60 * 24 * PricePackage[newMemberShip.package],
       );
 
       const createMemberShip = await memberShipService.createOneAtomic([newMemberShip], {
         session,
       });
-
       if (newMemberShip.package === Package.WEEK)
         await hotelsService.updateMany(
           {
@@ -368,7 +370,10 @@ class PaymentController {
           type: EJob.MEMBERSHIP,
           job: { id: createMemberShip[0]._id, userID: userId },
         },
-        { delay: newMemberShip.timeEnd.getTime() - new Date().getTime() },
+        {
+          delay:
+            newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf(),
+        },
       );
 
       if (!createJob) throw new BadRequestError('Can`t payment, try again ');
@@ -376,7 +381,7 @@ class PaymentController {
       await session.commitTransaction();
       new CreatedResponse({
         message: 'Payment membership successfully',
-        data: createMemberShip,
+        data: createMemberShip[0],
       }).send(res);
     } catch (error) {
       await session.abortTransaction();
@@ -450,7 +455,7 @@ class PaymentController {
 
     query = getDeleteFilter(['page'], req.query);
 
-    query = getConvertCreatedAt(query, ['']);
+    query = deleteKeyUndefined(query);
 
     const page = req.query.page || 1;
 
@@ -459,6 +464,8 @@ class PaymentController {
       page: page,
       limit: 10,
     });
+
+    if (!memberships.length) throw new NotFoundError('Not found memberships');
 
     new CreatedResponse({
       message: 'Get data`s MemberShips successfully',
@@ -497,9 +504,6 @@ class PaymentController {
     const hotelId = new Types.ObjectId(query.hotelId);
     const page = req.query.page || 1;
 
-    if (query.status === EStatus.PENDING)
-      throw new BadRequestError('Hotelier can not get pending booking');
-
     if (query.allHotel) {
       const hotelsDb = await hotelsService.findMany(
         {
@@ -512,7 +516,7 @@ class PaymentController {
 
       if (!hotelsDb.length) throw new NotFoundError('Not found hotel');
 
-      const bookings = await bookingService.findManyAndPopulateByQuery(
+      const bookings = await bookingService.findManyAndPopulateByHotelier(
         {
           query: { status: req.query.status, hotelId: { $in: hotelsDb } },
           page: page,
@@ -538,7 +542,7 @@ class PaymentController {
 
     if (!hotelDb) throw new NotFoundError('Not found hotel');
 
-    const bookings = await bookingService.findManyAndPopulateByQuery(
+    const bookings = await bookingService.findManyAndPopulateByHotelier(
       {
         query: { status: req.query.status, hotelId },
         page: page,

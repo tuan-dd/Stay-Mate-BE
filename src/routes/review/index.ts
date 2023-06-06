@@ -2,11 +2,14 @@ import reviewController from '@/controllers/review.controller';
 import {
   catchError,
   checkParamsId,
+  checkRole,
   checkUser,
   validateRequest,
 } from '@/middleware/validate';
+import { ERole } from '@/models/User';
 import {
   createReviewSchema,
+  getReviewsByHotelierSchema,
   getReviewsByUserSchema,
   getReviewsSchema,
   updateReviewSchema,
@@ -33,6 +36,13 @@ router.get(
   '/user',
   validateRequest(getReviewsByUserSchema),
   catchError(reviewController.getReviewsByUser),
+);
+
+router.get(
+  '/hotelier',
+  checkRole(ERole.HOTELIER),
+  validateRequest(getReviewsByHotelierSchema),
+  catchError(reviewController.getReviewsByHolier),
 );
 
 router.post(

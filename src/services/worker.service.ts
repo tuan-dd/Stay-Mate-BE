@@ -138,7 +138,6 @@ class WorkerService {
             query: {
               userId: new Types.ObjectId(job.data.job.userID),
               isExpire: false,
-              createdAt: -1,
             },
             page: null,
             limit: null,

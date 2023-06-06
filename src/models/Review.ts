@@ -44,6 +44,8 @@ const reviewSchema = new Schema<IReview>(
     },
     images: {
       type: [String],
+      required: true,
+      default: [],
     },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },

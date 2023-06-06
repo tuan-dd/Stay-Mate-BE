@@ -25,10 +25,19 @@ export const updateReviewSchema = Yup.object().shape({
 export const getReviewsByUserSchema = Yup.object().shape({
   query: Yup.object().shape({
     isReview: Yup.boolean().notRequired(),
-    isParent_slug: Yup.boolean().notRequired(),
     page: Yup.number().integer().min(1).notRequired(),
     limit: Yup.number().integer().min(3).max(45).notRequired(),
-    hotelId: Yup.string().objectIdValid().notRequired(),
+  }),
+});
+
+export const getReviewsByHotelierSchema = Yup.object().shape({
+  query: Yup.object().shape({
+    typeReview: Yup.string()
+      .oneOf(['reviewNoReply', 'reviewHadReply', 'reply'])
+      .required(),
+    page: Yup.number().integer().min(1).notRequired(),
+    limit: Yup.number().integer().min(3).max(45).notRequired(),
+    hotelId: Yup.string().objectIdValid().required(),
   }),
 });
 
@@ -47,6 +56,10 @@ export type UpdateReviewSchema = Yup.InferType<typeof updateReviewSchema>['body'
 
 export type GetReviewsByUserSchema = Yup.InferType<
   typeof getReviewsByUserSchema
+>['query'];
+
+export type GetReviewsByHotelierSchema = Yup.InferType<
+  typeof getReviewsByHotelierSchema
 >['query'];
 
 export type GetReviewsSchema = Yup.InferType<typeof getReviewsSchema>['query'];
