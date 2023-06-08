@@ -55,8 +55,15 @@ class ReviewController {
 
       if (!reviewDb) throw new NotAuthorizedError('User have already expired reviews');
 
-      if (isOwnerHotel)
-        throw new NotAuthorizedError('Hotelier can`t not review your hotel');
+      if (isOwnerHotel) throw new NotAuthorizedError('Hotelier can`t not review your hotel');
+                 
+      Object.keys(newReview).forEach((key) => {
+        if (newReview[key]) {
+          reviewDb[key] = newReview[key];
+        }
+      });
+      
+      await reviewDb.save();
 
       const countReview = hotelDb.starRating.countReview + 1;
 
@@ -72,14 +79,6 @@ class ReviewController {
 
       await hotelDb.save();
 
-      Object.keys(newReview).forEach((key) => {
-        if (newReview[key]) {
-          reviewDb[key] = newReview[key];
-        }
-      });
-
-      await reviewDb.save();
-
       oke(reviewDb);
     }
 
@@ -93,22 +92,23 @@ class ReviewController {
       //mỗi review chỉ tạo 1 reply
       if (reviewDb.isReply) throw new BadRequestError('Review has already reply');
 
+
       const replyReview: Pros<IReview> = getDeleteFilter(
         ['_id', 'createdAt', 'updatedAt', 'images'],
         reviewDb,
       );
 
       const hotelier = await userService.findById(authorId);
-
+      
       replyReview.parent_slug = parent_slug;
-
-      replyReview.slug = `${reviewDb.slug}/${new Date().getTime().toString()}`;
 
       replyReview.author = {
         authorId: authorId,
         name: hotelier.name,
         role: hotelier.role,
       };
+
+      replyReview.slug = `${reviewDb.slug}/${new Date().getTime().toString()}`;
 
       replyReview.isReply = true;
       replyReview.context = newReview.context;
@@ -117,7 +117,6 @@ class ReviewController {
       const createReply = await reviewService.createOne(replyReview);
 
       reviewDb.isReply = true;
-
       await reviewDb.save();
 
       oke(createReply);
@@ -246,11 +245,13 @@ class ReviewController {
         page: page,
         limit: limit,
       });
+      
       count = await reviewService.getCountByQuery({
         'author.authorId': userId,
         starRating: { $gte: 0.5 },
         parent_slug: '',
       });
+
       return oke();
     }
 
@@ -265,16 +266,19 @@ class ReviewController {
         limit: limit,
       });
 
+
       count = await reviewService.getCountByQuery({
         'author.authorId': userId,
         parent_slug: '',
         starRating: 0,
       });
+      
       return oke();
     }
 
     function oke() {
       if (!reviews.length) throw new NotFoundError('Not found reviews');
+      
       new CreatedResponse({
         message: 'Get Data`reviews successfully',
         data: {
@@ -294,6 +298,7 @@ class ReviewController {
     const limit = req.query.limit || 10;
     const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     let countReview = 0;
+
     const hotelDb = await hotelsService.findById(hotelId);
 
     if (!hotelDb) throw new NotFoundError('Not found hotel');
@@ -333,7 +338,7 @@ class ReviewController {
         'hotel.hotelId': hotelDb._id,
         isReply: true,
       });
-
+      
       oke(reviewDb);
     }
 

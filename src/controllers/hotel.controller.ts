@@ -287,6 +287,7 @@ class HotelController {
       },
     );
 
+
     const count = await HotelService.getCountByQuery({
       ...query,
       isDelete,

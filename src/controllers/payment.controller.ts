@@ -492,7 +492,58 @@ class PaymentController {
     const countBookings = await bookingService.getCountByQuery({
       status: req.query.status,
       userId,
+
+    new CreatedResponse({
+      message: 'Get data`s Bookings successfully',
+      data: { bookings, count: countBookings },
+    }).send(res);
+  };
+
+  getBookingsByHotelier = async (
+    req: Request<any, any, any, GetBookingByHotelierSchema>,
+    res: Response,
+  ) => {
+    const query = req.query;
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const hotelId = new Types.ObjectId(query.hotelId);
+    const page = req.query.page || 1;
+
+    if (query.allHotel) {
+      const hotelsDb = await hotelsService.findMany(
+        {
+          query: { userId, isDelete: false },
+          page: null,
+          limit: null,
+        },
+        '_id',
+      );
+
+      if (!hotelsDb.length) throw new NotFoundError('Not found hotel');
+
+      const bookings = await bookingService.findManyAndPopulateByHotelier(
+        {
+          query: { status: req.query.status, hotelId: { $in: hotelsDb } },
+          page: page,
+          limit: 10,
+        },
+        { path: 'hotelId', select: 'hotelName country city star starRating' },
+        { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
+      );
+
+      if (!bookings.length) throw new NotFoundError('Not found booking');
+
+      return new CreatedResponse({
+        message: 'Get data`s Bookings successfully',
+        data: bookings,
+      }).send(res);
+    }
+
+    const hotelDb = await hotelsService.findOne({
+      _id: hotelId,
+      userId,
+      isDelete: false,
     });
+    
     new CreatedResponse({
       message: 'Get data`s Bookings successfully',
       data: { bookings, count: countBookings },
@@ -536,6 +587,7 @@ class PaymentController {
         status: req.query.status,
         hotelId: { $in: hotelsDb },
       });
+      
       return new CreatedResponse({
         message: 'Get data`s Bookings successfully',
         data: {
@@ -576,6 +628,39 @@ class PaymentController {
         bookings,
         count: countBookings,
       },
+    }).send(res);
+  };
+
+  getDetailBooking = async (req: Request, res: Response) => {
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const bookingId = new Types.ObjectId(req.params.id);
+
+    const booking = await bookingService.findOneByPopulate(
+      { _id: bookingId, userId },
+      null,
+      { path: 'hotelId', select: 'hotelName country city star starRating' },
+      { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
+    );
+
+    if (!booking) throw new NotFoundError('Not found booking');
+
+    if (!hotelDb) throw new NotFoundError('Not found hotel');
+
+    const bookings = await bookingService.findManyAndPopulateByHotelier(
+      {
+        query: { status: req.query.status, hotelId },
+        page: page,
+        limit: 10,
+      },
+      { path: 'hotelId', select: 'hotelName country city star starRating' },
+      { path: 'rooms.roomTypeId', select: 'price nameOfRoom numberOfRoom' },
+    );
+
+    if (!bookings.length) throw new NotFoundError('Not found booking');
+
+    new CreatedResponse({
+      message: 'Get data`s Bookings successfully',
+      data: booking,
     }).send(res);
   };
 
