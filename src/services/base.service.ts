@@ -98,4 +98,8 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
   ) => {
     return this.model.findById(id, select, { lean: true, ...option }).exec();
   };
+
+  getCountByQuery = (query?: FilterQuery<Doc>) => {
+    return this.model.count(query).exec();
+  };
 }

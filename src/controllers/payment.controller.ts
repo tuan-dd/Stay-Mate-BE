@@ -489,9 +489,13 @@ class PaymentController {
 
     if (!bookings.length) throw new NotFoundError('Not found booking');
 
+    const countBookings = await bookingService.getCountByQuery({
+      status: req.query.status,
+      userId,
+    });
     new CreatedResponse({
       message: 'Get data`s Bookings successfully',
-      data: bookings,
+      data: { bookings, count: countBookings },
     }).send(res);
   };
 
@@ -528,9 +532,16 @@ class PaymentController {
 
       if (!bookings.length) throw new NotFoundError('Not found booking');
 
+      const countBookings = await bookingService.getCountByQuery({
+        status: req.query.status,
+        hotelId: { $in: hotelsDb },
+      });
       return new CreatedResponse({
         message: 'Get data`s Bookings successfully',
-        data: bookings,
+        data: {
+          bookings,
+          count: countBookings,
+        },
       }).send(res);
     }
 
@@ -554,9 +565,17 @@ class PaymentController {
 
     if (!bookings.length) throw new NotFoundError('Not found booking');
 
+    const countBookings = await bookingService.getCountByQuery({
+      status: req.query.status,
+      hotelId,
+    });
+
     new CreatedResponse({
       message: 'Get data`s Bookings successfully',
-      data: bookings,
+      data: {
+        bookings,
+        count: countBookings,
+      },
     }).send(res);
   };
 

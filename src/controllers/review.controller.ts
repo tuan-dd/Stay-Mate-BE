@@ -49,28 +49,43 @@ class ReviewController {
 
     const reviewDb = await reviewService.findById(req.params.id, null, { lean: false });
 
-    /// create review
+    // create review
     if (!parent_slug) {
-      if (reviewDb.starRating > 0) throw new NotAuthorizedError('Review has already ');
+      if (reviewDb.starRating > 0) throw new NotAuthorizedError('Review has already');
 
       if (!reviewDb) throw new NotAuthorizedError('User have already expired reviews');
 
       if (isOwnerHotel)
-        throw new NotAuthorizedError('Hotelier cant not reviewDb their hotel');
+        throw new NotAuthorizedError('Hotelier can`t not review your hotel');
+
+      const countReview = hotelDb.starRating.countReview + 1;
+
+      const starAverage =
+        (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
+          Number(newReview.starRating)) /
+        countReview;
+
+      hotelDb.starRating = {
+        countReview,
+        starAverage,
+      };
+
+      await hotelDb.save();
 
       Object.keys(newReview).forEach((key) => {
         if (newReview[key]) {
           reviewDb[key] = newReview[key];
         }
       });
+
+      await reviewDb.save();
+
+      oke(reviewDb);
     }
 
+    // create reply
     if (parent_slug) {
-      const replyReview: Pros<IReview> = getDeleteFilter(
-        ['_id', 'createdAt', 'updatedAt', 'images'],
-        reviewDb,
-      );
-      //check nếu chủ ks k được  tạo reply
+      //check nếu chủ ks k được tạo reply
       if (!isOwnerHotel) throw new NotAuthorizedError('Only hotelier can reply review ');
 
       if (parent_slug !== reviewDb.slug) throw new BadRequestError('Wrong parent slug');
@@ -78,8 +93,16 @@ class ReviewController {
       //mỗi review chỉ tạo 1 reply
       if (reviewDb.isReply) throw new BadRequestError('Review has already reply');
 
+      const replyReview: Pros<IReview> = getDeleteFilter(
+        ['_id', 'createdAt', 'updatedAt', 'images'],
+        reviewDb,
+      );
+
       const hotelier = await userService.findById(authorId);
+
       replyReview.parent_slug = parent_slug;
+
+      replyReview.slug = `${reviewDb.slug}/${new Date().getTime().toString()}`;
 
       replyReview.author = {
         authorId: authorId,
@@ -87,40 +110,26 @@ class ReviewController {
         role: hotelier.role,
       };
 
-      replyReview.slug = `${reviewDb.slug}/${new Date().getTime().toString()}`;
-
       replyReview.isReply = true;
-      const createReview = await reviewService.createOne(replyReview);
+      replyReview.context = newReview.context;
+      replyReview.starRating = newReview.starRating;
+
+      const createReply = await reviewService.createOne(replyReview);
 
       reviewDb.isReply = true;
+
       await reviewDb.save();
 
-      return new CreatedResponse({
-        message: 'Create reply successfully',
-        data: createReview,
-      }).send(res);
+      oke(createReply);
     }
 
-    await reviewDb.save();
-
-    const countReview = hotelDb.starRating.countReview + 1;
-
-    const starAverage =
-      (hotelDb.starRating.starAverage * hotelDb.starRating.countReview +
-        Number(newReview.starRating)) /
-      countReview;
-
-    hotelDb.starRating = {
-      countReview,
-      starAverage,
-    };
-
-    await hotelDb.save();
-
-    new CreatedResponse({
-      message: 'Create review successfully',
-      data: reviewDb,
-    }).send(res);
+    function oke(value: IReview) {
+      if (!value) throw new NotFoundError('Not Found reviews');
+      return new CreatedResponse({
+        message: 'Create review or reply successfully',
+        data: value,
+      }).send(res);
+    }
   };
 
   updateReview = async (req: Request<any, any, UpdateReviewSchema>, res: Response) => {
@@ -222,6 +231,7 @@ class ReviewController {
     const limit = req.query.limit || 10;
     const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
     let reviews = [];
+    let count = 0;
 
     if (Object.keys(req.query).every((key) => !req.query[key]))
       throw new BadRequestError('Request must have one value');
@@ -235,6 +245,11 @@ class ReviewController {
         },
         page: page,
         limit: limit,
+      });
+      count = await reviewService.getCountByQuery({
+        'author.authorId': userId,
+        starRating: { $gte: 0.5 },
+        parent_slug: '',
       });
       return oke();
     }
@@ -250,14 +265,22 @@ class ReviewController {
         limit: limit,
       });
 
+      count = await reviewService.getCountByQuery({
+        'author.authorId': userId,
+        parent_slug: '',
+        starRating: 0,
+      });
       return oke();
     }
 
     function oke() {
       if (!reviews.length) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
-        message: ' get Data`review successfully',
-        data: reviews,
+        message: 'Get Data`reviews successfully',
+        data: {
+          reviews,
+          count,
+        },
       }).send(res);
     }
   };
@@ -270,7 +293,7 @@ class ReviewController {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
     const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-
+    let countReview = 0;
     const hotelDb = await hotelsService.findById(hotelId);
 
     if (!hotelDb) throw new NotFoundError('Not found hotel');
@@ -288,6 +311,11 @@ class ReviewController {
         limit: limit,
       });
 
+      countReview = await reviewService.getCountByQuery({
+        'hotel.hotelId': hotelDb._id,
+        parent_slug: { $ne: '' },
+      });
+
       oke(reviewDb);
     }
 
@@ -300,6 +328,12 @@ class ReviewController {
         page: page,
         limit: limit,
       });
+
+      countReview = await reviewService.getCountByQuery({
+        'hotel.hotelId': hotelDb._id,
+        isReply: true,
+      });
+
       oke(reviewDb);
     }
 
@@ -315,6 +349,13 @@ class ReviewController {
         limit: limit,
       });
 
+      countReview = await reviewService.getCountByQuery({
+        'hotel.hotelId': hotelDb._id,
+        starRating: { $ne: 0 },
+        parent_slug: '',
+        isReply: false,
+      });
+
       oke(reviewDb);
     }
 
@@ -322,7 +363,7 @@ class ReviewController {
       if (!reviews.length) throw new NotFoundError('Not found reviews');
       new CreatedResponse({
         message: ' get Data`review successfully',
-        data: reviews,
+        data: { reviews, count: countReview },
       }).send(res);
     }
   };
@@ -354,7 +395,6 @@ class ReviewController {
         page: page,
         limit: limit,
       });
-
       return oke();
     }
 
