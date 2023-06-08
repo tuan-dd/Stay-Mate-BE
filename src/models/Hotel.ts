@@ -65,7 +65,6 @@ const hotelSchema = new Schema<IHotel>(
     },
     zipCode: {
       type: Number,
-      required: true,
       min: 999,
     },
     propertyType: {

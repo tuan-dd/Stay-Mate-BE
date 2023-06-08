@@ -287,7 +287,8 @@ class HotelController {
       },
     );
 
-    const count = await HotelService.countQuery({
+
+    const count = await HotelService.getCountByQuery({
       ...query,
       isDelete,
       package: { $ne: Package.FREE },
