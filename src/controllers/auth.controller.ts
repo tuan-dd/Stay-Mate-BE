@@ -136,14 +136,16 @@ class AuthController {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
+        domain: 'profound-duckanoo-5b6f6f.netlify.app',
         maxAge: 86400000 * 7,
       })
       .cookie('accessToken', accessToken, {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'none',
+        domain: 'profound-duckanoo-5b6f6f.netlify.app',
         maxAge: 86400000 * 7,
       });
     // console.log(accessToken);
