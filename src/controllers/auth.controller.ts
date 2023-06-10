@@ -131,22 +131,18 @@ class AuthController {
       },
     );
 
-    res
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: false,
-        secure: true,
-        path: '/',
-        domain: 'profound-duckanoo-5b6f6f.netlify.app',
-        maxAge: 86400000 * 7,
-      })
-      .cookie('accessToken', accessToken, {
-        httpOnly: false,
-        secure: true,
-        path: '/',
-        domain: 'profound-duckanoo-5b6f6f.netlify.app',
-        maxAge: 86400000 * 7,
-      });
-    // console.log(accessToken);
+    // res
+    //   .cookie('refreshToken', refreshToken, {
+    //     httpOnly: false,
+    //     secure: true,
+    //     maxAge: 86400000 * 7,
+    //   })
+    //   .cookie('accessToken', accessToken, {
+    //     httpOnly: false,
+    //     secure: true,
+    //     maxAge: 86400000 * 7,
+    //   });
+    // // console.log(accessToken);
     new SuccessResponse({
       data: { ...userDb, accessToken, refreshToken },
       message: 'Login successfully',
@@ -221,16 +217,16 @@ class AuthController {
         role: payLoad.role,
       },
       tokenStore.secretKey,
-      '3day',
+      '1day',
     );
 
-    res.cookie('accessToken', newAccessToken, {
-      httpOnly: false,
-      secure: true,
-      path: '/',
-      sameSite: false,
-      maxAge: 86400000 * 7,
-    });
+    // res.cookie('accessToken', newAccessToken, {
+    //   httpOnly: false,
+    //   secure: true,
+    //   path: '/',
+    //   sameSite: false,
+    //   maxAge: 86400000 * 7,
+    // });
     new SuccessResponse({
       message: 'Send new access token',
       data: newAccessToken,
