@@ -115,7 +115,7 @@ class WorkerService {
           },
           {
             delay: new Date().getTime() + 1000 * 60 * 60 * 24 * 7,
-            priority: 4,
+            priority: 2,
             removeOnComplete: true,
           },
         );

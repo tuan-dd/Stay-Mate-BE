@@ -131,19 +131,21 @@ class AuthController {
       },
     );
 
-    // res
-    //   .cookie('refreshToken', refreshToken, {
-    //     httpOnly: false,
-    //     secure: false,
-    //     path: '/',
-    //     sameSite: 'lax',
-    //   })
-    //   .cookie('accessToken', accessToken, {
-    //     httpOnly: false,
-    //     secure: false,
-    //     path: '/',
-    //     sameSite: 'lax',
-    //   });
+    res
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: false,
+        secure: true,
+        path: '/',
+        sameSite: false,
+        maxAge: 86400000 * 7,
+      })
+      .cookie('accessToken', accessToken, {
+        httpOnly: false,
+        secure: true,
+        path: '/',
+        sameSite: false,
+        maxAge: 86400000 * 7,
+      });
     // console.log(accessToken);
     new SuccessResponse({
       data: { ...userDb, accessToken, refreshToken },
@@ -222,12 +224,13 @@ class AuthController {
       '3day',
     );
 
-    // res.cookie('accessToken', newAccessToken, {
-    //   httpOnly: false,
-    //   secure: false,
-    //   path: '/',
-    //   sameSite: 'lax',
-    // });
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: false,
+      secure: true,
+      path: '/',
+      sameSite: false,
+      maxAge: 86400000 * 7,
+    });
     new SuccessResponse({
       message: 'Send new access token',
       data: newAccessToken,

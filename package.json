@@ -4,8 +4,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "set NODE_ENV=dev&&nodemon --exec ts-node ./bin/www.ts",
-    "start": "node ./bin/www.js",
+    "dev": "nodemon --exec ts-node ./bin/www.ts",
+    "start": "ts-node ./bin/www.ts",
     "build": "tsc",
     "lint": "eslint ./src/**/*.ts",
     "format": "eslint ./src/**/*.ts --fix"
@@ -34,6 +34,7 @@
     "nodemailer": "^6.9.1",
     "redis": "^4.6.5",
     "rimraf": "^5.0.0",
+    "ts-node": "^10.9.1",
     "yup": "^1.0.2"
   },
   "devDependencies": {
