@@ -221,10 +221,7 @@ class PaymentController {
       );
 
       if (countBookingsByHotel && parseInt(countBookingsByHotel, 10)) {
-        await redisUtil.set(
-          `countBookings:${req.body.hotelId}`,
-          parseInt(countBookingsByHotel, 10) + 1,
-        );
+        await redisUtil.incrBy(`countBookings:${req.body.hotelId}`, 1);
       }
 
       new SuccessResponse({
@@ -297,10 +294,7 @@ class PaymentController {
       );
 
       if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
-        await redisUtil.set(
-          `countBookings:${req.body.hotelId}`,
-          parseInt(countBookingsByHotel, 10) - 1,
-        );
+        await redisUtil.decrBy(`countBookings:${req.body.hotelId}`, 1);
       }
 
       new SuccessResponse({
