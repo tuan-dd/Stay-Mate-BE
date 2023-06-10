@@ -136,14 +136,14 @@ class AuthController {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: false,
+        sameSite: 'none',
         maxAge: 86400000 * 7,
       })
       .cookie('accessToken', accessToken, {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: false,
+        sameSite: 'none',
         maxAge: 86400000 * 7,
       });
     // console.log(accessToken);
