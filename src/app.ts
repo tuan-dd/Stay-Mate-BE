@@ -17,6 +17,7 @@ class App {
     'http://localhost:3000',
     'https://staymate-tuan.netlify.app',
     'https://staymate-admin.netlify.app',
+    'https://profound-duckanoo-5b6f6f.netlify.app',
   ];
 
   constructor() {
