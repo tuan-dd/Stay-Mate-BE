@@ -50,7 +50,7 @@ class AuthController {
       'ip',
       ipSave[0],
     ]);
-    await redisUtil.expire(userDb._id.toString(), 60 * 4);
+    await redisUtil.expire(userDb._id.toString(), 60 * 5);
 
     await sendMail(sixCode, email)
       .then(() =>

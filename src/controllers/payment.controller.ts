@@ -33,6 +33,8 @@ import { Response, Request } from 'express';
 import mongoose, { ClientSession, Types } from 'mongoose';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import redisUtil from '@/utils/redisUtil';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 class PaymentController {
@@ -162,7 +164,7 @@ class PaymentController {
       const userDb = await userService.findByIdAndCheckPass(userId, newPayment.password);
 
       if (typeof userDb === 'boolean')
-        throw new ForbiddenError('can`t payment, try again');
+        throw new ForbiddenError('Can`t payment, wrong password');
 
       if (userDb.account.balance < bookingDb.total)
         throw new ForbiddenError('Balance less than booking');
@@ -187,8 +189,17 @@ class PaymentController {
 
       await bookingDb.save({ session });
 
-      const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
-      const endDate = dayjs(bookingDb.endDate).valueOf();
+      // const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
+      // const endDate = dayjs(bookingDb.endDate).valueOf();
+
+      // delay: endDate - nowDate,
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const promise = new Promise((resolve, _reject) => {
+        setTimeout(resolve, 10000);
+      });
+
+      await promise;
 
       const createJob = await addJobToQueue(
         {
@@ -196,7 +207,7 @@ class PaymentController {
           job: { id: bookingDb._id.toHexString() },
         },
         {
-          delay: endDate - nowDate,
+          delay: 1000 * 40,
           removeOnComplete: true,
         },
       );
@@ -204,6 +215,17 @@ class PaymentController {
       if (!createJob) throw new BadRequestError('Can`t payment, try again ');
 
       await session.commitTransaction();
+
+      const countBookingsByHotel = await redisUtil.get(
+        `countBookings:${req.body.hotelId}`,
+      );
+
+      if (countBookingsByHotel && parseInt(countBookingsByHotel, 10)) {
+        await redisUtil.set(
+          `countBookings:${req.body.hotelId}`,
+          parseInt(countBookingsByHotel, 10) + 1,
+        );
+      }
 
       new SuccessResponse({
         message: 'Payment Booking successfully',
@@ -269,6 +291,17 @@ class PaymentController {
       await bookingDb.save({ session });
 
       await session.commitTransaction();
+
+      const countBookingsByHotel = await redisUtil.get(
+        `countBookings:${req.body.hotelId}`,
+      );
+
+      if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
+        await redisUtil.set(
+          `countBookings:${req.body.hotelId}`,
+          parseInt(countBookingsByHotel, 10) - 1,
+        );
+      }
 
       new SuccessResponse({
         message: 'Cancel Booking successfully',
@@ -365,14 +398,14 @@ class PaymentController {
 
       await userDb.save({ session });
 
+      // newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf()
       const createJob = await addJobToQueue(
         {
           type: EJob.MEMBERSHIP,
           job: { id: createMemberShip[0]._id, userID: userId },
         },
         {
-          delay:
-            newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf(),
+          delay: 1000 * 30,
         },
       );
 
@@ -598,6 +631,73 @@ class PaymentController {
       message: 'Get data`s Bookings successfully',
       data: booking,
     }).send(res);
+  };
+
+  getCountBookingByHolier = async (
+    req: Request<any, any, any, GetBookingByHotelierSchema>,
+    res: Response,
+  ) => {
+    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const hotelId = new Types.ObjectId(req.query.hotelId);
+
+    if (!req.query.allHotel) {
+      const countBookingsRedis = await redisUtil.get(`countBookings:${hotelId}`);
+      if (!countBookingsRedis) {
+        const countBookings = await bookingService.getCountByQuery({
+          status: EStatus.SUCCESS,
+          hotelId,
+        });
+
+        if (countBookings && countBookings >= 0) {
+          await redisUtil.set(`countBookings:${hotelId}`, countBookings, {
+            EX: 60 * 60 * 10,
+          });
+        }
+        return oke(countBookings);
+      }
+
+      return oke(parseInt(countBookingsRedis, 10));
+    }
+    const hotelsDb = await hotelsService.findMany({
+      query: { userId, isDelete: false },
+      page: null,
+      limit: null,
+    });
+
+    const hotelsId = hotelsDb.map((hotel) => hotel._id.toString());
+
+    const result = await Promise.all<number>(
+      hotelsId.map(async (id) => {
+        const countBooking = await redisUtil.get(`countBookings:${id}`);
+        if (countBooking) {
+          return parseInt(countBooking);
+        }
+        const countBookingDb = await bookingService.getCountByQuery({
+          status: EStatus.SUCCESS,
+          id,
+        });
+
+        await redisUtil.set(`countBookings:${id}`, countBookingDb, {
+          EX: 60 * 60 * 10,
+        });
+
+        return countBookingDb;
+      }),
+    );
+
+    const countBookings = result.reduce((pre, cur) => pre + cur);
+
+    oke(countBookings);
+
+    function oke(count: any | any[]) {
+      if ((!count && count !== 0) || count < 0) {
+        throw new BadRequestError('Not found count bookings');
+      }
+      new CreatedResponse({
+        message: 'Get count Bookings successfully',
+        data: { count },
+      }).send(res);
+    }
   };
 }
 

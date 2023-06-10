@@ -34,8 +34,8 @@ class WorkerService {
     worker.on('completed', (job) => console.log(job.id));
 
     worker.on('failed', (job, err) => {
-      logger.error(`${job.data.type} has failed with ${err.message}`);
-      console.log(`${job.data.type} has failed with ${err.message}`);
+      logger.error(`${job.data} has failed with ${err.message}`);
+      console.log(`${job.data} has failed with ${err.message}`);
     });
   }
 
@@ -108,13 +108,14 @@ class WorkerService {
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
+        // 1000 * 60 * 60 * 24 * 7
         await addJobToQueue(
           {
             type: EJob.DELETE_REVIEW,
             job: { id: createReview._id.toHexString() },
           },
           {
-            delay: new Date().getTime() + 1000 * 60 * 60 * 24 * 7,
+            delay: 1000 * 40,
             priority: 2,
             removeOnComplete: true,
           },
