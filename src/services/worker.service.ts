@@ -109,7 +109,7 @@ class WorkerService {
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
-        await redisUtil.decrBy(hotelDb._id.toString('hex'), 1);
+        await redisUtil.decrBy(`countBookings:${hotelDb._id.toString('hex')}`, 1);
 
         // 1000 * 60 * 60 * 24 * 7
         await addJobToQueue(
