@@ -11,6 +11,7 @@ import hotelsService from './hotels.service';
 import reviewService from './review.service';
 import addJobToQueue from '@/queue/queue';
 import { Package } from '@/models/Hotel';
+import redisUtil from '@/utils/redisUtil';
 
 const { host, port, password, name } = appConfig.redis;
 class WorkerService {
@@ -107,6 +108,8 @@ class WorkerService {
           endDate: bookingDb.endDate,
           bookingId: new Types.ObjectId(bookingDb._id),
         });
+
+        await redisUtil.decrBy(hotelDb._id.toString('hex'), 1);
 
         // 1000 * 60 * 60 * 24 * 7
         await addJobToQueue(
