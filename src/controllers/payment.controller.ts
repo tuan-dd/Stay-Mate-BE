@@ -642,7 +642,7 @@ class PaymentController {
           hotelId,
         });
 
-        if (countBookings && countBookings >= 0) {
+        if (countBookings >= 0) {
           await redisUtil.set(`countBookings:${hotelId}`, countBookings, {
             EX: 60 * 60 * 10,
           });
