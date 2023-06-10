@@ -136,7 +136,6 @@ class AuthController {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: 'none',
         domain: 'profound-duckanoo-5b6f6f.netlify.app',
         maxAge: 86400000 * 7,
       })
@@ -144,7 +143,6 @@ class AuthController {
         httpOnly: false,
         secure: true,
         path: '/',
-        sameSite: 'none',
         domain: 'profound-duckanoo-5b6f6f.netlify.app',
         maxAge: 86400000 * 7,
       });
