@@ -32,7 +32,7 @@ class WorkerService {
 
     worker.on('ready', () => console.log('Bull mq Success'));
 
-    worker.on('completed', (job) => console.log(job.id));
+    worker.on('completed', (job) => console.log(job.data));
 
     worker.on('failed', (job, err) => {
       logger.error(`${job.data} has failed with ${err.message}`);
@@ -109,7 +109,16 @@ class WorkerService {
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
-        await redisUtil.decrBy(`countBookings:${hotelDb._id.toString('hex')}`, 1);
+        const countBookingsByHotel = await redisUtil.get(
+          `countBookings:${hotelDb._id.toString()}`,
+        );
+        if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
+          await redisUtil.set(
+            `countBookings:${hotelDb._id.toString()}`,
+            parseInt(countBookingsByHotel, 10) - 1,
+            { EX: 60 * 60 * 10 },
+          );
+        }
 
         // 1000 * 60 * 60 * 24 * 7
         await addJobToQueue(
