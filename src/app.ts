@@ -9,6 +9,9 @@ import compression from 'compression';
 import indexRouter from './routes/index';
 import { AppError, NotFoundError, SuccessResponse } from './helpers/utils';
 import { HttpCode } from './utils/httpCode';
+import './services/worker.service';
+import './database/init.mongoDb';
+import './database/init.redisDb';
 class App {
   public app: express.Application;
 
@@ -17,6 +20,7 @@ class App {
     'http://localhost:3000',
     'https://staymate-tuan.netlify.app',
     'https://staymate-admin.netlify.app',
+    'https://profound-duckanoo-5b6f6f.netlify.app',
   ];
 
   constructor() {
@@ -34,9 +38,6 @@ class App {
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
     this.app.use(express.static(path.join(__dirname, 'public')));
-    require('./services/worker.service');
-    require('./database/init.mongoDb');
-    require('./database/init.redisDb');
   }
 
   private routerSetup() {

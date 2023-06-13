@@ -50,7 +50,7 @@ class AuthController {
       'ip',
       ipSave[0],
     ]);
-    await redisUtil.expire(userDb._id.toString(), 60 * 4);
+    await redisUtil.expire(userDb._id.toString(), 60 * 5);
 
     await sendMail(sixCode, email)
       .then(() =>
@@ -134,17 +134,15 @@ class AuthController {
     // res
     //   .cookie('refreshToken', refreshToken, {
     //     httpOnly: false,
-    //     secure: false,
-    //     path: '/',
-    //     sameSite: 'lax',
+    //     secure: true,
+    //     maxAge: 86400000 * 7,
     //   })
     //   .cookie('accessToken', accessToken, {
     //     httpOnly: false,
-    //     secure: false,
-    //     path: '/',
-    //     sameSite: 'lax',
+    //     secure: true,
+    //     maxAge: 86400000 * 7,
     //   });
-    // console.log(accessToken);
+    // // console.log(accessToken);
     new SuccessResponse({
       data: { ...userDb, accessToken, refreshToken },
       message: 'Login successfully',
@@ -219,14 +217,15 @@ class AuthController {
         role: payLoad.role,
       },
       tokenStore.secretKey,
-      '3day',
+      '1day',
     );
 
     // res.cookie('accessToken', newAccessToken, {
     //   httpOnly: false,
-    //   secure: false,
+    //   secure: true,
     //   path: '/',
-    //   sameSite: 'lax',
+    //   sameSite: false,
+    //   maxAge: 86400000 * 7,
     // });
     new SuccessResponse({
       message: 'Send new access token',
