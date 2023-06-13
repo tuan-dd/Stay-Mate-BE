@@ -105,12 +105,13 @@ class PaymentController {
     // ngày đầu trừ ngày cuối để tính tổng số ngày ở nhân tổng tiền số lượng phòng
 
     const createBooking = await bookingService.createOne(newBooking);
+
     await addJobToQueue(
       {
         type: EJob.BOOKING_DECLINE,
         job: { id: createBooking._id.toHexString() },
       },
-      { removeOnComplete: true, delay: 1000 * 60 * 10, removeOnFail: true },
+      { delay: 1000 * 60 * 10, removeOnComplete: true, removeOnFail: true },
     );
 
     // If have in cart , remove when  create booking successfully
@@ -189,17 +190,14 @@ class PaymentController {
 
       await bookingDb.save({ session });
 
-      // const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
-      // const endDate = dayjs(bookingDb.endDate).valueOf();
+      const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
+      const endDate = dayjs(bookingDb.endDate).valueOf();
 
-      // delay: endDate - nowDate,
+      // const promise = new Promise((resolve, _reject) => {
+      //   setTimeout(resolve, 10000);
+      // });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const promise = new Promise((resolve, _reject) => {
-        setTimeout(resolve, 10000);
-      });
-
-      await promise;
+      // await promise;
 
       const createJob = await addJobToQueue(
         {
@@ -207,7 +205,7 @@ class PaymentController {
           job: { id: bookingDb._id.toHexString() },
         },
         {
-          delay: 1000 * 40,
+          delay: endDate - nowDate,
           removeOnComplete: true,
         },
       );
@@ -407,7 +405,8 @@ class PaymentController {
           job: { id: createMemberShip[0]._id, userID: userId },
         },
         {
-          delay: 1000 * 30,
+          delay:
+            newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf(),
         },
       );
 
