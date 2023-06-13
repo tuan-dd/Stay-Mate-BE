@@ -11,9 +11,12 @@ import hotelsService from './hotels.service';
 import reviewService from './review.service';
 import addJobToQueue from '@/queue/queue';
 import { Package } from '@/models/Hotel';
+import redisUtil from '@/utils/redisUtil';
 
 const { host, port, password, name } = appConfig.redis;
 class WorkerService {
+  logger = getLogger('bullmq');
+
   constructor() {
     this.connect();
   }
@@ -27,15 +30,14 @@ class WorkerService {
         name,
       },
     });
-    const logger = getLogger('bullmq');
 
     worker.on('ready', () => console.log('Bull mq Success'));
 
-    worker.on('completed', (job) => console.log(job.id));
+    worker.on('completed', (job) => console.log(job.data));
 
     worker.on('failed', (job, err) => {
-      logger.error(`${job.data.type} has failed with ${err.message}`);
-      console.log(`${job.data.type} has failed with ${err.message}`);
+      this.logger.error(`${job.data} has failed with ${err.message}`);
+      console.log(`${job.data} has failed with ${err.message}`);
     });
   }
 
@@ -61,11 +63,14 @@ class WorkerService {
         const bookingDb = await bookingService.findByPopulate(
           {
             _id: job.data.job.id,
+            status: EStatus.SUCCESS,
           },
           { lean: false },
           { path: 'rooms.roomTypeId', select: 'nameOfRoom -_id' },
         );
+
         if (!bookingDb) {
+          this.logger.error(`${job.data} can find booking`);
           return;
         }
 
@@ -108,13 +113,27 @@ class WorkerService {
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
+        const countBookingsByHotel = await redisUtil.get(
+          `countBookings:${hotelDb._id.toString()}`,
+        );
+        if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
+          await redisUtil.set(
+            `countBookings:${hotelDb._id.toString()}`,
+            parseInt(countBookingsByHotel, 10) - 1,
+            { EX: 60 * 60 * 10 },
+          );
+        }
+
+        // 1000 * 60 * 60 * 24 * 7
         await addJobToQueue(
           {
             type: EJob.DELETE_REVIEW,
             job: { id: createReview._id.toHexString() },
           },
           {
-            delay: new Date().getTime() + 1000 * 60 * 60 * 24 * 7,
+            delay:
+              new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7).getTime() -
+              new Date().getTime(),
             priority: 2,
             removeOnComplete: true,
           },

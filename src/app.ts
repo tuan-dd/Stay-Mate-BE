@@ -9,6 +9,9 @@ import compression from 'compression';
 import indexRouter from './routes/index';
 import { AppError, NotFoundError, SuccessResponse } from './helpers/utils';
 import { HttpCode } from './utils/httpCode';
+import './services/worker.service';
+import './database/init.mongoDb';
+import './database/init.redisDb';
 class App {
   public app: express.Application;
 
@@ -35,9 +38,6 @@ class App {
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
     this.app.use(express.static(path.join(__dirname, 'public')));
-    require('./services/worker.service');
-    require('./database/init.mongoDb');
-    require('./database/init.redisDb');
   }
 
   private routerSetup() {

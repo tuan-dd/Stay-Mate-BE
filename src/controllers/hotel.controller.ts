@@ -87,10 +87,10 @@ class HotelController {
           type: EJob.MEMBERSHIP,
           job: { id: createMembership._id, userID: newHotel.userId },
         },
-        { delay: week.getTime() },
+        { delay: week.getTime() - new Date().getTime(), removeOnComplete: true },
       );
       if (!createJob) {
-        throw new BadRequestError('Can`t payment, try again ');
+        throw new BadRequestError('Can`t payment, try again');
       }
 
       newHotel.package = Package.WEEK;
@@ -286,7 +286,6 @@ class HotelController {
         select: 'price rateDescription mealType -_id roomAmenities',
       },
     );
-
 
     const count = await HotelService.getCountByQuery({
       ...query,

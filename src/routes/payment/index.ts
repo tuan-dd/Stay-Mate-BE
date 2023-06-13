@@ -81,6 +81,13 @@ router.get(
 );
 
 router.get(
+  '/hotelier/count',
+  checkRole(ERole.HOTELIER),
+  validateRequest(getBookingByHotelierSchema),
+  catchError(paymentController.getCountBookingByHolier),
+);
+
+router.get(
   '/membership',
   checkRole(ERole.HOTELIER),
   validateRequest(getMembershipSchema),
