@@ -6,7 +6,7 @@ import {
   SuccessResponse,
 } from '@/helpers/utils';
 import { EKeyHeader } from '@/middleware/validate';
-import { IBooking } from '@/models/Booking';
+import { EStatus, IBooking } from '@/models/Booking';
 import addJobToQueue from '@/queue/queue';
 import {
   CancelBookingSchema,
@@ -64,7 +64,7 @@ class PaymentController {
         type: EJob.BOOKING_DECLINE,
         job: { id: createBooking._id.toHexString() },
       },
-      { removeOnComplete: true, delay: 1000 * 60 * 10, removeOnFail: true },
+      { delay: 1000 * 60 * 10, removeOnComplete: true, removeOnFail: true },
     );
 
     // If have in cart , remove when  create booking successfully
@@ -107,11 +107,11 @@ class PaymentController {
         parseInt(countBookingsByHotel, 10) + 1,
         { EX: 60 * 60 * 10 },
       );
-    }
 
-    new SuccessResponse({
-      message: 'Payment Booking successfully',
-    }).send(res);
+      new SuccessResponse({
+        message: 'Payment Booking successfully',
+      }).send(res);
+    }
   };
 
   cancelBooking = async (req: Request<any, any, CancelBookingSchema>, res: Response) => {
@@ -131,11 +131,11 @@ class PaymentController {
         parseInt(countBookingsByHotel, 10) - 1,
         { EX: 60 * 60 * 10 },
       );
-    }
 
-    new SuccessResponse({
-      message: 'Cancel Booking successfully',
-    }).send(res);
+      new SuccessResponse({
+        message: 'Cancel Booking successfully',
+      }).send(res);
+    }
   };
 
   paymentMembership = async (
@@ -361,6 +361,73 @@ class PaymentController {
       message: 'Get data`s Bookings successfully',
       data: booking,
     }).send(res);
+  };
+
+  getCountBookingByHolier = async (
+    req: Request<any, any, any, GetBookingByHotelierSchema>,
+    res: Response,
+  ) => {
+    const userId = req.userId;
+    const hotelId = convertStringToObjectId(req.query.hotelId);
+
+    if (!req.query.allHotel) {
+      const countBookingsRedis = await redisUtil.get(`countBookings:${hotelId}`);
+      if (!countBookingsRedis) {
+        const countBookings = await bookingService.getCountByQuery({
+          status: EStatus.SUCCESS,
+          hotelId,
+        });
+
+        if (countBookings >= 0) {
+          await redisUtil.set(`countBookings:${hotelId}`, countBookings, {
+            EX: 60 * 60 * 10,
+          });
+        }
+        return oke(countBookings);
+      }
+
+      return oke(parseInt(countBookingsRedis, 10));
+    }
+    const hotelsDb = await hotelsService.findMany({
+      query: { userId, isDelete: false },
+      page: null,
+      limit: null,
+    });
+
+    const hotelsId = hotelsDb.map((hotel) => hotel._id.toString());
+
+    const result = await Promise.all<number>(
+      hotelsId.map(async (id) => {
+        const countBooking = await redisUtil.get(`countBookings:${id}`);
+        if (countBooking) {
+          return parseInt(countBooking);
+        }
+        const countBookingDb = await bookingService.getCountByQuery({
+          status: EStatus.SUCCESS,
+          id,
+        });
+
+        await redisUtil.set(`countBookings:${id}`, countBookingDb, {
+          EX: 60 * 60 * 10,
+        });
+
+        return countBookingDb;
+      }),
+    );
+
+    const countBookings = result.reduce((pre, cur) => pre + cur);
+
+    oke(countBookings);
+
+    function oke(count: any | any[]) {
+      if ((!count && count !== 0) || count < 0) {
+        throw new BadRequestError('Not found count bookings');
+      }
+      new CreatedResponse({
+        message: 'Get count Bookings successfully',
+        data: { count },
+      }).send(res);
+    }
   };
 }
 
