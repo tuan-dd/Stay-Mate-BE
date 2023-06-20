@@ -32,7 +32,7 @@ import {
   getDeleteFilter,
 } from '@/utils/otherUtil';
 import { Response, Request } from 'express';
-import mongoose, { ClientSession, Types } from 'mongoose';
+import mongoose, { ClientSession } from 'mongoose';
 import redisUtil from '@/utils/redisUtil';
 import membershipService from '@/services/membership.service';
 
@@ -214,7 +214,7 @@ class PaymentController {
     let query = getMembershipSchema.cast(req, {
       stripUnknown: true,
     }).query;
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
     query = getDeleteFilter(['page'], req.query);
 
@@ -237,7 +237,7 @@ class PaymentController {
   };
 
   getBookings = async (req: Request<any, any, any, GetBookingSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
     const page = req.query.page || 1;
 
     const bookings = await bookingService.findManyAndPopulateByQuery(
@@ -268,8 +268,8 @@ class PaymentController {
     res: Response,
   ) => {
     const query = req.query;
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-    const hotelId = new Types.ObjectId(query.hotelId);
+    const userId = req.userId;
+    const hotelId = convertStringToObjectId(query.hotelId);
     const page = req.query.page || 1;
 
     if (query.allHotel) {
@@ -345,8 +345,8 @@ class PaymentController {
   };
 
   getDetailBooking = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-    const bookingId = new Types.ObjectId(req.params.id);
+    const userId = req.userId;
+    const bookingId = convertStringToObjectId(req.params.id);
 
     const booking = await bookingService.findOneByPopulate(
       { _id: bookingId, userId },
