@@ -1,4 +1,11 @@
 import _ from 'lodash';
+import utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+import { Types } from 'mongoose';
+
 interface ObjectLodash {
   [key: string]: any;
 }
@@ -104,4 +111,43 @@ export const convertRoom = (pros: Pros<any>): Pros<any> => {
     }
   });
   return { ...pros };
+};
+
+export const convertStringToObjectId = (id: string) => new Types.ObjectId(id);
+
+export const isValidObjectIdMongo = (id: string) => Types.ObjectId.isValid(id);
+
+export const convertDate = (
+  date: Date | string | number | dayjs.Dayjs | undefined,
+  hour = 0,
+  minute = 0,
+) => {
+  if (hour < 0) {
+    return dayjs(date).toDate();
+  }
+  return dayjs(date)
+    .tz('Asia/Ho_Chi_Minh')
+    .set('hour', hour)
+    .set('minute', minute)
+    .toDate();
+};
+
+export const convertDateToNumber = (
+  date: Date | string | number | dayjs.Dayjs | undefined,
+  isMillisecond = true,
+  hours = -1,
+) => {
+  if (isMillisecond) {
+    if (hours >= 0)
+      return dayjs(date)
+        .tz('Asia/Ho_Chi_Minh')
+        .set('hour', 10)
+        .set('minute', 0)
+        .valueOf();
+    return dayjs(date).tz('Asia/Ho_Chi_Minh').valueOf();
+  }
+
+  if (hours >= 0)
+    return dayjs(date).tz('Asia/Ho_Chi_Minh').set('hour', 10).set('minute', 0).unix();
+  return dayjs(date).tz('Asia/Ho_Chi_Minh').unix();
 };

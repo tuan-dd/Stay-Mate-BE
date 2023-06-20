@@ -15,7 +15,10 @@ export interface QueryWithPagination<T> {
   limit: number;
 }
 
-export default class BaseService<Props, Doc extends Props & Document = Props & Document> {
+export default abstract class BaseService<
+  Props,
+  Doc extends Props & Document = Props & Document,
+> {
   constructor(protected model: Model<Props>) {
     this.model = model;
   }
@@ -30,7 +33,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     option?: QueryOptions,
   ) => {
     return this.model
-      .findByIdAndUpdate(id, update, {
+      .findByIdAndUpdate<Doc>(id, update, {
         lean: true,
         ...option,
       })
@@ -43,7 +46,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     option?: QueryOptions,
   ) => {
     return this.model
-      .updateMany(query, update, {
+      .updateMany<Doc>(query, update, {
         lean: true,
         ...option,
       })
@@ -56,7 +59,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     option?: QueryOptions,
   ) => {
     return this.model
-      .findOneAndUpdate(query, update, {
+      .findOneAndUpdate<Doc>(query, update, {
         lean: true,
         ...option,
       })
@@ -84,7 +87,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     option?: QueryOptions,
   ) => {
     return this.model
-      .findOne(query, select, {
+      .findOne<Doc>(query, select, {
         lean: true,
         ...option,
       })
@@ -96,7 +99,7 @@ export default class BaseService<Props, Doc extends Props & Document = Props & D
     select?: ProjectionType<Doc>,
     option?: QueryOptions,
   ) => {
-    return this.model.findById(id, select, { lean: true, ...option }).exec();
+    return this.model.findById<Doc>(id, select, { lean: true, ...option }).exec();
   };
 
   getCountByQuery = (query?: FilterQuery<Doc>) => {

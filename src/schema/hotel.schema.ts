@@ -2,18 +2,17 @@
 import { RoomAmenities } from '@/models/Room-type';
 import regexUtil from '@/utils/regexUtil';
 import dayjs from 'dayjs';
-import { Types } from 'mongoose';
 import * as Yup from 'yup';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { min } from 'lodash';
+import { convertDateToNumber, isValidObjectIdMongo } from '@/utils/otherUtil';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 Yup.addMethod<Yup.StringSchema>(Yup.string, 'objectIdValid', function (message?: string) {
   return this.test('objectIdValid', message || 'Wrong Id', (value) => {
     if (!value) return true;
-    return Types.ObjectId.isValid(value);
+    return isValidObjectIdMongo(value);
   });
 });
 
@@ -175,12 +174,9 @@ export const getDetailSchema = Yup.object().shape({
   query: Yup.object().shape({
     startDate: Yup.date()
       .test('check', 'Start Date not less than now date', (startDate) => {
-        const numberStartDate = dayjs(startDate)
-          .tz('Asia/Ho_Chi_Minh')
-          .set('hour', 10)
-          .set('minute', 0)
-          .unix(); // get number
-        const numberDayNow = dayjs().tz('Asia/Ho_Chi_Minh').unix(); // get number
+        const numberStartDate = convertDateToNumber(startDate, false, 10);
+
+        const numberDayNow = convertDateToNumber(undefined, false); // get number
         return numberDayNow - numberStartDate < 60 * 60 * 24;
       })
       .required(),

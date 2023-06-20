@@ -4,40 +4,19 @@ import {
   SuccessResponse,
   ServiceUnavailableError,
 } from '@/helpers/utils';
-import { EKeyHeader } from '@/middleware/validate';
-import { Order, ICart } from '@/models/Cart';
+import { ICart } from '@/models/Cart';
 import { Package } from '@/models/Hotel';
 import { CreateCartSchema } from '@/schema/cart.schema';
 import cartService from '@/services/cart.service';
 import hotelsService from '@/services/hotels.service';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
+
 class CartController {
   createOrAddToCart = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
-    const newOrder: Order = {
-      hotelId: new Types.ObjectId(req.body.hotelId),
-      startDate: dayjs(req.body.startDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
-      endDate: dayjs(req.body.endDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
-      rooms: req.body.rooms?.map((room) => ({
-        roomTypeId: new Types.ObjectId(room.roomTypeId),
-        quantity: room.quantity,
-      })),
-    };
+    const newOrder = cartService.createObjectOrder(req.body);
 
     // check is have hotel
     const hotelDb = await hotelsService.findOneAndPopulateById(newOrder.hotelId, {
@@ -62,7 +41,7 @@ class CartController {
         );
     });
 
-    // if user dont have cart create cart
+    // if user don't have cart create cart
     const cartDb = await cartService.findOne({ userId: userId }, null, { lean: false });
 
     if (!cartDb) {
@@ -130,26 +109,9 @@ class CartController {
   };
 
   updateOrder = async (req: Request<any, any, CreateCartSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
-    const newOrder: Order = {
-      hotelId: new Types.ObjectId(req.body.hotelId),
-      startDate: dayjs(req.body.startDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
-      endDate: dayjs(req.body.endDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
-      createdAt: req.body.createdAt,
-      rooms: req.body.rooms?.map((room) => ({
-        roomTypeId: new Types.ObjectId(room.roomTypeId),
-        quantity: room.quantity,
-      })),
-    };
+    const newOrder = cartService.createObjectOrder(req.body);
 
     if (!req.body.createdAt) throw new BadRequestError('Must have createdAt element');
 
@@ -188,7 +150,7 @@ class CartController {
   };
 
   getCarts = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
     const cartDb = await cartService.findOneAndPopulateByQuery(
       {
@@ -209,7 +171,7 @@ class CartController {
   };
 
   deleteOrder = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
     if (!req.query.createdAt) throw new BadRequestError('Query must have createdAt');
 

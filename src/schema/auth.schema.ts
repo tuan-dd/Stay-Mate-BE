@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-export const signinSchema = Yup.object().shape({
+export const signInSchema = Yup.object().shape({
   body: Yup.object().shape({
     email: Yup.string().email().required(),
     password: Yup.string().required(),
@@ -13,10 +13,7 @@ export const forgetPwdSchema = Yup.object().shape({
     email: Yup.string().email().required(),
     password: Yup.string().required(),
     newPwd: Yup.string()
-      .notOneOf(
-        [Yup.ref('password'), null],
-        'New Password must not same old password',
-      )
+      .notOneOf([Yup.ref('password'), null], 'New Password must not same old password')
       .required(),
     confirmPwd: Yup.string()
       .oneOf([Yup.ref('newPwd')], 'New Password must same password')
@@ -24,5 +21,5 @@ export const forgetPwdSchema = Yup.object().shape({
   }),
 });
 
-export type SigninSchema = Yup.InferType<typeof signinSchema>['body'];
+export type SignInSchema = Yup.InferType<typeof signInSchema>['body'];
 export type ChangePwdSchema = Yup.InferType<typeof forgetPwdSchema>['body'];

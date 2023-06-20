@@ -1,8 +1,7 @@
 import { Response, NextFunction, Request } from 'express';
-import { AnyObject } from 'yup';
+import { ObjectSchema } from 'yup';
 import { HttpCode } from '@/utils/httpCode';
 import { ReasonPhrases } from '@/utils/reasonPhrases';
-import { Types } from 'mongoose';
 import {
   BadRequestError,
   ForbiddenError,
@@ -13,10 +12,13 @@ import SecretKeyStoreService from '@/services/keyStore.service';
 import UserService from '@/services/user.service';
 import tokenUtil, { DataAfterEncode } from '@/utils/tokenUtil';
 import { ERole } from '@/models/User';
+import { convertStringToObjectId, isValidObjectIdMongo } from '@/utils/otherUtil';
+import { Types } from 'mongoose';
 
 declare module 'express-serve-static-core' {
   interface Request {
     user: DataAfterEncode;
+    userId: Types.ObjectId;
   }
 }
 
@@ -26,29 +28,32 @@ export enum EKeyHeader {
   ACCESS_TOKEN = 'x-atoken-id',
 }
 
-export const catchError = (fun: any) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const catchError =
+  (fun: any) => (req: Request, res: Response, next: NextFunction) =>
     Promise.resolve(fun(req, res, next)).catch(next);
-  };
-};
 
 // check data in request
 export const validateRequest =
-  (schema: AnyObject) => async (req: Request, res: Response, next: NextFunction) => {
+  (schema: ObjectSchema<any>) =>
+  async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      const result = await schema.validate({
-        body: req.body,
-        params: req.params,
-        query: req.query,
-      });
+      const result = await schema.validate(
+        {
+          body: req.body,
+          params: req.params,
+          query: req.query,
+        },
+        { stripUnknown: true },
+      );
 
-      if (Object.keys(result.query).length) {
+      if (result.query && Object.keys(result.query).length) {
         req.query = result.query;
       }
-      if (Object.keys(result.body).length) {
+
+      if (result.body && Object.keys(result.body).length) {
         req.body = result.body;
       }
-      if (Object.keys(result.params).length) {
+      if (result.params && Object.keys(result.params).length) {
         req.params = result.params;
       }
 
@@ -71,7 +76,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
 
     if (!accessToken) throw new BadRequestError('Header must have access token');
 
-    if (!Types.ObjectId.isValid(userId as string))
+    if (!isValidObjectIdMongo(userId as string))
       throw new BadRequestError('UserId wrong');
 
     const userDb = await UserService.findById(userId);
@@ -79,7 +84,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exit');
 
     const tokenStore = await SecretKeyStoreService.findOne({
-      userId,
+      userId: convertStringToObjectId(userId),
       deviceId: ipSave[0],
     });
     if (!tokenStore) {
@@ -97,6 +102,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
     }
 
     req.user = data;
+    req.userId = convertStringToObjectId(userId);
     req.user.name = userDb.name;
 
     next();
@@ -106,7 +112,7 @@ export const checkUser = async (req: Request, _res: Response, next: NextFunction
 };
 
 export const checkParamsId = (req: Request, _res: Response, next: NextFunction) => {
-  if (!req.params?.id || !Types.ObjectId.isValid(req.params?.id))
+  if (!req.params?.id || !isValidObjectIdMongo(req.params?.id))
     throw new NotFoundError('Params must have id');
 
   next();

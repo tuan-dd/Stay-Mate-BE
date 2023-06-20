@@ -5,7 +5,6 @@ import {
   NotFoundError,
   SuccessResponse,
 } from '@/helpers/utils';
-import { EKeyHeader } from '@/middleware/validate';
 import { Package, IHotel } from '@/models/Hotel';
 import { RoomDocument } from '@/models/Room-type';
 import { ERole } from '@/models/User';
@@ -18,26 +17,26 @@ import {
   GetHotelSchema,
   UpdateHotelSchema,
   UpdateRoomSchema,
-  getHotelSchema,
 } from '@/schema/hotel.schema';
 import HotelService from '@/services/hotels.service';
 import SecretKeyStoreService from '@/services/keyStore.service';
-import { bookingService, memberShipService } from '@/services/payment.service';
+import membershipService from '@/services/membership.service';
+import bookingService from '@/services/payment.service';
 import RoomTypeService from '@/services/roomType.service';
 import UserService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
 import {
   Pros,
   convertRoom,
+  convertStringToObjectId,
   deleteKeyUndefined,
   getConvertCreatedAt,
   getDeleteFilter,
   getFilterData,
-} from '@/utils/lodashUtil';
+} from '@/utils/otherUtil';
 import tokenUtil from '@/utils/tokenUtil';
 import crypto from 'crypto';
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 
 class HotelController {
   createHotel = async (req: Request<any, any, CreateHotelSchema>, res: Response) => {
@@ -54,7 +53,7 @@ class HotelController {
 
     const newHotel: Pros<IHotel> = getDeleteFilter(['roomTypes'], req.body);
 
-    newHotel.userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    newHotel.userId = req.userId;
     const roomTypes = req.body.roomTypes;
 
     const hotelsDb = await HotelService.findMany({
@@ -75,7 +74,7 @@ class HotelController {
     if (!hotelsDb.length) {
       const week = new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7);
 
-      const createMembership = await memberShipService.createOne({
+      const createMembership = await membershipService.createOne({
         userId: newHotel.userId,
         timeEnd: week,
         package: Package.WEEK,
@@ -143,18 +142,20 @@ class HotelController {
   };
 
   updateHotel = async (req: Request<any, any, UpdateHotelSchema>, res: Response) => {
-    const userId = req.headers[EKeyHeader.USER_ID];
+    const userId = req.userId;
     const newUpdate: Pros<UpdateHotelSchema> = deleteKeyUndefined(req.body);
 
     if (typeof newUpdate.roomTypeIds === 'object') {
-      newUpdate.roomTypeIds = req.body.roomTypeIds.map((id) => new Types.ObjectId(id));
+      newUpdate.roomTypeIds = req.body.roomTypeIds.map((id) =>
+        convertStringToObjectId(id),
+      );
     }
 
     if (req.body.isDelete) {
       const result = await HotelService.findOneUpdate(
         {
           userId,
-          _id: new Types.ObjectId(req.params.id),
+          _id: convertStringToObjectId(req.params.id),
         },
         { $set: { isDelete: true } },
         { new: true },
@@ -165,7 +166,7 @@ class HotelController {
     const result = await HotelService.findOneUpdate(
       {
         userId,
-        _id: new Types.ObjectId(req.params.id),
+        _id: convertStringToObjectId(req.params.id),
       },
       {
         $set: newUpdate,
@@ -186,9 +187,9 @@ class HotelController {
 
   createRoom = async (req: Request<any, any, CreateRoomSchema>, res: Response) => {
     const newRooms = await RoomTypeService.createMany(req.body.roomTypes);
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
     const roomIds = newRooms.map((pros) => pros._id);
-    const hotelId = new Types.ObjectId(req.params.id);
+    const hotelId = convertStringToObjectId(req.params.id);
 
     if (req.body.isCreateMulti) {
       await HotelService.updateMany(
@@ -245,9 +246,10 @@ class HotelController {
   };
 
   getHotels = async (req: Request<any, any, any, GetHotelSchema>, res: Response) => {
-    let query = getHotelSchema.cast(req, {
-      stripUnknown: true,
-    }).query;
+    let query = req.query;
+
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 15;
 
     let queryRooms = getFilterData(
       ['price_gte', 'price_lte', 'rateDescription', 'mealType', 'roomAmenities'],
@@ -267,9 +269,6 @@ class HotelController {
       ],
       query,
     );
-
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 15;
 
     query = getConvertCreatedAt(query, ['city', 'hotelName', 'country']);
 
@@ -301,7 +300,7 @@ class HotelController {
   };
 
   detailHotel = async (req: Request<any, any, any, GetDetailSchema>, res: Response) => {
-    const hotelId = new Types.ObjectId(req.params.id);
+    const hotelId = convertStringToObjectId(req.params.id);
 
     const hotel = await bookingService.checkHotel(req.query, hotelId);
 
@@ -312,7 +311,7 @@ class HotelController {
   };
 
   getHotelsByHotelier = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
     const hotel = await HotelService.findManyAndPopulateByQuery({
       query: { userId },
@@ -333,7 +332,7 @@ class HotelController {
     res: Response,
   ) => {
     const body = req.query;
-    const hotelId = new Types.ObjectId(req.query.hotelId);
+    const hotelId = convertStringToObjectId(req.query.hotelId);
 
     await bookingService.checkHotel(body, hotelId);
 

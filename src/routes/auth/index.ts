@@ -1,7 +1,7 @@
 import express from 'express';
 import { catchError, checkUser, validateRequest } from '@/middleware/validate';
 import authController from '@/controllers/auth.controller';
-import { signinSchema } from '@/schema/auth.schema';
+import { signInSchema } from '@/schema/auth.schema';
 import { otpSchema } from '@/schema/otp.schema';
 
 /**
@@ -11,7 +11,7 @@ import { otpSchema } from '@/schema/otp.schema';
 
 const router = express.Router();
 
-router.post('/sign-in', validateRequest(signinSchema), catchError(authController.signIn));
+router.post('/sign-in', validateRequest(signInSchema), catchError(authController.signIn));
 
 router.post('/authcode', validateRequest(otpSchema), catchError(authController.authCode));
 

@@ -8,9 +8,12 @@ import {
 } from '@/schema/admin.schema';
 import hotelsService from '@/services/hotels.service';
 import userService from '@/services/user.service';
-import { getConvertCreatedAt, getDeleteFilter } from '@/utils/lodashUtil';
+import {
+  convertStringToObjectId,
+  getConvertCreatedAt,
+  getDeleteFilter,
+} from '@/utils/otherUtil';
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 
 class AdminController {
   queryUsers = async (req: Request<any, any, any, QueryUserSchema>, res: Response) => {
@@ -71,7 +74,7 @@ class AdminController {
     req: Request<any, any, UpdateHotelByAdminSchema>,
     res: Response,
   ) => {
-    const hotelId = new Types.ObjectId(req.params.id);
+    const hotelId = convertStringToObjectId(req.params.id);
 
     const newUpdate = await hotelsService.findOneUpdate(
       {

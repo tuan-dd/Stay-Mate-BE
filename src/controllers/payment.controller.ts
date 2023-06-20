@@ -6,9 +6,7 @@ import {
   SuccessResponse,
 } from '@/helpers/utils';
 import { EKeyHeader } from '@/middleware/validate';
-import { IBooking, EStatus } from '@/models/Booking';
-import { Package, PricePackage } from '@/models/Hotel';
-import { IMembership } from '@/models/Membership';
+import { EStatus, IBooking } from '@/models/Booking';
 import addJobToQueue from '@/queue/queue';
 import {
   CancelBookingSchema,
@@ -24,19 +22,20 @@ import {
 } from '@/schema/payment.schema';
 import cartService from '@/services/cart.service';
 import hotelsService from '@/services/hotels.service';
-import { bookingService, memberShipService } from '@/services/payment.service';
+import bookingService from '@/services/payment.service';
 import userService from '@/services/user.service';
 import { EJob } from '@/utils/jobs';
-import { deleteKeyUndefined, getDeleteFilter } from '@/utils/lodashUtil';
-import dayjs from 'dayjs';
+import {
+  convertDate,
+  convertStringToObjectId,
+  deleteKeyUndefined,
+  getDeleteFilter,
+} from '@/utils/otherUtil';
 import { Response, Request } from 'express';
-import mongoose, { ClientSession, Types } from 'mongoose';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import mongoose, { ClientSession } from 'mongoose';
 import redisUtil from '@/utils/redisUtil';
+import membershipService from '@/services/membership.service';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
 class PaymentController {
   createBooking = async (req: Request<any, any, CreateBookingSchema>, res: Response) => {
     /**
@@ -49,62 +48,16 @@ class PaymentController {
     const newBooking: IBooking = {
       rooms: req.body.rooms.map((room) => ({
         quantity: room.quantity,
-        roomTypeId: new mongoose.Types.ObjectId(room.roomTypeId),
+        roomTypeId: convertStringToObjectId(room.roomTypeId),
       })),
-      userId: new mongoose.Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string),
-      hotelId: new mongoose.Types.ObjectId(req.body.hotelId),
-      startDate: dayjs(req.body.startDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
-      endDate: dayjs(req.body.endDate)
-        .tz('Asia/Ho_Chi_Minh')
-        .set('hour', 12)
-        .set('minute', 0)
-        .toDate(),
+      userId: req.userId,
+      hotelId: convertStringToObjectId(req.body.hotelId),
+      startDate: convertDate(req.body.startDate, 12),
+      endDate: convertDate(req.body.endDate, 12),
       duration: 1000 * 60 * 10,
     };
 
-    const userDb = await userService.findById(newBooking.userId);
-    const roomsOrders = newBooking.rooms;
-
-    const NumberOfRoomAfterCheck = await bookingService.isEnoughRoom(
-      newBooking,
-      newBooking.rooms,
-    );
-
-    if (!NumberOfRoomAfterCheck) throw new BadRequestError('Out of room');
-    // tại đây loop qua để tính tổng tiền
-    let total = 0;
-    const roomsResults = [];
-    NumberOfRoomAfterCheck.roomTypeIds.forEach((hotelDbRoom) => {
-      roomsOrders.forEach((roomOrder) => {
-        if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
-          // lấy tên phòng và số lượng để trả res
-          const roomResult = {
-            nameOfRoom: hotelDbRoom.nameOfRoom,
-            quantity: roomOrder.quantity,
-          };
-          roomsResults.push(roomResult);
-          total += roomOrder.quantity * hotelDbRoom.price;
-        }
-      });
-    });
-
-    newBooking.total =
-      total *
-      Math.ceil(
-        (dayjs(newBooking.endDate).unix() - dayjs(newBooking.startDate).unix()) /
-          (60 * 60 * 24),
-      );
-
-    if (newBooking.total > userDb.account.balance)
-      throw new BadRequestError('You don`t enough money to booking');
-
-    // ngày đầu trừ ngày cuối để tính tổng số ngày ở nhân tổng tiền số lượng phòng
-
-    const createBooking = await bookingService.createOne(newBooking);
+    const createBooking = await bookingService.createBooking(newBooking);
 
     await addJobToQueue(
       {
@@ -126,6 +79,7 @@ class PaymentController {
           },
         },
       );
+
     new CreatedResponse({
       message: 'Create booking successfully',
       data: createBooking,
@@ -137,181 +91,50 @@ class PaymentController {
     res: Response,
   ) => {
     const newPayment = {
-      bookingId: new Types.ObjectId(req.body.bookingId),
+      bookingId: convertStringToObjectId(req.body.bookingId),
       password: req.body.password,
-      hotelId: new Types.ObjectId(req.body.hotelId),
+      hotelId: convertStringToObjectId(req.body.hotelId),
     };
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const { userId } = req;
 
-    const session: ClientSession = await mongoose.startSession();
-    session.startTransaction();
+    await bookingService.paymentBooking(userId, newPayment);
 
-    try {
-      const bookingDb = await bookingService.findOne(
-        {
-          _id: newPayment.bookingId,
-          userId,
-          hotelId: newPayment.hotelId,
-        },
-        null,
-        { lean: false },
-      );
+    const countBookingsByHotel = await redisUtil.get(`countBookings:${req.body.hotelId}`);
 
-      if (!bookingDb) throw new NotFoundError('Not found payment');
-
-      if (bookingDb.status !== EStatus.PENDING)
-        throw new BadRequestError('Payment expired');
-
-      const userDb = await userService.findByIdAndCheckPass(userId, newPayment.password);
-
-      if (typeof userDb === 'boolean')
-        throw new ForbiddenError('Can`t payment, wrong password');
-
-      if (userDb.account.balance < bookingDb.total)
-        throw new ForbiddenError('Balance less than booking');
-
-      const hotel = await hotelsService.findById(newPayment.hotelId);
-
-      const hotelierDb = await userService.findByIdUpdate(
-        hotel.userId,
-        {
-          $inc: { 'account.virtualBalance': bookingDb.total },
-        },
-        { session },
-      );
-
-      if (!hotelierDb) throw new NotFoundError('Not found Hotelier');
-
-      userDb.account.balance = userDb.account.balance - bookingDb.total;
-
-      await userDb.save({ session });
-
-      bookingDb.status = EStatus.SUCCESS;
-
-      await bookingDb.save({ session });
-
-      const nowDate = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
-      const endDate = dayjs(bookingDb.endDate).valueOf();
-
-      // const promise = new Promise((resolve, _reject) => {
-      //   setTimeout(resolve, 10000);
-      // });
-
-      // await promise;
-
-      const createJob = await addJobToQueue(
-        {
-          type: EJob.BOOKING_STAY,
-          job: { id: bookingDb._id.toHexString() },
-        },
-        {
-          delay: endDate - nowDate,
-          removeOnComplete: true,
-        },
-      );
-
-      if (!createJob) throw new BadRequestError('Can`t payment, try again ');
-
-      await session.commitTransaction();
-
-      const countBookingsByHotel = await redisUtil.get(
+    if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) >= 0) {
+      await redisUtil.set(
         `countBookings:${req.body.hotelId}`,
+        parseInt(countBookingsByHotel, 10) + 1,
+        { EX: 60 * 60 * 10 },
       );
-
-      if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) >= 0) {
-        await redisUtil.set(
-          `countBookings:${req.body.hotelId}`,
-          parseInt(countBookingsByHotel, 10) + 1,
-          { EX: 60 * 60 * 10 },
-        );
-      }
 
       new SuccessResponse({
         message: 'Payment Booking successfully',
       }).send(res);
-    } catch (error) {
-      await session.abortTransaction();
-
-      throw error;
-    } finally {
-      session.endSession();
     }
   };
 
   cancelBooking = async (req: Request<any, any, CancelBookingSchema>, res: Response) => {
     const cancelPayment = {
-      bookingId: new Types.ObjectId(req.body.bookingId),
-      hotelId: new Types.ObjectId(req.body.hotelId),
+      bookingId: convertStringToObjectId(req.body.bookingId),
+      hotelId: convertStringToObjectId(req.body.hotelId),
     };
-    const userId = req.headers[EKeyHeader.USER_ID] as string;
+    const userId = req.userId;
 
-    const session: ClientSession = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const bookingDb = await bookingService.findById(cancelPayment.bookingId, null, {
-        lean: false,
-      });
+    await bookingService.cancelBooking(userId, cancelPayment);
 
-      if (!bookingDb) throw new NotFoundError('Not found payment');
+    const countBookingsByHotel = await redisUtil.get(`countBookings:${req.body.hotelId}`);
 
-      if (bookingDb.status !== EStatus.SUCCESS)
-        throw new NotFoundError('User cant refund');
-
-      const dataNow = dayjs().tz('Asia/Ho_Chi_Minh').valueOf();
-
-      if (bookingDb.startDate.getTime() - 1000 * 60 * 60 * 12 < dataNow)
-        throw new BadRequestError('Overdue to cancel, you only cant cancel before 12h');
-
-      if (userId !== bookingDb.userId.toHexString())
-        throw new NotFoundError('Not found Booking');
-
-      const hotelDb = await hotelsService.findById(cancelPayment.hotelId);
-
-      const hotelierDb = await userService.findByIdUpdate(
-        hotelDb.userId,
-        {
-          $inc: { 'account.virtualBalance': -bookingDb.total },
-        },
-        { session },
-      );
-
-      if (!hotelierDb) throw new NotFoundError('Not found Hotelier');
-
-      await userService.findByIdUpdate(
-        userId,
-        {
-          $inc: { 'account.balance': bookingDb.total },
-        },
-        { session },
-      );
-
-      bookingDb.status = EStatus.CANCEL;
-
-      await bookingDb.save({ session });
-
-      await session.commitTransaction();
-
-      const countBookingsByHotel = await redisUtil.get(
+    if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
+      await redisUtil.set(
         `countBookings:${req.body.hotelId}`,
+        parseInt(countBookingsByHotel, 10) - 1,
+        { EX: 60 * 60 * 10 },
       );
-
-      if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
-        await redisUtil.set(
-          `countBookings:${req.body.hotelId}`,
-          parseInt(countBookingsByHotel, 10) - 1,
-          { EX: 60 * 60 * 10 },
-        );
-      }
 
       new SuccessResponse({
         message: 'Cancel Booking successfully',
       }).send(res);
-    } catch (error) {
-      await session.abortTransaction();
-
-      throw error;
-    } finally {
-      session.endSession();
     }
   };
 
@@ -319,118 +142,25 @@ class PaymentController {
     req: Request<any, any, PaymentMembershipSchema>,
     res: Response,
   ) => {
-    const userId = req.headers[EKeyHeader.USER_ID] as string;
-    const newMemberShip: IMembership = {
-      userId: new Types.ObjectId(userId),
-      package: req.body.package,
-    };
+    const userId = req.userId;
 
-    const session: ClientSession = await mongoose.startSession();
-    session.startTransaction();
+    const createMemberShip = await membershipService.createMembership(
+      userId,
+      req.body.package,
+      req.body.package,
+    );
 
-    try {
-      const userDb = await userService.findByIdAndCheckPass(userId, req.body.password);
-
-      if (typeof userDb === 'boolean') throw new BadRequestError('Wrong Password');
-
-      if (userDb.account.balance < PricePackage[newMemberShip.package])
-        throw new ForbiddenError('Balance less than package');
-
-      const membershipsOfUser = await memberShipService.findMany({
-        query: { userId: new Types.ObjectId(userId), isExpire: false },
-        page: null,
-        limit: null,
-      });
-
-      if (membershipsOfUser.length !== 0) {
-        // lấy ngày kết thúc của các gói chưa hết hạn mới nhất làm ngày bắt đầu của gói mới
-        newMemberShip.timeStart = dayjs(membershipsOfUser[0].timeEnd)
-          .tz('Asia/Ho_Chi_Minh')
-          .toDate();
-      } else {
-        // nếu chưa có thì bằng ngày hôm nay
-        newMemberShip.timeStart = dayjs().tz('Asia/Ho_Chi_Minh').toDate();
-      }
-
-      // Cho giá tiền của gói bằng thời số ngày theo tuần tháng năm
-      newMemberShip.timeEnd = new Date(
-        dayjs(newMemberShip.timeStart).tz('Asia/Ho_Chi_Minh').valueOf() +
-          1000 * 60 * 60 * 24 * PricePackage[newMemberShip.package],
-      );
-
-      const createMemberShip = await memberShipService.createOneAtomic([newMemberShip], {
-        session,
-      });
-      if (newMemberShip.package === Package.WEEK)
-        await hotelsService.updateMany(
-          {
-            userId: newMemberShip.userId,
-            package: Package.FREE,
-            isDelete: false,
-          },
-          { $set: { package: newMemberShip.package } },
-          { session },
-        );
-      else if (newMemberShip.package === Package.MONTH) {
-        await hotelsService.updateMany(
-          {
-            userId: newMemberShip.userId,
-            package: Package.WEEK,
-            isDelete: false,
-          },
-          { $set: { package: newMemberShip.package } },
-          { session },
-        );
-      } else {
-        await hotelsService.updateMany(
-          {
-            userId: newMemberShip.userId,
-            isDelete: false,
-          },
-          { $set: { package: newMemberShip.package } },
-          { session },
-        );
-      }
-
-      // Cho giá tiền của gói bằng thời số ngày theo tuần tháng năm
-      userDb.account.balance =
-        userDb.account.balance - PricePackage[newMemberShip.package];
-
-      await userDb.save({ session });
-
-      // newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf()
-      const createJob = await addJobToQueue(
-        {
-          type: EJob.MEMBERSHIP,
-          job: { id: createMemberShip[0]._id, userID: userId },
-        },
-        {
-          delay:
-            newMemberShip.timeEnd.getTime() - dayjs().tz('Asia/Ho_Chi_Minh').valueOf(),
-        },
-      );
-
-      if (!createJob) throw new BadRequestError('Can`t payment, try again ');
-
-      await session.commitTransaction();
-      new CreatedResponse({
-        message: 'Payment membership successfully',
-        data: createMemberShip[0],
-      }).send(res);
-    } catch (error) {
-      await session.abortTransaction();
-
-      throw error;
-    } finally {
-      session.endSession();
-    }
+    new CreatedResponse({
+      message: 'Payment membership successfully',
+      data: createMemberShip,
+    }).send(res);
   };
 
   chargeMoney = async (req: Request<any, any, ChargeSchema>, res: Response) => {
     const balance = req.body.balance;
     const userId = req.headers[EKeyHeader.USER_ID] as string;
 
-    const updateBalance = await userService.findByIdUpdate(
+    await userService.findByIdUpdate(
       userId,
       {
         $inc: { 'account.balance': balance },
@@ -442,7 +172,6 @@ class PaymentController {
 
     new SuccessResponse({
       message: 'charge successfully',
-      data: updateBalance.account.balance,
     }).send(res);
   };
 
@@ -485,7 +214,7 @@ class PaymentController {
     let query = getMembershipSchema.cast(req, {
       stripUnknown: true,
     }).query;
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
 
     query = getDeleteFilter(['page'], req.query);
 
@@ -493,7 +222,7 @@ class PaymentController {
 
     const page = req.query.page || 1;
 
-    const memberships = await memberShipService.findMany({
+    const memberships = await membershipService.findMany({
       query: { ...query, userId },
       page: page,
       limit: 10,
@@ -508,7 +237,7 @@ class PaymentController {
   };
 
   getBookings = async (req: Request<any, any, any, GetBookingSchema>, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
+    const userId = req.userId;
     const page = req.query.page || 1;
 
     const bookings = await bookingService.findManyAndPopulateByQuery(
@@ -539,8 +268,8 @@ class PaymentController {
     res: Response,
   ) => {
     const query = req.query;
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-    const hotelId = new Types.ObjectId(query.hotelId);
+    const userId = req.userId;
+    const hotelId = convertStringToObjectId(query.hotelId);
     const page = req.query.page || 1;
 
     if (query.allHotel) {
@@ -616,8 +345,8 @@ class PaymentController {
   };
 
   getDetailBooking = async (req: Request, res: Response) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-    const bookingId = new Types.ObjectId(req.params.id);
+    const userId = req.userId;
+    const bookingId = convertStringToObjectId(req.params.id);
 
     const booking = await bookingService.findOneByPopulate(
       { _id: bookingId, userId },
@@ -638,8 +367,8 @@ class PaymentController {
     req: Request<any, any, any, GetBookingByHotelierSchema>,
     res: Response,
   ) => {
-    const userId = new Types.ObjectId(req.headers[EKeyHeader.USER_ID] as string);
-    const hotelId = new Types.ObjectId(req.query.hotelId);
+    const userId = req.userId;
+    const hotelId = convertStringToObjectId(req.query.hotelId);
 
     if (!req.query.allHotel) {
       const countBookingsRedis = await redisUtil.get(`countBookings:${hotelId}`);
@@ -707,7 +436,7 @@ const paymentController = new PaymentController();
 export default paymentController;
 
 // jest => unit test
-// liet ke test cases cho 1 function cần test:
+// liệt kê test cases cho 1 function cần test:
 // - ko đủ balance
 // - dư balance
 // - vừa khớp balance
@@ -717,8 +446,8 @@ export default paymentController;
 
 // e2e (end-to-end) testing
 // e2e cho postman
-// cho 1 api => define posibility input pairs
-// e2e cho expressjs
+// cho 1 api => define possibility input pairs
+// e2e cho express js
 
 // QC define test cases cho function/feature
 // - ko đủ balance

@@ -7,20 +7,19 @@ import {
 import { sendMail } from '@/utils/sendEmail';
 import { Response, Request } from 'express';
 import crypto from 'crypto';
-import { SigninSchema } from '@/schema/auth.schema';
+import { SignInSchema } from '@/schema/auth.schema';
 import userService from '@/services/user.service';
-
 import pwdUtil from '@/utils/pwdUtil';
 import KeyStoresService from '@/services/keyStore.service';
 import tokenUtil from '@/utils/tokenUtil';
 import { EKeyHeader } from '@/middleware/validate';
 import SecretKeyStoreService from '@/services/keyStore.service';
-import { Types } from 'mongoose';
 import { getLogger } from 'log4js';
 import redisUtil from '@/utils/redisUtil';
 import { OtpSchema } from '@/schema/otp.schema';
+import { convertStringToObjectId, isValidObjectIdMongo } from '@/utils/otherUtil';
 class AuthController {
-  signIn = async (req: Request<any, any, SigninSchema>, res: Response) => {
+  signIn = async (req: Request<any, any, SignInSchema>, res: Response) => {
     /**
      * @check code user
      * @create createOtp
@@ -29,6 +28,7 @@ class AuthController {
      */
     const { password, email } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
     const userDb = await userService.findOne({ email });
 
     if (!userDb || !userDb.isActive) throw new NotFoundError('User not exist');
@@ -38,10 +38,10 @@ class AuthController {
     if (!comparePwd) throw new ForbiddenError('Wrong password');
 
     const sixCode = crypto.randomInt(100_000, 999_999).toString();
-    // const a = userDb._id.toHexString();
+
     const hashSixCode = await pwdUtil.getHash(sixCode, 10);
     const ipSave = (ip as string).split(', ');
-    // console.log(ipSave);
+
     await redisUtil.hSet(userDb._id.toHexString(), [
       'sixCode',
       hashSixCode,
@@ -52,7 +52,7 @@ class AuthController {
     ]);
     await redisUtil.expire(userDb._id.toString(), 60 * 5);
 
-    await sendMail(sixCode, email)
+    sendMail(sixCode, email)
       .then(() =>
         new SuccessResponse({
           message: 'Send code to email successfully',
@@ -116,6 +116,7 @@ class AuthController {
       secretKey,
     );
     const ipSave = (ip as string).split(', ');
+
     // prevent duplicate same deviceId
     await KeyStoresService.findOneUpdate(
       { userId: userDb._id, deviceId: ipSave[0] },
@@ -131,18 +132,6 @@ class AuthController {
       },
     );
 
-    // res
-    //   .cookie('refreshToken', refreshToken, {
-    //     httpOnly: false,
-    //     secure: true,
-    //     maxAge: 86400000 * 7,
-    //   })
-    //   .cookie('accessToken', accessToken, {
-    //     httpOnly: false,
-    //     secure: true,
-    //     maxAge: 86400000 * 7,
-    //   });
-    // // console.log(accessToken);
     new SuccessResponse({
       data: { ...userDb, accessToken, refreshToken },
       message: 'Login successfully',
@@ -154,20 +143,12 @@ class AuthController {
     const ipSave = (ip as string).split(', ');
     const userId = req.headers[EKeyHeader.USER_ID];
 
-    const objectId = new Types.ObjectId(userId as string);
+    const objectId = convertStringToObjectId(userId as string);
 
     await SecretKeyStoreService.deleteTokenStore({
       userId: objectId,
       deviceId: ipSave[0],
     });
-
-    res
-      .cookie('refreshToken', null, {
-        maxAge: 0,
-      })
-      .cookie('accessToken', null, {
-        maxAge: 0,
-      });
 
     new SuccessResponse({
       message: 'Sign out successfully',
@@ -184,7 +165,7 @@ class AuthController {
 
     if (!refreshToken) throw new BadRequestError('Header must have access token');
 
-    if (!Types.ObjectId.isValid(userId as string)) {
+    if (isValidObjectIdMongo(userId as string)) {
       throw new NotFoundError('UserId wrong');
     }
 
@@ -197,10 +178,6 @@ class AuthController {
     );
 
     if (!tokenStore) {
-      // userDb.isActive = false;
-      // await userDb.save();
-      // await KeyStoresService.deleteALlTokenStores({ userId });
-
       throw new ForbiddenError('Your account is blocked, contact supporter');
     }
 
@@ -220,13 +197,6 @@ class AuthController {
       '1day',
     );
 
-    // res.cookie('accessToken', newAccessToken, {
-    //   httpOnly: false,
-    //   secure: true,
-    //   path: '/',
-    //   sameSite: false,
-    //   maxAge: 86400000 * 7,
-    // });
     new SuccessResponse({
       message: 'Send new access token',
       data: newAccessToken,

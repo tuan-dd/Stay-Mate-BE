@@ -9,11 +9,11 @@ class SecretKeyStoreService extends BaseService<ISecretKeyStore> {
   }
 
   deleteALl = (query: FilterQuery<ISecretKeyStore>, option?: QueryOptions) => {
-    return SecretKeyStore.deleteMany(query, option).exec();
+    return this.model.deleteMany(query, option).exec();
   };
 
   deleteTokenStore = (query: FilterQuery<ISecretKeyStore>, option?: QueryOptions) => {
-    return SecretKeyStore.deleteOne(query, option).exec();
+    return this.model.deleteOne(query, option).exec();
   };
 }
 

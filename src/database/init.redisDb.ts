@@ -9,6 +9,8 @@ const logger = getLogger('REDIS');
 class RedisConfig {
   private static instance: RedisConfig;
 
+  private url = `redis://${host}:${port}`;
+
   private clientInstance: ReturnType<typeof createClient>;
 
   private constructor() {
@@ -16,9 +18,8 @@ class RedisConfig {
   }
 
   async connectRedis() {
-    const url = `redis://${host}:${port}`;
     const client = createClient({
-      url,
+      url: this.url,
       password,
       name,
     });
