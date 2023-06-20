@@ -10,7 +10,7 @@ import { UserDocument } from '@/models/User';
 import { CreateUserSchema, UpdateUserSchema } from '@/schema/user.schema';
 import userService from '@/services/user.service';
 import UserService from '@/services/user.service';
-import { getDeleteFilter } from '@/utils/lodashUtil';
+import { getDeleteFilter } from '@/utils/otherUtil';
 
 import { Response, Request } from 'express';
 
@@ -33,6 +33,7 @@ class UserController {
     const body = req.body;
     const userId = req.headers[EKeyHeader.USER_ID] as string;
     let userDb: UserDocument | boolean;
+
     if (body.password) {
       userDb = await UserService.findByIdAndCheckPass(userId, body.password, {
         lean: false,
@@ -40,9 +41,9 @@ class UserController {
 
       body.password = body.newPassword;
     } else {
-      userDb = (await UserService.findById(userId, null, {
+      userDb = await UserService.findById(userId, null, {
         lean: false,
-      })) as UserDocument;
+      });
     }
 
     if (typeof userDb === 'boolean') throw new ForbiddenError('Wrong Password');
@@ -60,7 +61,7 @@ class UserController {
 
   getMe = async (req: Request, res: Response) => {
     const email = req.user.email;
-    const dataUser = await userService.findOne({ email }, { password: 0 });
+    const dataUser = await userService.findOne({ email }, { password: 0, isActive: 0 });
 
     if (!dataUser) throw new NotFoundError('Not found user');
 

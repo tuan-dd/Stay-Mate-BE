@@ -1,5 +1,5 @@
-import Hotel, { HotelDocument, IHotel } from '@/models/Hotel';
-import { FilterQuery, PopulateOptions, Types } from 'mongoose';
+import Hotel, { HotelDocument, IHotel, Package } from '@/models/Hotel';
+import { ClientSession, FilterQuery, PopulateOptions, Types } from 'mongoose';
 import BaseService, { QueryWithPagination } from './base.service';
 import { RoomDocument } from '@/models/Room-type';
 
@@ -12,7 +12,8 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
     hotelId: string | Types.ObjectId,
     options?: PopulateOptions,
   ) => {
-    return Hotel.findById(hotelId)
+    return this.model
+      .findById(hotelId)
       .populate<{ roomTypeIds: RoomDocument[] }>({
         path: 'roomTypeIds',
         ...options,
@@ -25,7 +26,8 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
     query: FilterQuery<HotelDocument>,
     options?: PopulateOptions,
   ) => {
-    return Hotel.findOne(query)
+    return this.model
+      .findOne<HotelDocument>(query)
       .populate<{ roomTypeIds: RoomDocument[] }>({
         path: 'roomTypeIds',
         ...options,
@@ -38,7 +40,8 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
     query: QueryWithPagination<HotelDocument>,
     options?: PopulateOptions,
   ) => {
-    return Hotel.find(query.query)
+    return this.model
+      .find(query.query)
       .populate<{ roomTypeIds: RoomDocument[] }>({
         path: 'roomTypeIds',
         ...options,
@@ -49,7 +52,44 @@ class HotelService extends BaseService<IHotel, HotelDocument> {
   };
 
   countQuery = (query: FilterQuery<HotelDocument>) => {
-    return Hotel.count(query);
+    return this.model.count(query);
+  };
+
+  updateMemberShip = async (
+    userId: Types.ObjectId,
+    packageMembership: Package,
+    session: ClientSession,
+  ) => {
+    if (packageMembership === Package.WEEK)
+      await this.updateMany(
+        {
+          userId: userId,
+          package: Package.FREE,
+          isDelete: false,
+        },
+        { $set: { package: packageMembership } },
+        { session },
+      );
+    else if (packageMembership === Package.MONTH) {
+      await this.updateMany(
+        {
+          userId: userId,
+          package: Package.WEEK,
+          isDelete: false,
+        },
+        { $set: { package: packageMembership } },
+        { session },
+      );
+    } else {
+      await this.updateMany(
+        {
+          userId: userId,
+          isDelete: false,
+        },
+        { $set: { package: packageMembership } },
+        { session },
+      );
+    }
   };
 }
 export default new HotelService();

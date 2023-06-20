@@ -4,7 +4,9 @@ import mongoose from 'mongoose';
 import appConfig from '@/config/config';
 
 class Database {
-  static instance: Database;
+  private static instance: Database;
+
+  private url = `${appConfig.database.host}${appConfig.database.port}${appConfig.database.name}`;
 
   constructor() {
     this.connect();
@@ -17,11 +19,9 @@ class Database {
       mongoose.set('debug', { color: true });
     }
 
-    const url = `${appConfig.database.host}${appConfig.database.port}${appConfig.database.name}`;
-
+    // .connect(url)
     mongoose
-      // .connect(url)
-      .connect(url, { maxPoolSize: 50 }) //  nầy sau xem với tài nguyên máy tính
+      .connect(this.url, { maxPoolSize: 50 }) //  nầy sau xem với tài nguyên máy tính
       .then(() => console.log('Connected Mongodb Success'))
       .catch((err: mongoose.Error) => logger.error('MongoDB Error', err));
   }

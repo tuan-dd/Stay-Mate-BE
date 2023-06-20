@@ -13,63 +13,67 @@ class UserService extends BaseService<IUser, UserDocument> {
     password: string,
     option?: QueryOptions,
   ): Promise<boolean | UserDocument> => {
-    const userDb = await User.findById<UserDocument>(id, null, {
+    const userDb = await this.model.findById<UserDocument>(id, null, {
       lean: false,
       ...option,
     });
     const isValid = await pwdUtil.getCompare(password, userDb.password);
-    if (!isValid) return false;
+    if (!isValid && !userDb.isActive) return false;
     return userDb;
   };
 
   findUserByAggregate = async (userId: string, project: { [key: string]: 0 | 1 }) => {
-    return User.aggregate([
-      { $match: { _id: new Types.ObjectId(userId) } },
-      {
-        $lookup: {
-          from: 'hotels',
-          localField: '_id',
-          foreignField: 'userId',
-          as: 'hotels',
+    return this.model
+      .aggregate([
+        { $match: { _id: new Types.ObjectId(userId) } },
+        {
+          $lookup: {
+            from: 'hotels',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'hotels',
+          },
         },
-      },
-      { $unwind: '$hotels' },
-      {
-        $lookup: {
-          from: 'roomTypes',
-          localField: 'hotels.roomTypeIds',
-          foreignField: '_id',
-          as: 'roomTypes',
+        { $unwind: '$hotels' },
+        {
+          $lookup: {
+            from: 'roomTypes',
+            localField: 'hotels.roomTypeIds',
+            foreignField: '_id',
+            as: 'roomTypes',
+          },
         },
-      },
-      { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
-    ]).exec();
+        { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
+      ])
+      .exec();
   };
 
   findUserAddInfo = async (userId: string, project: { [key: string]: 0 | 1 }) => {
-    return User.aggregate([
-      { $match: { _id: new Types.ObjectId(userId) } },
-      {
-        $lookup: {
-          from: 'hotels',
-          localField: '_id',
-          foreignField: 'userId',
-          as: 'hotels',
+    return this.model
+      .aggregate([
+        { $match: { _id: new Types.ObjectId(userId) } },
+        {
+          $lookup: {
+            from: 'hotels',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'hotels',
+          },
         },
-      },
-      { $unwind: '$hotels' },
-      {
-        $lookup: {
-          from: 'reviews',
-          localField: 'hotels._id',
-          foreignField: 'hotel.hotelId',
-          as: 'reviews',
+        { $unwind: '$hotels' },
+        {
+          $lookup: {
+            from: 'reviews',
+            localField: 'hotels._id',
+            foreignField: 'hotel.hotelId',
+            as: 'reviews',
+          },
         },
-      },
-      { $unwind: '$reviews' },
-      { $group: { _id: 'countReview' } },
-      { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
-    ]).exec();
+        { $unwind: '$reviews' },
+        { $group: { _id: 'countReview' } },
+        { $project: { 'hotels.roomTypeIds': 0, password: 0, ...project } },
+      ])
+      .exec();
   };
 }
 const userService = new UserService();

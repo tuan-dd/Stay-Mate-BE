@@ -1,25 +1,22 @@
 import Booking, { BookingDocument, IBooking, EStatus } from '@/models/Booking';
 import BaseService, { QueryWithPagination } from './base.service';
-import Membership, { IMembership, MembershipDocument } from '@/models/Membership';
-import {
-  AnyKeys,
+import mongoose, {
+  ClientSession,
   FilterQuery,
   PopulateOptions,
   QueryOptions,
-  SaveOptions,
   Types,
 } from 'mongoose';
-import { NotFoundError } from '@/helpers/utils';
+import { BadRequestError, ForbiddenError, NotFoundError } from '@/helpers/utils';
 import hotelsService from './hotels.service';
 import { Package } from '@/models/Hotel';
 import { GetDetailSchema } from '@/schema/hotel.schema';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import dayjs from 'dayjs';
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import userService from './user.service';
+import addJobToQueue from '@/queue/queue';
+import { EJob } from '@/utils/jobs';
+import { convertDate, convertDateToNumber } from '@/utils/otherUtil';
 
-interface IRoomRes {
+interface IRoomReq {
   quantity: number;
   roomTypeId: Types.ObjectId;
 }
@@ -32,10 +29,11 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     query: QueryWithPagination<BookingDocument>,
     option?: QueryOptions,
   ) => {
-    return Booking.find<BookingDocument>(query.query, null, {
-      lean: true,
-      ...option,
-    })
+    return this.model
+      .find<BookingDocument>(query.query, null, {
+        lean: true,
+        ...option,
+      })
       .skip(query.limit * (query.page - 1))
       .limit(query.limit)
       .sort('-createdAt')
@@ -47,7 +45,8 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     option?: QueryOptions,
     optionPopulate?: PopulateOptions,
   ) => {
-    return Booking.findById(query, null, { lean: true, ...option })
+    return this.model
+      .findById(query, null, { lean: true, ...option })
       .populate({
         path: 'rooms.roomTypeId',
         ...optionPopulate,
@@ -61,7 +60,8 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     options1?: PopulateOptions,
     options2?: PopulateOptions,
   ) => {
-    return Booking.findOne(query, null, { lean: true, ...option })
+    return this.model
+      .findOne(query, null, { lean: true, ...option })
       .populate({
         path: 'hotelId',
         ...options1,
@@ -75,7 +75,8 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     options1?: PopulateOptions,
     options2?: PopulateOptions,
   ) => {
-    return Booking.find(query.query)
+    return this.model
+      .find(query.query)
       .populate({
         path: 'hotelId',
         ...options1,
@@ -92,7 +93,8 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     options1?: PopulateOptions,
     options2?: PopulateOptions,
   ) => {
-    return Booking.find(query.query)
+    return this.model
+      .find(query.query)
       .populate([
         {
           path: 'hotelId',
@@ -107,7 +109,7 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       .exec();
   };
 
-  isEnoughRoom = async (newBooking: IBooking, rooms: IRoomRes[]) => {
+  isEnoughRoom = async (newBooking: IBooking, rooms: IRoomReq[]) => {
     const hotelDb = await hotelsService.findOneAndPopulateByQuery(
       {
         _id: newBooking.hotelId,
@@ -126,23 +128,15 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
     if (!hotelDb || hotelDb.isDelete || hotelDb.package === Package.FREE)
       throw new NotFoundError('Not found hotel');
 
-    // tìm kiếm các booking ở trong khoảng thời gian đặt của new booking
-    const bookingsDb = await Booking.find({
+    // tìm kiếm các Booking ở trong khoảng thời gian đặt của new Booking
+    const bookingsDb = await this.model.find({
       hotelId: newBooking.hotelId,
       status: { $in: [EStatus.SUCCESS, EStatus.PENDING] },
       startDate: {
-        $gte: dayjs(newBooking.startDate)
-          .tz('Asia/Ho_Chi_Minh')
-          .set('hour', 11)
-          .set('minute', 0)
-          .toISOString(),
+        $gte: convertDate(newBooking.startDate, 11).toISOString(),
       },
       endDate: {
-        $lte: dayjs(newBooking.endDate)
-          .tz('Asia/Ho_Chi_Minh')
-          .set('hour', 13)
-          .set('minute', 0)
-          .toISOString(),
+        $lte: convertDate(newBooking.endDate, 13).toISOString(),
       },
       'rooms.roomTypeId': {
         $in: rooms.map((room) => room.roomTypeId),
@@ -190,18 +184,10 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
       hotelId: hotelDb._id,
       status: { $in: [EStatus.SUCCESS, EStatus.PENDING] },
       startDate: {
-        $gte: dayjs(props.startDate, 'YYYY-MM-DD')
-          .tz('Asia/Ho_Chi_Minh')
-          .set('hour', 11)
-          .set('minute', 0)
-          .toISOString(),
+        $gte: convertDate(props.startDate, 12).toISOString(),
       },
       endDate: {
-        $lte: dayjs(props.endDate, 'YYYY-MM-DD')
-          .tz('Asia/Ho_Chi_Minh')
-          .set('hour', 13)
-          .set('minute', 1)
-          .toISOString(),
+        $lte: convertDate(props.endDate, 13).toISOString(),
       },
     });
 
@@ -227,34 +213,184 @@ class BookingService extends BaseService<IBooking, BookingDocument> {
 
     return hotelDb;
   };
-}
 
-class MemberShipService extends BaseService<IMembership> {
-  constructor() {
-    super(Membership);
-  }
+  createBooking = async (newBooking: IBooking) => {
+    const roomOrders = newBooking.rooms;
 
-  createOneAtomic = (doc: AnyKeys<IMembership>[], option: SaveOptions) => {
-    return Membership.create(doc, option);
+    const numberOfRoomAfterCheck = await this.isEnoughRoom(newBooking, roomOrders);
+
+    if (!numberOfRoomAfterCheck) throw new BadRequestError('Out of room');
+
+    // tại đây loop qua để tính tổng tiền
+    let total = 0;
+    const roomsResults = [];
+    numberOfRoomAfterCheck.roomTypeIds.forEach((hotelDbRoom) => {
+      roomOrders.forEach((roomOrder) => {
+        if (roomOrder.roomTypeId.equals(hotelDbRoom._id)) {
+          // lấy tên phòng và số lượng để trả res
+          const roomResult = {
+            nameOfRoom: hotelDbRoom.nameOfRoom,
+            quantity: roomOrder.quantity,
+          };
+          roomsResults.push(roomResult);
+          total += roomOrder.quantity * hotelDbRoom.price;
+        }
+      });
+    });
+
+    // ngày đầu trừ ngày cuối để tính tổng số ngày ở nhân tổng tiền số lượng phòng
+    newBooking.total =
+      total *
+      Math.ceil(
+        (convertDateToNumber(newBooking.endDate, false) -
+          convertDateToNumber(newBooking.startDate, false)) /
+          (60 * 60 * 24),
+      );
+
+    const userDb = await userService.findById(newBooking.userId);
+    if (newBooking.total > userDb.account.balance)
+      throw new BadRequestError('You don`t enough money to booking');
+
+    const createBooking = await this.createOne(newBooking);
+
+    return createBooking;
   };
 
-  override findMany = (
-    query: QueryWithPagination<MembershipDocument>,
-    option?: QueryOptions,
+  paymentBooking = async (
+    userId: Types.ObjectId,
+    newPayment: { bookingId: Types.ObjectId; hotelId: Types.ObjectId; password: string },
   ) => {
-    return Membership.find(query.query, null, {
-      lean: true,
-      ...option,
-    })
-      .skip(query.limit * (query.page - 1))
-      .limit(query.limit)
-      .sort('-createdAt')
-      .exec();
+    const session: ClientSession = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const bookingDb = await bookingService.findOne(
+        {
+          _id: newPayment.bookingId,
+          userId,
+          hotelId: newPayment.hotelId,
+        },
+        null,
+        { lean: false },
+      );
+
+      if (!bookingDb) throw new NotFoundError('Not found payment');
+
+      if (bookingDb.status !== EStatus.PENDING)
+        throw new BadRequestError('Payment expired');
+
+      const userDb = await userService.findByIdAndCheckPass(userId, newPayment.password);
+
+      if (typeof userDb === 'boolean')
+        throw new ForbiddenError('Can`t payment, wrong password');
+
+      if (userDb.account.balance < bookingDb.total)
+        throw new ForbiddenError('Balance less than booking');
+
+      const hotel = await hotelsService.findById(newPayment.hotelId);
+
+      const hotelierDb = await userService.findByIdUpdate(
+        hotel.userId,
+        {
+          $inc: { 'account.virtualBalance': bookingDb.total },
+        },
+        { session },
+      );
+
+      if (!hotelierDb) throw new NotFoundError('Not found Hotelier');
+
+      userDb.account.balance = userDb.account.balance - bookingDb.total;
+
+      await userDb.save({ session });
+
+      bookingDb.status = EStatus.SUCCESS;
+
+      await bookingDb.save({ session });
+
+      const nowDate = convertDateToNumber(undefined);
+      const endDate = convertDateToNumber(bookingDb.endDate);
+
+      const createJob = await addJobToQueue(
+        {
+          type: EJob.BOOKING_STAY,
+          job: { id: bookingDb._id.toHexString() },
+        },
+        {
+          delay: endDate - nowDate,
+          removeOnComplete: true,
+        },
+      );
+
+      if (!createJob) throw new BadRequestError('Can`t payment, try again ');
+
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  };
+
+  cancelBooking = async (
+    userId: Types.ObjectId,
+    cancelPayment: { bookingId: Types.ObjectId; hotelId: Types.ObjectId },
+  ) => {
+    const session: ClientSession = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const bookingDb = await bookingService.findById(cancelPayment.bookingId, null, {
+        lean: false,
+      });
+
+      if (!bookingDb) throw new NotFoundError('Not found payment');
+
+      if (bookingDb.status !== EStatus.SUCCESS)
+        throw new NotFoundError('User cant refund');
+
+      const dataNow = convertDateToNumber(undefined);
+
+      if (convertDateToNumber(bookingDb.startDate) - 1000 * 60 * 60 * 12 < dataNow)
+        throw new BadRequestError('Overdue to cancel, you only cant cancel before 12h');
+
+      if (!userId.equals(bookingDb.userId)) throw new NotFoundError('Not found Booking');
+
+      const hotelDb = await hotelsService.findById(cancelPayment.hotelId);
+
+      const hotelierDb = await userService.findByIdUpdate(
+        hotelDb.userId,
+        {
+          $inc: { 'account.virtualBalance': -bookingDb.total },
+        },
+        { session },
+      );
+
+      if (!hotelierDb) throw new NotFoundError('Not found Hotelier');
+
+      await userService.findByIdUpdate(
+        userId,
+        {
+          $inc: { 'account.balance': bookingDb.total },
+        },
+        { session },
+      );
+
+      bookingDb.status = EStatus.CANCEL;
+
+      await bookingDb.save({ session });
+
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+
+      throw error;
+    } finally {
+      session.endSession();
+    }
   };
 }
 
 const bookingService = new BookingService();
 
-const memberShipService = new MemberShipService();
-
-export { bookingService, memberShipService };
+export default bookingService;

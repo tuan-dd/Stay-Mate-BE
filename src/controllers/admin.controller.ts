@@ -8,7 +8,7 @@ import {
 } from '@/schema/admin.schema';
 import hotelsService from '@/services/hotels.service';
 import userService from '@/services/user.service';
-import { getConvertCreatedAt, getDeleteFilter } from '@/utils/lodashUtil';
+import { getConvertCreatedAt, getDeleteFilter } from '@/utils/otherUtil';
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 

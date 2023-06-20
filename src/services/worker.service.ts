@@ -3,7 +3,7 @@ import appConfig from '@/config/config';
 import { EJob, WorkerJob } from '@/utils/jobs';
 import { Worker, Job } from 'bullmq';
 import { getLogger } from 'log4js';
-import { memberShipService, bookingService } from './payment.service';
+import bookingService from './payment.service';
 import { EStatus } from '@/models/Booking';
 import { Types } from 'mongoose';
 import userService from './user.service';
@@ -11,6 +11,8 @@ import hotelsService from './hotels.service';
 import reviewService from './review.service';
 import addJobToQueue from '@/queue/queue';
 import { Package } from '@/models/Hotel';
+import redisUtil from '@/utils/redisUtil';
+import membershipService from './membership.service';
 
 const { host, port, password, name } = appConfig.redis;
 class WorkerService {
@@ -108,6 +110,17 @@ class WorkerService {
           bookingId: new Types.ObjectId(bookingDb._id),
         });
 
+        const countBookingsByHotel = await redisUtil.get(
+          `countBookings:${hotelDb._id.toString()}`,
+        );
+        if (countBookingsByHotel && parseInt(countBookingsByHotel, 10) > 0) {
+          await redisUtil.set(
+            `countBookings:${hotelDb._id.toString()}`,
+            parseInt(countBookingsByHotel, 10) - 1,
+            { EX: 60 * 60 * 10 },
+          );
+        }
+
         await addJobToQueue(
           {
             type: EJob.DELETE_REVIEW,
@@ -133,7 +146,7 @@ class WorkerService {
         return;
       }
       case EJob.MEMBERSHIP: {
-        const membershipsDb = await memberShipService.findMany(
+        const membershipsDb = await membershipService.findMany(
           {
             query: {
               userId: new Types.ObjectId(job.data.job.userID),
